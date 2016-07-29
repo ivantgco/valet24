@@ -1,0 +1,16 @@
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('70', '1', '3', '2016-01-31 00:39:25', '2016-01-31 00:39:25');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('70', '1', '3', '2016-01-31 01:00:29', '2016-01-31 01:00:29');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('73', '1', '3', '2016-01-31 01:01:45', '2016-01-31 01:01:45');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('73', '1', '3', '2016-01-31 01:02:33', '2016-01-31 01:02:33');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('73', '1', '3', '2016-01-31 01:04:44', '2016-01-31 01:04:44');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('73', '1', '3', '2016-01-31 01:08:04', '2016-01-31 01:08:04');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('73', '1', '3', '2016-01-31 01:08:46', '2016-01-31 01:08:46');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `created`, `published`) VALUES ('73', '1', '3', '2016-01-31 01:10:09', '2016-01-31 01:10:09');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('74', '1', '3', '78', '2016-01-31 01:19:26', '2016-02-08 22:46:33', '2016-01-31 01:19:26');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('97', '1', '1', '14', '2016-02-09 02:36:59', '2016-02-11 23:47:17', '2016-02-09 02:36:59');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('99', '1', '2', '100', '2016-02-09 03:23:58', '2016-02-09 03:27:42', '2016-02-09 03:23:58');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('100', '1', '1', '2', '2016-02-11 22:27:23', '2016-02-11 22:28:26', '2016-02-11 22:27:23');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('101', '1', '2', '102', '2016-04-14 20:09:58', '2016-04-14 20:18:27', '2016-04-14 20:09:58');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('102', '1', '1', '93', '2016-04-14 21:58:56', '2016-06-24 01:07:27', '2016-04-14 21:58:56');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('103', '1', '1', '2', '2016-04-15 11:31:44', '2016-04-15 11:38:23', '2016-04-15 11:31:44');
+INSERT INTO `merchant_calendar` (`merchant_id`, `bank_id`, `status_id`, `complete_percent`, `created`, `updated`, `published`) VALUES ('104', '1', '1', '5', '2016-06-15 17:25:56', '2016-06-15 17:30:55', '2016-06-15 17:25:56');

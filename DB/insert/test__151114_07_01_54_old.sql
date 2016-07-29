@@ -1,0 +1,2 @@
+INSERT INTO `test` (`name`, `test`, `test2`, `test3`, `test4`, `test5`, `created`, `deleted`, `published`) VALUES ('fsdfsd', 'test', 'test2', 'test3', 'test4', 'test5', '2015-10-27 18:30:33', '2015-11-13 18:30:23', '2015-11-05 18:30:29');
+INSERT INTO `test` (`name`, `test`, `test2`, `test3`, `test4`, `test5`, `created`) VALUES ('test', 'test', 'test2', 'test3', 'test4', 'test5', '2015-11-14 18:30:14');

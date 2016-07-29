@@ -1,0 +1,6 @@
+INSERT INTO `menu` (`name`, `type_id`, `parent_id`, `menu_item`, `sort_no`, `icon`, `created`, `published`) VALUES ('Рабочий стол', '1', '1', 'dashboard', '10', 'user', '2015-11-06 01:10:04', '2015-11-06 01:11:11');
+INSERT INTO `menu` (`name`, `type_id`, `parent_id`, `menu_item`, `sort_no`, `icon`, `client_object_id`, `created`, `published`) VALUES ('Инвесторы', '2', '1', 'investors', '20', 'user', '11', '2015-11-06 01:39:24', '2015-11-06 01:39:27');
+INSERT INTO `menu` (`name`, `type_id`, `parent_id`, `menu_item`, `sort_no`, `created`, `published`) VALUES ('Deployment', '4', '1', 'deployment', '40', '2015-11-15 16:41:32', '2015-11-15 16:41:36');
+INSERT INTO `menu` (`name`, `type_id`, `menu_item`, `sort_no`, `created`, `published`) VALUES ('Настройки', '1', 'settings', '2000', '2015-11-15 18:56:58', '2015-11-15 18:57:02');
+INSERT INTO `menu` (`name`, `type_id`, `parent_id`, `menu_item`, `sort_no`, `client_object_id`, `created`, `published`) VALUES ('Таблицы', '2', '6', 'tables', '10', '44', '2015-11-15 19:00:21', '2015-11-15 19:00:24');
+INSERT INTO `menu` (`name`, `type_id`, `parent_id`, `menu_item`, `sort_no`, `client_object_id`, `created`, `published`) VALUES ('Редактор меню', '2', '6', 'menu_editor', '20', '45', '2015-11-15 23:08:23', '2015-11-15 23:08:26');
