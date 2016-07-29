@@ -106,4 +106,3 @@ bin/fillDB.js
 bin/cities.sql
 DUMPS
 TEMPFILE
-config/config.json
