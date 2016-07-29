@@ -102,3 +102,44 @@ if (res.length == 0) return cb(new MyError('!!!Не найден клиентс�
 forever start bin\www config_1_34.json
 forever stop bin\www
 forever restart bin\www
+
+
+{
+  "isDeveloper":true,
+  "port":81,
+  "host":"localhost",
+  "session":{
+    "secret":"secret123",
+    "key":"mysid",
+    "cookie":{
+      "path":"/",
+      "httpOnly":true,
+      "maxAge":null
+    }
+  },
+  "mysqlConnection":{
+    "connectionLimit":100,
+    "port": "3306",
+    "host": "localhost",
+    "user": "root",
+    "password": "aambfi5y",
+    "database": "valet24",
+    "dateStrings":"TIMESTAMP"
+  },
+  "mail":{
+    "mailTransport":{
+      "host": "smtp.mail.ru",
+      "port": 465,
+      "debug":true,
+      "secure":true,
+      "auth": {
+        "user": "iig@list.ru",
+        "pass": "johnjohn"
+      }
+    },
+    "from":"iig@list.ru",
+    "notificationEmail": "ivantgco@gmail.com,alextgco@gmail.com"
+
+  },
+  "feedbackEmail":"pswwgr@mail.ru"
+}
