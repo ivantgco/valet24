@@ -1290,5 +1290,127 @@
       "legal_address" : {"type": "varchar", "length": "255", "name": "Юр. адрес"},
       "is_work" : {"type": "tinyint", "length": "1", "name": "Рабочий банк"}
     }
+  },
+  "category": {
+    "profile": {
+      "name": "category",
+      "name_ru": "Категория",
+      "ending": "а"
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "is_root" : {"type": "tinyint", "length": "1", "name": "Корневая"},
+      "parent_category_id" : {"type": "bigint", "length": "20", "visible": false},
+      "parent_category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
+      "image": {"type": "varchar", "length": "255", "name": "Изображение"},
+      "products_count": {"type": "varchar", "length": "255", "name": "Товаров"}
+    }
+  },
+  "product": {
+    "profile": {
+      "name": "product",
+      "name_ru": "Продукт",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
+      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys"},
+      "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "virtual": true, "name": "Тип количества"},
+      "image": {"type": "varchar", "length": "255", "name": "Изображение"},
+      "description" : {"type": "varchar", "length": "255", "name": "Описание"},
+      "price" : {"type": "varchar", "length": "255", "name": "Цена"},
+      "category_id" : {"type": "bigint", "length": "20", "visible": false},
+      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Категория"},
+      "is_slider" : {"type": "tinyint", "length": "1", "name": "в слайдере"},
+      "slider_image": {"type": "varchar", "length": "255", "name": "Изображение для слайдера"}
+    }
+  },
+  "order": {
+    "profile": {
+      "name": "order",
+      "name_ru": "Заказ",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "order_datetime" : {"type": "datetime", "name": "Дата заказа"},
+      "order_confirm_datetime" : {"type": "datetime", "name": "Дата подтверждения заказа"},
+      "delivery_datetime" : {"type": "datetime", "name": "Дата доставки"},
+      "status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys"},
+      "status" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
+      "amount" : {"type": "varchar", "length": "255", "name": "Сумма"},
+      "address" : {"type": "varchar", "length": "255", "name": "Адрес доставки"},
+      "customer_name" : {"type": "varchar", "length": "255", "name": "Покупатель"},
+      "customer_phone" : {"type": "varchar", "length": "255", "name": "Телефон"},
+      "customer_email" : {"type": "varchar", "length": "255", "name": "Почта"},
+      "customer_flat" : {"type": "varchar", "length": "255", "name": "Квартира"},
+      "customer_gate" : {"type": "varchar", "length": "255", "name": "Подъезд"},
+      "customer_stage" : {"type": "varchar", "length": "255", "name": "Этаж"},
+      "customer_code" : {"type": "varchar", "length": "255", "name": "Код домофона"},
+      "sid" : {"type": "varchar", "length": "255", "name": "sid", "visible": false},
+      "comment" : {"type": "varchar", "length": "255", "name": "Комментарий"}
+    }
+  },
+  "order_product": {
+    "profile": {
+      "name": "order_product",
+      "name_ru": "Продукт в заказе",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "order_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_product_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys"},
+      "status" : {"type": "varchar", "length": "255", "from_table": "order_product_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
+      "product_id" : {"type": "bigint", "length": "20", "visible": false},
+      "name" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "name", "virtual": true, "name": "Наименование"},
+      "image": {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "image", "virtual": true, "name": "Изображение"},
+      "price" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "price", "virtual": true, "name": "Цена"},
+      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type_sys", "virtual": true, "name": "Тип количества sys"},
+      "qnt_type" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type", "virtual": true, "name": "Тип количества"},
+      "quantity" : {"type": "varchar", "length": "255", "name": "Количество"},
+      "description" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "description", "virtual": true, "name": "Описание"}
+    }
+  },
+  "qnt_type": {
+    "profile": {
+      "name": "qnt_type",
+      "name_ru": "Тип количества",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "order_status": {
+    "profile": {
+      "name": "order_status",
+      "name_ru": "Статус заказа",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "order_product_status": {
+    "profile": {
+      "name": "order_product_status",
+      "name_ru": "Статус продукта заказа",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
   }
 }
