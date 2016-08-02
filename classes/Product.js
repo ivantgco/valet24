@@ -9,6 +9,7 @@ var util = require('util');
 var api = require('../libs/api');
 var async = require('async');
 var rollback = require('../modules/rollback');
+var excelParser = require('excel-parser');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -189,6 +190,53 @@ Model.prototype.add_ = function (obj, cb) {
             cb(null, new UserOk(m,{data:err}));
         }
     })
+
+};
+
+/**
+ * Загружает продукты из excel файла
+ * @param obj
+ * @param cb
+ * @returns {*}
+ */
+Model.prototype.importFromExcel = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var confirm = obj.confirm;
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    var filename = obj.filename;
+    if (!filename) return cb(new UserError('Необходимо указать файл..',{obj:obj}));
+
+    // Считать файл
+    // Распарсить
+    // Вызвать add в цикле
+
+    excelParser.worksheets({
+        inFile: 'my_file.in'
+    }, function(err, worksheets){
+        if(err) console.error(err);
+        console.log(worksheets);
+    });
+
+
+    //async.series({
+    //    readFile: function (cb) {
+    //
+    //    }
+    //}, function (err) {
+    //    if (err && !(err instanceof UserOk)) {
+    //        if (err.message == 'needConfirm') return cb(err);
+    //        rollback.rollback(rollback_key, function (err2) {
+    //            return cb(err, err2);
+    //        });
+    //    }else{
+    //        cb(null, new UserOk(''));
+    //    }
+    //})
 
 };
 
