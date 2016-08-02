@@ -27,22 +27,5 @@ Model.prototype.init = function (obj, cb) {
     }]);
 };
 
-Model.prototype.get_menu_tree = function (params, cb) {
-    if (typeof cb!=='function') throw new MyError('В метод не передана функция callback');
-    if (typeof params!=='object') return cb(new MyError('В метод не переданы params'));
-    var _t = this;
-    //params.collapseData = false;
-    params.order_by = 'sort_no';
-    params.sort = 'sort_no';
-    params.limit = false;
-    params.param_where = {
-        is_visible:true
-    };
-    _t.get(params, function (err, res) {
-        cb(err, res);
-    })
-};
-
-
 
 module.exports = Model;
