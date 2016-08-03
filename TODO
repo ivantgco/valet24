@@ -114,3 +114,5 @@ LEFT JOIN category as category2 ON product.category_id = category2.id
 LEFT JOIN category as category3 ON product.parent_category_id = category3.id //--> LEFT JOIN category as category3 ON category2.parent_category_id = category3.id
 ---MySQLMode----1094---tableName=category2---> join_tables.push(' LEFT JOIN ' + colProfile.from_table + ' as ' + colProfile.from_table_alias + ' ON ' + tableName + '.' + colProfile.keyword + ' = ' + colProfile.from_table_alias + '.id');
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+"parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "category_id", "return_column": "parent_category_id", "virtual": true},

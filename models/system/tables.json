@@ -77,6 +77,7 @@
       "queryable": { "type": "tinyint", "length": "1", "default": 1},
       "whereable": { "type": "tinyint", "length": "1", "default": 1},
       "from_table": { "type": "varchar", "length": "255"},
+      "join_table": { "type": "varchar", "length": "255"},
       "keyword": { "type": "varchar", "length": "255"},
       "return_column": { "type": "varchar", "length": "255"},
       "virtual": { "type": "tinyint", "length": "1"},
@@ -170,6 +171,7 @@
       "queryable": { "type": "tinyint", "length": "1", "default": 1},
       "whereable": { "type": "tinyint", "length": "1", "default": 1},
       "from_table": { "type": "varchar", "length": "255"},
+      "join_table": { "type": "varchar", "length": "255"},
       "keyword": { "type": "varchar", "length": "255"},
       "return_column": { "type": "varchar", "length": "255"},
       "virtual": { "type": "tinyint", "length": "1"},
@@ -1326,7 +1328,9 @@
       "description" : {"type": "varchar", "length": "255", "name": "Описание"},
       "price" : {"type": "DECIMAL(10, 2)", "name": "Цена"},
       "category_id" : {"type": "bigint", "length": "20", "visible": false},
-      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Категория"},
+      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
+      "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
+      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
       "is_slider" : {"type": "tinyint", "length": "1", "name": "в слайдере"},
       "slider_image": {"type": "varchar", "length": "255", "name": "Изображение для слайдера"}
     }
