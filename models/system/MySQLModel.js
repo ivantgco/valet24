@@ -1551,7 +1551,7 @@ MySQLModel.prototype.add = function (obj, cb) {
             if (_t.auto_publish && !obj.published) {
                 obj.published = funcs.getDateTimeMySQL();
             }
-
+            console.log('INSERT',obj);
             conn.insert(_t.tableName, obj, function (err, recordId) {
                 conn.release();
                 if (err) {

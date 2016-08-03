@@ -9,7 +9,7 @@ var util = require('util');
 var api = require('../libs/api');
 var async = require('async');
 var rollback = require('../modules/rollback');
-var excelParser = require('excel-parser');
+var XLSX = require('xlsx');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -115,6 +115,7 @@ Model.prototype.add_ = function (obj, cb) {
                 }
             }
             if (!Object.keys(toModify).length) return cb(new UserOk('нет изменений'));
+            toModify.id = product.id;
             toModify.rollback_key = rollback_key;
             _t.modify(toModify, function (err) {
                 if (err) return cb(err);
@@ -136,7 +137,7 @@ Model.prototype.add_ = function (obj, cb) {
                             rollback_key:rollback_key
                         }
                     };
-                    if (category){
+                    if (category || new_category_id){
                         o.params.parent_category_id = new_category_id || category.id;
                     }
                     _t.api(o, function (err, res) {
@@ -208,19 +209,74 @@ Model.prototype.importFromExcel = function (obj, cb) {
     var confirm = obj.confirm;
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var filename = obj.filename;
+    var filename = obj.filename || 'Химия часть 1.xlsx';
     if (!filename) return cb(new UserError('Необходимо указать файл..',{obj:obj}));
 
+    //socketQuery({command:'importFromExcel',object:'Product'}, function (err, res) {
+    //    console.log(err, res);
+    //});
     // Считать файл
     // Распарсить
     // Вызвать add в цикле
+    var products = [];
 
-    excelParser.worksheets({
-        inFile: 'my_file.in'
-    }, function(err, worksheets){
-        if(err) console.error(err);
-        console.log(worksheets);
+    var workbook = XLSX.readFile('./serverUploads/' + filename);
+
+    var first_sheet_name = workbook.SheetNames[0];
+    /* Get worksheet */
+    var worksheet = workbook.Sheets[first_sheet_name];
+
+    var sheet1 = XLSX.utils.sheet_to_json(worksheet);
+    for (var i in sheet1) {
+        var row = sheet1[i];
+        //var image_list = '';
+        //for (var r in row) {
+        //    if (r===row[r])
+        //}
+        products[i] = {
+            from_file_name: filename,
+            from_file_id:row.id,
+            name:row.name,
+            image:row['URL picture'],
+            images_list:row['URL picture'] + ',' + row['Dop1'] + ',' + row['Dop2'],
+            price:row['price '].replace(',',''),
+            categorys:[row['Категория'],row['Подкатегория']]
+        }
+    }
+    //console.log(products);
+    async.eachSeries(products, function (product, cb) {
+        var params = {
+            rollback_key:rollback_key,
+            fromServer:true
+        };
+        for (var i in product) {
+            params[i] = product[i];
+        }
+        _t.add(params, cb);
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback(rollback_key, function (err2) {
+                return cb(err, err2);
+            });
+        } else {
+            cb(null, new UserOk('Товары успешно загружены'));
+        }
     });
+
+    return;
+    var example = {
+        id: '173',
+        'picture ': 'IMG_3151',
+        name: 'Дося ручная альпийск фреш 365гр',
+        'price ': '44.00',
+        'URL picture': 'http://citymarket112.usite.pro/excelimport/himiya1/2/IMG_3151.JPG',
+        Dop1: 'http://citymarket112.usite.pro/excelimport/himiya1/2/IMG_3152.JPG',
+        Dop2: 'http://citymarket112.usite.pro/excelimport/himiya1/2/IMG_3153.JPG',
+        'Категория': 'Бытовая химия',
+        'Подкатегория': 'Для стирки'
+    }
+
 
 
     //async.series({

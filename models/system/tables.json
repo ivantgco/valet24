@@ -1324,7 +1324,7 @@
       "image": {"type": "varchar", "length": "255", "name": "Изображение"},
       "images_list": {"type": "text", "name": "Изображения"},
       "description" : {"type": "varchar", "length": "255", "name": "Описание"},
-      "price" : {"type": "varchar", "length": "255", "name": "Цена"},
+      "price" : {"type": "DECIMAL(10, 2)", "name": "Цена"},
       "category_id" : {"type": "bigint", "length": "20", "visible": false},
       "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Категория"},
       "is_slider" : {"type": "tinyint", "length": "1", "name": "в слайдере"},
