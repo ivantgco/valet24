@@ -104,42 +104,13 @@ forever stop bin\www
 forever restart bin\www
 
 
-{
-  "isDeveloper":true,
-  "port":81,
-  "host":"localhost",
-  "session":{
-    "secret":"secret123",
-    "key":"mysid",
-    "cookie":{
-      "path":"/",
-      "httpOnly":true,
-      "maxAge":null
-    }
-  },
-  "mysqlConnection":{
-    "connectionLimit":100,
-    "port": "3306",
-    "host": "localhost",
-    "user": "root",
-    "password": "aambfi5y",
-    "database": "valet24",
-    "dateStrings":"TIMESTAMP"
-  },
-  "mail":{
-    "mailTransport":{
-      "host": "smtp.mail.ru",
-      "port": 465,
-      "debug":true,
-      "secure":true,
-      "auth": {
-        "user": "iig@list.ru",
-        "pass": "johnjohn"
-      }
-    },
-    "from":"iig@list.ru",
-    "notificationEmail": "ivantgco@gmail.com,alextgco@gmail.com"
+////Как создать виртуальное поле ссылающееся на другое (предыдущее) виртуальное поле////////////////
+"category_id" : {"type": "bigint", "length": "20", "visible": false},
+"category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
+"parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "parent_category_id", "virtual": true},
+"subcategory" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
 
-  },
-  "feedbackEmail":"pswwgr@mail.ru"
-}
+LEFT JOIN category as category2 ON product.category_id = category2.id
+LEFT JOIN category as category3 ON product.parent_category_id = category3.id //--> LEFT JOIN category as category3 ON category2.parent_category_id = category3.id
+---MySQLMode----1094---tableName=category2---> join_tables.push(' LEFT JOIN ' + colProfile.from_table + ' as ' + colProfile.from_table_alias + ' ON ' + tableName + '.' + colProfile.keyword + ' = ' + colProfile.from_table_alias + '.id');
+/////////////////////////////////////////////////////////////////////////////////////////////////////
