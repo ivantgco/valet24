@@ -54,6 +54,37 @@ Model.prototype.load = function (sid, cb) {
         cb(null);
     });
 };
+/**
+ * Авторизирует и загружает пользователя типа SITE по параметрe site
+ * @param obj
+ * @param cb
+ * @returns {*}
+ */
+Model.prototype.loadSiteUser = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var _t = this;
+    var site = obj.site;
+    if (!site) return cb(new MyError('Не передан параметр site'));
+    _t.get({
+        collapseData:false,
+        param_where: {
+            email: site,
+            user_type_sysname:'SITE',
+            status_sysname:'ACTIVE'
+        }
+    }, function (err, res) {
+        if (err) return cb(err);
+        if (!res.length) return cb(new MyError('Пользователь не найден'));
+        _t.authorized = !!res.length;
+        _t.user_data = res[0];
+        cb(null);
+    });
+};
 Model.prototype.encryptPassword = function(password){
     var salt = Math.random() + '';
     return {
@@ -75,16 +106,45 @@ Model.prototype.add = function (obj, cb) {
     if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы параметры'));
     var _t = this;
-    if (!obj.password){
+    var password = obj.password;
+    if (!password){
         return cb(new UserError('Не указан пароль.'));
     }
 
 
-    var passObj = _t.encryptPassword(obj.password);
+    var passObj = _t.encryptPassword(password);
     obj.hashedPassword = passObj.hashedPassword;
     obj.salt = passObj.salt;
-    delete obj.password;
+    delete  obj.password;
+    var user_type;
     async.series([
+        function (cb) {
+            // Получим тип пользователя
+            var o = {
+                command:'get',
+                object:'user_type',
+                params:{
+                    param_where:{
+                        id:obj.user_type_id
+                    },
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return err;
+                if (!res.length) return cb(new MyError('В справочнике user_type нет типа с id  '+ obj.user_type_id));
+                user_type = res[0];
+                cb(null);
+            })
+        },
+        function (cb) {
+            // Выполним проверки
+            if (user_type.sysname === 'SITE'){
+                obj.firstname = obj.firstname || obj.email;
+                obj.lastname = password;
+            }
+            cb(null);
+        },
         function (cb) {
             // получим ID нужного статуса - WAIT_CONFIRM
 

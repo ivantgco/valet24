@@ -115,13 +115,36 @@ var errors = {
         code: 1062,
         type:'error',
         message:'Такая запись уже существует.'
-    }
+    },
 
+    // от 2001 - ошибки site протокола
+    noAuthSite:{
+        code: 2001,
+        message:'Не удалось идентифицировать запрос'
+    },
+    errRequest:{
+        code: 2002,
+        message:'Некорректно переданы параметры запроса.'
+    },
+    badCommand:{
+        code: 2003,
+        message:'Такой команды не существует.'
+    },
+    badParams:{
+        code: 2004,
+        message:'Неверные параметры.'
+    }
 
 
 };
 
-module.exports = function(name, obj){
+module.exports = function(name, obj, obj2){
+    if (typeof obj2=='object'){
+        if (typeof obj!=='object') obj = {message:obj};
+        for (var i in obj2) {
+            obj[i] = obj[i] || obj2[i];
+        }
+    }
     if (name == 'noToastr') {
         delete obj.message;
         obj.code = 0;
