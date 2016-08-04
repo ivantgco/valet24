@@ -67,6 +67,7 @@ api_functions.get_category = function (obj, cb) {
             where:[]
         }
     };
+    if (obj.columns) o.params.columns = obj.columns.split(',');
     if (obj.id){
         var ids = obj.id.split(',');
         var w1 = {
@@ -82,6 +83,62 @@ api_functions.get_category = function (obj, cb) {
             type:'isNull'
         };
         o.params.where.push(w2);
+    }
+    api(o, cb);
+};
+
+api_functions.get_product = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+
+    var w, ids;
+    var o = {
+        command:'get',
+        object:'product',
+        params:{
+            where:[]
+        }
+    };
+    if (obj.columns) o.params.columns = obj.columns.split(',');
+    if (obj.id){
+        ids = obj.id.split(',');
+        w = {
+            key:'id',
+            val1:ids
+        };
+        if (ids.length > 1) w.type = 'in';
+        o.params.where.push(w);
+    }else{
+        if (obj.category_id){
+            ids = obj.category_id.split(',');
+            w = {
+                key:'category_id',
+                val1:ids
+            };
+            if (ids.length > 1) w.type = 'in';
+            o.params.where.push(w);
+        }
+        if (obj.parent_category_id){
+            ids = obj.parent_category_id.split(',');
+            w = {
+                key:'parent_category_id',
+                val1:ids
+            };
+            if (ids.length > 1) w.type = 'in';
+            o.params.where.push(w);
+        }
+        if (obj.name){
+            w = {
+                key:'name',
+                type:'like',
+                val1:obj.name
+            };
+            o.params.where.push(w);
+        }
     }
     api(o, cb);
 };
