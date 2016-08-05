@@ -39,7 +39,23 @@ MB.loader = function(state, mes){
     }
 };
 
+function importValetFile(filename, cb){
+    var o = {
+        command: 'importFromExcel',
+        object: 'product',
+        params: {
+            filename: filename
+        }
+    };
 
+    socketQuery(o, function(res){
+
+        if(typeof cb == 'function'){
+            cb();
+        }
+
+    });
+}
 
 var clearLSProfiles = function () {
 	var profiles = [];
@@ -143,6 +159,41 @@ $("#open_priceZones_30").on("click", function () {
 		hall_scheme_id: 30
 	};
 });
+
+$('#upload_valet_products_file').off('click').on('click', function(){
+
+    var html = '<div class="form-group"><label>Укажите имя файла (с расширением, например: Чай кофе.xlsx):</label><input type="text" id="upload-file-name" class="form-control"/></div>';
+
+    bootbox.dialog({
+        title: 'Загрузить файл товаров',
+        message: html,
+        buttons: {
+            success: {
+                title: 'Загрузать',
+                callback: function(){
+                    var fname = $('#upload-file-name').val();
+
+                    if(fname.length > 0){
+
+                        MB.loader(true, 'Подождите, импортируем файл '+ fname);
+
+                        importValetFile(fname, function(){
+
+                            MB.loader(false, 'Подождите, импортируем файл '+ fname);
+
+                        });
+
+                    }else{
+                        toastr['error']('Укажите имя файла', 'Ошибка!');
+                    }
+
+                }
+            }
+        }
+    })
+
+});
+
 
 $(document).off("keydown").on("keydown", function (e) {
 	var d, doPrevent;

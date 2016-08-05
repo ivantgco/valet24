@@ -25,6 +25,8 @@ exports.site_api = function(req, response, next){
     if (!command) return response.status(200).json(getCode('errRequest','Не передан command',{o:o}));
 
     if (typeof api_functions[command]!=='function') return response.status(200).json(getCode('badCommand',{o:o}));
+    if (typeof o.params!=='object') o.params = {};
+    o.params.sid = obj.sid;
     api_functions[command](o.params || {}, function (err, res) {
         if (err) return response.status(200).json(err);
         //var s_json = JSON.stringify
@@ -180,10 +182,8 @@ api_functions.add_product_in_cart = function (obj, cb) {
         command:'add',
         object:'product_in_cart',
         params:{
-            param_where:{
-                product_id:product_id,
-                sid:sid
-            }
+            product_id:product_id,
+            sid:sid
         }
     };
     api(o, cb);

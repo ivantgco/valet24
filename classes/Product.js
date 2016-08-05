@@ -265,6 +265,11 @@ Model.prototype.importFromExcel = function (obj, cb) {
     });
 
     return;
+
+
+
+
+
     var example = {
         id: '173',
         'picture ': 'IMG_3151',

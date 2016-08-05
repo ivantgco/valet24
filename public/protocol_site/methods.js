@@ -117,8 +117,8 @@ var methodos = {
     },
     add_product_in_cart: {
         name:'add_product_in_cart',
-        name_ru:'Получить корзину',
-        description:'Вернет содержимое корзины',
+        name_ru:'Добавить продукт в корзину',
+        description:'',
         responseJSON:
         '' +
         '\nНет примера\n' +

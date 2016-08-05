@@ -20,6 +20,7 @@ module.exports = function(req, res, next){
             user.loadSiteUser(req.body, function (err) {
                 if (err) return cb(err);
                 req.user = user;
+                req.body.sid = req.sessionID;
                 cb(null);
             });
         }
