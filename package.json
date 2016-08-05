@@ -33,6 +33,7 @@
     "request": "^2.69.0",
     "serve-favicon": "~2.2.0",
     "socket.io": "^1.4.5",
+    "xlsx": "^0.8.0",
     "xlsx-template": "0.0.3"
   }
 }

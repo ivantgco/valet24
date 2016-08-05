@@ -28,7 +28,24 @@ module.exports = function (app, express) {
 
 
     app.post('/bank/insertPayment', require('../middleware/loadUser'), require('./bank').insertPayment);
-    
+    app.get('/site_api',
+        function (req, res, next) {
+            for (var i in req.query) {
+                req.body[i] = req.body[i] || req.query[i];
+            }
+            next();
+        },
+        require('../middleware/loadSiteUser'), require('./site_api').site_api);
+    app.post('/site_api',
+        function (req, res, next) {
+            for (var i in req.query) {
+                req.body[i] = req.body[i] || req.query[i];
+            }
+            next();
+        },
+        require('../middleware/loadSiteUser'), require('./site_api').site_api);
+
+
     app.post('/add_user', require('./login').add_user);
     app.get('/add_user', function (req, res, next) {
         res.render('add_user');

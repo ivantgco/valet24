@@ -1091,7 +1091,8 @@ MySQLModel.prototype.get = function (params, cb) {
                 if (!colProfile.concat_fields) {
                     if (!from_table_counter[colProfile.from_table]) from_table_counter[colProfile.from_table] = 1;
                     colProfile.from_table_alias = colProfile.from_table + from_table_counter[colProfile.from_table]++;
-                    join_tables.push(' LEFT JOIN ' + colProfile.from_table + ' as ' + colProfile.from_table_alias + ' ON ' + tableName + '.' + colProfile.keyword + ' = ' + colProfile.from_table_alias + '.id');
+                    var table_name = (colProfile.join_table)? colProfile.join_table + '1' : tableName;
+                    join_tables.push(' LEFT JOIN ' + colProfile.from_table + ' as ' + colProfile.from_table_alias + ' ON ' + table_name + '.' + colProfile.keyword + ' = ' + colProfile.from_table_alias + '.id');
                     ready_columns.push((colProfile.from_table_alias || colProfile.from_table) + '.' + colProfile.return_column + ' as ' + col);
                     _t.class_fields_profile[col].from_table_alias = colProfile.from_table_alias;
                 } else if (colProfile.concat_fields) {
@@ -1551,7 +1552,7 @@ MySQLModel.prototype.add = function (obj, cb) {
             if (_t.auto_publish && !obj.published) {
                 obj.published = funcs.getDateTimeMySQL();
             }
-
+            console.log('INSERT',obj);
             conn.insert(_t.tableName, obj, function (err, recordId) {
                 conn.release();
                 if (err) {

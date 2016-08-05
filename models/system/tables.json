@@ -77,6 +77,7 @@
       "queryable": { "type": "tinyint", "length": "1", "default": 1},
       "whereable": { "type": "tinyint", "length": "1", "default": 1},
       "from_table": { "type": "varchar", "length": "255"},
+      "join_table": { "type": "varchar", "length": "255"},
       "keyword": { "type": "varchar", "length": "255"},
       "return_column": { "type": "varchar", "length": "255"},
       "virtual": { "type": "tinyint", "length": "1"},
@@ -170,6 +171,7 @@
       "queryable": { "type": "tinyint", "length": "1", "default": 1},
       "whereable": { "type": "tinyint", "length": "1", "default": 1},
       "from_table": { "type": "varchar", "length": "255"},
+      "join_table": { "type": "varchar", "length": "255"},
       "keyword": { "type": "varchar", "length": "255"},
       "return_column": { "type": "varchar", "length": "255"},
       "virtual": { "type": "tinyint", "length": "1"},
@@ -194,10 +196,13 @@
       "lastname": {"type": "varchar","length": "255"},
       "midname": {"type": "varchar","length": "255"},
       "fio" : {"type": "varchar", "length": "255", "concat_fields": "firstname midname lastname", "virtual": true, "name": "ФИО"},
-      "email": {"type": "varchar","length": "255","unique": true, "server_editable":false, "server_insertable":true, "server_updatable":false, "validation":"email"},
+      "email": {"type": "varchar","length": "255","unique": true, "server_editable":false, "server_insertable":true, "server_updatable":false, "name":"email/login"},
       "status_id": { "type": "bigint", "length": "20", "server_editable":false, "server_updatable":true, "visible": false},
       "status_name" : {"type": "varchar", "length": "255", "from_table": "user_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
       "status_sysname" : {"type": "varchar", "length": "255", "from_table": "user_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "Системное имя статуса", "visible": false},
+      "user_type_id": { "type": "bigint", "length": "20", "visible": false},
+      "user_type_name" : {"type": "varchar", "length": "255", "from_table": "user_type", "keyword": "user_type_id", "return_column": "name", "virtual": true, "name": "Тип пользователя"},
+      "user_type_sysname" : {"type": "varchar", "length": "255", "from_table": "user_type", "keyword": "user_type_id", "return_column": "sysname", "virtual": true, "name": "Системное имя типа", "visible": false, "default_value":"USER", "require": true},
       "birthday": {"type": "date","default": "NULL"},
       "gender_id": {"type": "int","length": "2", "visible": false},
       "gender_name" : {"type": "varchar", "length": "255", "from_table": "gender", "keyword": "gender_id", "return_column": "name", "virtual": true, "name": "Пол"},
@@ -213,6 +218,18 @@
     "profile": {
       "name": "user_status",
       "name_ru": "Статус пользователя",
+      "ending": ""
+    },
+    "structure": {
+      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "user_type": {
+    "profile": {
+      "name": "user_type",
+      "name_ru": "Тип пользователя",
       "ending": ""
     },
     "structure": {
@@ -1315,20 +1332,83 @@
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "from_file_name" : {"type": "varchar", "length": "255", "name": "Excel файл"},
+      "from_file_id" : {"type": "bigint", "length": "20", "name": "Excel №"},
+      "name" : {"type": "varchar", "length": "255", "name": "Название", "unique": true},
       "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
-      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys"},
+      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
       "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "virtual": true, "name": "Тип количества"},
       "image": {"type": "varchar", "length": "255", "name": "Изображение"},
+      "images_list": {"type": "text", "name": "Изображения"},
       "description" : {"type": "varchar", "length": "255", "name": "Описание"},
-      "price" : {"type": "varchar", "length": "255", "name": "Цена"},
+      "price" : {"type": "DECIMAL(10, 2)", "name": "Цена"},
       "category_id" : {"type": "bigint", "length": "20", "visible": false},
-      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Категория"},
+      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
+      "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
+      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
       "is_slider" : {"type": "tinyint", "length": "1", "name": "в слайдере"},
       "slider_image": {"type": "varchar", "length": "255", "name": "Изображение для слайдера"}
     }
   },
+  "cart": {
+    "profile": {
+      "name": "cart",
+      "name_ru": "Корзина",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "sid" : {"type": "varchar", "length": "255", "unique":true, "require": true},
+      "amount" : {"type": "varchar", "length": "255", "name": "Сумма"},
+      "product_count" : {"type": "int", "name": "Кол-во товаров"},
+      "reserv_to_date" : {"type": "datetime", "name": "Резерв до"}
+    }
+  },
+  "product_in_cart": {
+    "profile": {
+      "name": "product_in_cart",
+      "name_ru": "Продукты в корзине",
+      "server_parent_table":"cart",
+      "server_parent_key":"cart_id",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "sid" : {"type": "varchar", "length": "255", "require": true},
+      "cart_id" : {"type": "bigint", "length": "20", "parent_key":true, "require": true},
+      "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "product_id" : {"type": "bigint", "length": "20"},
+      "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
+      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
+      "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "virtual": true, "name": "Тип количества"},
+      "image": {"type": "varchar", "length": "255", "name": "Изображение"},
+      "images_list": {"type": "text", "name": "Изображения"},
+      "description" : {"type": "varchar", "length": "255", "name": "Описание"},
+      "price" : {"type": "DECIMAL(10, 2)", "name": "Цена"},
+      "product_count" : {"type": "int", "name": "Кол-во товаров"},
+      "category_id" : {"type": "bigint", "length": "20", "visible": false},
+      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
+      "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
+      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"}
+    }
+  },
   "order": {
+    "profile": {
+      "name": "order",
+      "name_ru": "Заказ",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "sid" : {"type": "varchar", "length": "255"},
+      "status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys", "default_value":"RESERVED"},
+      "status" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
+      "amount" : {"type": "varchar", "length": "255", "name": "Сумма"},
+      "reserv_to_date" : {"type": "datetime", "name": "Резерв до"}
+    }
+  },
+  "order_old": {
     "profile": {
       "name": "order",
       "name_ru": "Заказ",

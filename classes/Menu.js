@@ -35,6 +35,9 @@ Model.prototype.get_menu_tree = function (params, cb) {
     params.order_by = 'sort_no';
     params.sort = 'sort_no';
     params.limit = false;
+    params.param_where = {
+        is_visible:true
+    };
     _t.get(params, function (err, res) {
         cb(err, res);
     })

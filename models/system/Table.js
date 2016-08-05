@@ -1006,6 +1006,7 @@ Table.prototype.backup = function (params, cb) {
                     var keys = '';
                     var values = '';
                     for (var j in row) {
+                        if (typeof _t.structure[j]!=='object') continue;
                         if (_t.structure[j].primary_key) continue;
                         if (row[j] == null || row[j] == '') continue;
                         keys += '`' + j + '`, '
