@@ -94,5 +94,51 @@ var methodos = {
                 }
             }
         }
+    },
+    get_cart: {
+        name:'get_cart',
+        name_ru:'Получить корзину',
+        description:'Вернет содержимое корзины',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'get_cart',
+            params:{
+                columns:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Можно передать столбцы через запятую'
+                }
+            }
+        }
+    },
+    add_product_in_cart: {
+        name:'add_product_in_cart',
+        name_ru:'Получить корзину',
+        description:'Вернет содержимое корзины',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'add_product_in_cart',
+            params:{
+                product_id:{
+                    required:true,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Необходимо передать № продукта.'
+                },
+                columns:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Можно передать столбцы через запятую'
+                }
+            }
+        }
     }
 };

@@ -142,3 +142,49 @@ api_functions.get_product = function (obj, cb) {
     }
     api(o, cb);
 };
+
+api_functions.get_cart = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    var o = {
+        command:'get',
+        object:'cart',
+        params:{
+            param_where:{
+                sid:sid
+            }
+        }
+    };
+    if (obj.columns) o.params.columns = obj.columns.split(',');
+    api(o, cb);
+};
+
+api_functions.add_product_in_cart = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var product_id = obj.product_id;
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    if (!product_id) return cb(new MyError('Не передан product_id'));
+    var o = {
+        command:'add',
+        object:'product_in_cart',
+        params:{
+            param_where:{
+                product_id:product_id,
+                sid:sid
+            }
+        }
+    };
+    api(o, cb);
+};
