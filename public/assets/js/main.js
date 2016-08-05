@@ -169,13 +169,13 @@ $('#upload_valet_products_file').off('click').on('click', function(){
         message: html,
         buttons: {
             success: {
-                title: 'Загрузать',
+                label: 'Загрузать',
                 callback: function(){
                     var fname = $('#upload-file-name').val();
 
                     if(fname.length > 0){
 
-                        MB.loader(true, 'Подождите, импортируем файл '+ fname);
+                        MB.loader(true, 'Подождите, импортируем файл '+ fname + '<br/>Это может занять до нескольких минут...');
 
                         importValetFile(fname, function(){
 
@@ -186,6 +186,12 @@ $('#upload_valet_products_file').off('click').on('click', function(){
                     }else{
                         toastr['error']('Укажите имя файла', 'Ошибка!');
                     }
+
+                }
+            },
+            error: {
+                label: 'Отмена',
+                callback: function(){
 
                 }
             }
