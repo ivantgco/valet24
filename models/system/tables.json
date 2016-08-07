@@ -264,6 +264,27 @@
       "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя"}
     }
   },
+  "company_settings": {
+    "profile": {
+      "name": "company_settings",
+      "name_ru": "Настройка компании",
+      "server_parent_table":"company_sys",
+      "server_parent_key":"company_id",
+      "ending": "а"
+    },
+    "structure": {
+      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "company_id": { "type": "bigint", "length": "20", "require": true, "server_editable":false, "server_insertable":true, "server_updatable":false, "visible": false, "require":true, "unique":true},
+      "company_name" : {"type": "varchar", "length": "255", "from_table": "company_sys", "keyword": "company_id", "return_column": "name", "virtual": true, "name": "Компания"},
+      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя", "require":true, "unique":true},
+      "description": {"type": "text", "name": "Описание"},
+      "value1" : {"type": "text", "name": "Значение"},
+      "value2" : {"type": "text", "name": "Значение2"},
+      "value3" : {"type": "text", "name": "Значение3"},
+      "prev_value" : {"type": "text", "name": "Предыдущее значение"}
+    }
+  },
   "test": {
     "profile": {
       "name": "test",
@@ -1312,7 +1333,8 @@
     "profile": {
       "name": "category",
       "name_ru": "Категория",
-      "ending": "а"
+      "ending": "а",
+      "default_order_by":"sort_no"
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
@@ -1321,7 +1343,9 @@
       "parent_category_id" : {"type": "bigint", "length": "20", "visible": false},
       "parent_category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
       "image": {"type": "varchar", "length": "255", "name": "Изображение"},
-      "products_count": {"type": "varchar", "length": "255", "name": "Товаров"}
+      "products_count": {"type": "int", "name": "Товаров"},
+      "sort_no" : {"type": "bigint", "length": "20", "name": "Порядок", "default_value": 10000},
+      "site_alias": {"type": "varchar", "length": "255", "name": "Товаров"}
     }
   },
   "product": {
@@ -1347,7 +1371,8 @@
       "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
       "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
       "is_slider" : {"type": "tinyint", "length": "1", "name": "в слайдере"},
-      "slider_image": {"type": "varchar", "length": "255", "name": "Изображение для слайдера"}
+      "slider_image": {"type": "varchar", "length": "255", "name": "Изображение для слайдера"},
+      "site_alias": {"type": "varchar", "length": "255", "name": "Товаров"}
     }
   },
   "cart": {

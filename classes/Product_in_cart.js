@@ -130,6 +130,7 @@ Model.prototype.add_ = function (obj, cb) {
             };
             _t.api(o, function (err, res) {
                 if (err) return cb(new MyError('Не удалось получить информацию по прдукту',{err:err}));
+                if (!res.length) return cb(new UserError('Продукт не найден'));
                 product = res[0];
                 cb(null);
             });

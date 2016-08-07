@@ -27,5 +27,17 @@ Model.prototype.init = function (obj, cb) {
     }]);
 };
 
+Model.prototype.createAliasForSite = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var _t = this;
+
+    // Сгенерируем alias
+};
+
 
 module.exports = Model;

@@ -4,6 +4,7 @@ var MyError = require('../error').MyError;
 var UserError = require('../error').UserError;
 var UserOk = require('../error').UserOk;
 var getCode = require('../libs/getCode');
+var async = require('async');
 
 
 exports.site_api = function(req, response, next){
@@ -29,6 +30,7 @@ exports.site_api = function(req, response, next){
     o.params.sid = obj.sid;
     api_functions[command](o.params || {}, function (err, res) {
         if (err) return response.status(200).json(err);
+        if (res.code) return response.status(200).json(res);
         //var s_json = JSON.stringify
         return response.status(200).json(getCode('ok', res));
     });
@@ -86,6 +88,8 @@ api_functions.get_category = function (obj, cb) {
         };
         o.params.where.push(w2);
     }
+    o.params.limit = obj.limit;
+    o.params.page_no = obj.page_no;
     api(o, cb);
 };
 
@@ -115,7 +119,7 @@ api_functions.get_product = function (obj, cb) {
         if (ids.length > 1) w.type = 'in';
         o.params.where.push(w);
     }else{
-        if (obj.category_id){
+        if (typeof obj.category_id == 'string'){
             ids = obj.category_id.split(',');
             w = {
                 key:'category_id',
@@ -142,6 +146,8 @@ api_functions.get_product = function (obj, cb) {
             o.params.where.push(w);
         }
     }
+    o.params.limit = obj.limit;
+    o.params.page_no = obj.page_no;
     api(o, cb);
 };
 
@@ -154,17 +160,58 @@ api_functions.get_cart = function (obj, cb) {
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
-    var o = {
-        command:'get',
-        object:'cart',
-        params:{
-            param_where:{
-                sid:sid
+
+    var cart;
+    async.series({
+        getCart: function (cb) {
+            var o = {
+                command:'get',
+                object:'cart',
+                params:{
+                    param_where:{
+                        sid:sid
+                    },
+                    collapseData:false
+                }
+            };
+            if (obj.columns) o.params.columns = obj.columns.split(',');
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить корзину.', {err:err}));
+                cart = res[0];
+                cb(null);
+            });
+        },
+        getProducts: function (cb) {
+            if (!cart) {
+                cart = {
+                    amount:0,
+                    product_counts:0,
+                    products:[]
+                };
+                return cb(null);
             }
+            var o = {
+                command:'get',
+                object:'product_in_cart',
+                params:{
+                    param_where:{
+                        cart_id:cart.id
+                    },
+                    collapseData:false
+                }
+            };
+            if (obj.product_columns) o.params.columns = obj.product_columns.split(',');
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товары в корзине', {err:err}));
+                cart.products = res;
+                cb(null);
+            });
         }
-    };
-    if (obj.columns) o.params.columns = obj.columns.split(',');
-    api(o, cb);
+    }, function (err) {
+        if (err) return cb(err);
+        return cb(null, cart);
+    })
+
 };
 
 api_functions.add_product_in_cart = function (obj, cb) {
@@ -178,13 +225,24 @@ api_functions.add_product_in_cart = function (obj, cb) {
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
     if (!product_id) return cb(new MyError('Не передан product_id'));
-    var o = {
-        command:'add',
-        object:'product_in_cart',
-        params:{
-            product_id:product_id,
-            sid:sid
+
+    async.series({
+        add: function (cb) {
+            var o = {
+                command:'add',
+                object:'product_in_cart',
+                params:{
+                    product_id:product_id,
+                    sid:sid
+                }
+            };
+            api(o, cb);
+        },
+        getCart: function (cb) {
+            api_functions.get_cart(obj, cb);
         }
-    };
-    api(o, cb);
+    }, function (err, res) {
+        if (err) return cb(err);
+        cb(null, res.getCart);
+    });
 };
