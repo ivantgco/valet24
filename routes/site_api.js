@@ -157,10 +157,7 @@ api_functions.get_product = function (obj, cb) {
             o.params.page_no = obj.page_no;
             api(o, function (err, res) {
                 if (err) return cb(err);
-                for (var i in res) {
-                    products[i] = res[i];
-                }
-                //products = res;
+                products = funcs.cloneObj(res);
                 cb(null, err);
             });
         },
@@ -242,6 +239,7 @@ api_functions.get_cart = function (obj, cb) {
                         cart_id:cart.id
                     },
                     collapseData:false
+
                 }
             };
             if (obj.product_columns) o.params.columns = obj.product_columns.split(',');

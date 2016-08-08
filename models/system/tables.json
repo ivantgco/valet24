@@ -1373,7 +1373,7 @@
       "is_slider" : {"type": "tinyint", "length": "1", "name": "в слайдере"},
       "slider_image": {"type": "varchar", "length": "255", "name": "Изображение для слайдера"},
       "site_alias": {"type": "varchar", "length": "255", "name": "Альяс"},
-      "in_basket_count": {"type": "int", "name": "Товаров в корзине", "visible":false}
+      "in_basket_count": {"type": "int", "name": "Товаров в корзине", "visible":true}
     }
   },
   "site_pages": {
