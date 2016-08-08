@@ -132,11 +132,37 @@ var methodos = {
                     validation:'notNull',
                     description: 'Необходимо передать № продукта.'
                 },
-                columns:{
+                product_count:{
                     required:false,
                     default:'',
                     validation:'notNull',
-                    description: 'Можно передать столбцы через запятую'
+                    description: 'Можно добавить несколько'
+                }
+            }
+        }
+    },
+    remove_product_from_cart: {
+        name:'add_product_in_cart',
+        name_ru:'Удалит продукт из корзины',
+        description:'',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'remove_product_from_cart',
+            params:{
+                product_id:{
+                    required:true,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Необходимо передать № продукта.'
+                },
+                product_count:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Можно удалить несколько'
                 }
             }
         }

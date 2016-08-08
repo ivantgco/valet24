@@ -77,6 +77,11 @@ var funcs = {
     parseBool: function(val){
         return !!val;
     },
+    formatMoney: function(val){
+        if (!val) val = 0;
+        if (isNaN(+val)) return val;
+        return val.toFixed(2);
+    },
     nullToString: function(val){
         return (val === null)? '' : val;
     },

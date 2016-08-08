@@ -107,6 +107,9 @@ var MySQLModel = function (obj) {
                         case "tinyint":
                             return (profile.field_length == 1) ? 'parseBool' : null;
                             break;
+                        case "DECIMAL(10, 2)":
+                            return 'formatMoney';
+                            break;
                         default :
                             return null;
                             break;

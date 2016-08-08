@@ -4,6 +4,7 @@ var MyError = require('../error').MyError;
 var UserError = require('../error').UserError;
 var UserOk = require('../error').UserOk;
 var getCode = require('../libs/getCode');
+var funcs = require('../libs/functions');
 var async = require('async');
 
 
@@ -76,9 +77,9 @@ api_functions.get_category = function (obj, cb) {
         var ids = obj.id.split(',');
         var w1 = {
             key:'id',
+            type:'in',
             val1:ids
         };
-        if (ids.length > 1) w1.type = 'in';
         o.params.where.push(w1);
     }
     if (obj.is_root){
@@ -100,55 +101,95 @@ api_functions.get_product = function (obj, cb) {
     }
     if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
 
-    var w, ids;
-    var o = {
-        command:'get',
-        object:'product',
-        params:{
-            where:[]
-        }
-    };
-    if (obj.columns) o.params.columns = obj.columns.split(',');
-    if (obj.id){
-        ids = obj.id.split(',');
-        w = {
-            key:'id',
-            val1:ids
-        };
-        if (ids.length > 1) w.type = 'in';
-        o.params.where.push(w);
-    }else{
-        if (typeof obj.category_id == 'string'){
-            ids = obj.category_id.split(',');
-            w = {
-                key:'category_id',
-                val1:ids
+    var products;
+    async.series({
+        getProducts: function (cb) {
+            var w, ids;
+            var o = {
+                command:'get',
+                object:'product',
+                params:{
+                    where:[],
+                    collapseData:false
+                }
             };
-            if (ids.length > 1) w.type = 'in';
-            o.params.where.push(w);
-        }
-        if (obj.parent_category_id){
-            ids = obj.parent_category_id.split(',');
-            w = {
-                key:'parent_category_id',
-                val1:ids
+            if (obj.columns) o.params.columns = obj.columns.split(',');
+            if (obj.id){
+                ids = String(obj.id).split(',');
+                w = {
+                    key:'id',
+                    type:'in',
+                    val1:ids
+                };
+                o.params.where.push(w);
+            }else{
+                if (obj.category_id){
+                    ids = String(obj.category_id).split(',');
+                    w = {
+                        key:'category_id',
+                        type:'in',
+                        val1:ids
+                    };
+                    o.params.where.push(w);
+                }
+                if (obj.parent_category_id){
+                    ids = String(obj.parent_category_id).split(',');
+                    w = {
+                        key:'parent_category_id',
+                        type:'in',
+                        val1:ids
+                    };
+                    o.params.where.push(w);
+                }
+                if (obj.name){
+                    w = {
+                        key:'name',
+                        type:'like',
+                        val1:obj.name
+                    };
+                    o.params.where.push(w);
+                }
+            }
+            o.params.limit = obj.limit;
+            o.params.page_no = obj.page_no;
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                products = res;
+                cb(null, err);
+            });
+        },
+        getProductFromCart: function (cb) {
+            var o = {
+                command:'get',
+                object:'product_in_cart',
+                params:{
+                    param_where:{
+                        sid:sid
+                    },
+                    collapseData:false
+                }
             };
-            if (ids.length > 1) w.type = 'in';
-            o.params.where.push(w);
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товары в корзине', {err:err}));
+                for (var i in res) {
+                    var product_id = res[i].product_id;
+                    for (var j in products) {
+                        if (products[j].id == product_id){
+                            products[j].in_basket_count = res[i].product_count;
+                        }
+                    }
+                }
+                products = funcs.collapseData(products);
+                cb(null);
+            });
         }
-        if (obj.name){
-            w = {
-                key:'name',
-                type:'like',
-                val1:obj.name
-            };
-            o.params.where.push(w);
-        }
-    }
-    o.params.limit = obj.limit;
-    o.params.page_no = obj.page_no;
-    api(o, cb);
+    }, function (err) {
+        if (err) return cb(err);
+        cb(null, products);
+    });
 };
 
 api_functions.get_cart = function (obj, cb) {
@@ -185,7 +226,7 @@ api_functions.get_cart = function (obj, cb) {
             if (!cart) {
                 cart = {
                     amount:0,
-                    product_counts:0,
+                    product_count:0,
                     products:[]
                 };
                 return cb(null);
@@ -233,7 +274,8 @@ api_functions.add_product_in_cart = function (obj, cb) {
                 object:'product_in_cart',
                 params:{
                     product_id:product_id,
-                    sid:sid
+                    sid:sid,
+                    fromServer:true
                 }
             };
             api(o, cb);
@@ -243,6 +285,45 @@ api_functions.add_product_in_cart = function (obj, cb) {
         }
     }, function (err, res) {
         if (err) return cb(err);
-        cb(null, res.getCart);
+        var product = {product_id:res.add[0].product_id, product_count:res.add[0].product_count};
+        cb(null, {product: product, cart: res.getCart});
+    });
+};
+
+api_functions.remove_product_from_cart = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var product_id = obj.product_id;
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    if (!product_id) return cb(new MyError('Не передан product_id'));
+    var product_count = obj.product_count || 1;
+
+
+    async.series({
+        add: function (cb) {
+            var o = {
+                command:'decrise_product_in_cart',
+                object:'product_in_cart',
+                params:{
+                    product_id:product_id,
+                    sid:sid,
+                    product_count:product_count,
+                    fromServer:true
+                }
+            };
+            api(o, cb);
+        },
+        getCart: function (cb) {
+            api_functions.get_cart(obj, cb);
+        }
+    }, function (err, res) {
+        if (err) return cb(err);
+        var product = {product_id:res.add[0].product_id, product_count:res.add[0].product_count};
+        cb(null, {product: product, cart: res.getCart});
     });
 };
