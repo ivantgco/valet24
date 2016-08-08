@@ -360,7 +360,7 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                 return cb(err, err2);
             });
         }else{
-            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:product_count_all}));
+            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:product.product_count}));
         }
     })
 };
