@@ -104,7 +104,7 @@ api_functions.get_product = function (obj, cb) {
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
 
-    var products;
+    var products = [];
     async.series({
         getProducts: function (cb) {
             var w, ids;
@@ -157,7 +157,10 @@ api_functions.get_product = function (obj, cb) {
             o.params.page_no = obj.page_no;
             api(o, function (err, res) {
                 if (err) return cb(err);
-                products = res;
+                for (var i in res) {
+                    products[i] = res[i];
+                }
+                //products = res;
                 cb(null, err);
             });
         },
