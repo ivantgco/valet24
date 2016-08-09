@@ -1434,9 +1434,9 @@
       "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"}
     }
   },
-  "order": {
+  "order_": {
     "profile": {
-      "name": "order",
+      "name": "order_",
       "name_ru": "Заказ",
       "ending": ""
     },
@@ -1453,7 +1453,7 @@
       "product_count" : {"type": "int", "name": "Кол-во товаров"},
       "reserv_to_date" : {"type": "datetime", "name": "Резерв до"},
       "crm_user_id" : {"type": "bigint", "length": "20", "visible": false},
-      "phone": { "type": "varchar", "length": "255", "name": "Телефон", "require": true},
+      "phone": { "type": "varchar", "length": "255", "name": "Телефон", "unique": true},
       "name": { "type": "varchar", "length": "255", "name": "Покупатель"},
       "email": { "type": "varchar", "length": "255", "name": "Email"},
       "address": { "type": "text", "length": "255", "name": "Адрес"},
