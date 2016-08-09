@@ -1595,7 +1595,7 @@ table.classicTable tr td.active .select3-angle {
 }
 
 .fn-field textarea {
-	width: 100%;
+	width: 60%;
 	height: 120px;
 	padding: 6px 8px;
 	margin: 7px 0px 0px;
