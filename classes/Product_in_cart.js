@@ -273,7 +273,8 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                     product_id:product_id,
                     sid:sid
                 },
-                collapseData:false
+                collapseData:false,
+                use_cache:false
             };
             _t.get(params, function (err, res) {
                 if (err) return cb(new MyError('Не удалось получить информацию по продукту',{err:err}));

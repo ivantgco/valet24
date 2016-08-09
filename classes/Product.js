@@ -10,6 +10,7 @@ var api = require('../libs/api');
 var async = require('async');
 var rollback = require('../modules/rollback');
 var XLSX = require('xlsx');
+var request = require('request');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -299,6 +300,89 @@ Model.prototype.importFromExcel = function (obj, cb) {
     //    }
     //})
 
+};
+
+
+
+Model.prototype.pushIntoWordpress = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var wordpress_url = 'http://valet24.tmweb.ru/create_wp_page.php';
+    var secure = 'SfL22ljis989128juaOaXCbsh91siuHHFs';
+
+    //var o = {
+    //    command:'pushIntoWordpress',
+    //    object:'Product'
+    //};
+    //socketQuery(o, function (err, res) {
+    //    console.log(err, res);
+    //});
+
+    // Получить данные
+    // Для каждого выполнить запрос push
+    // Alias записать в данные
+
+    var products = [];
+
+
+    async.series({
+        getDate: function (cb) {
+            var params = {
+                limit:100000,
+                collapseData:false
+            };
+            _t.get(params, function (err, res) {
+                if (err) return cb(err);
+                products = res;
+                cb(null);
+            });
+        },
+        pushToWordpress: function (cb) {
+            var counter = 0;
+            var products_count = products.length;
+            console.log('Продуктов', products_count);
+            async.eachSeries(products, function (product, cb) {
+                var alias = 'product_'+ product.id;
+                var title = product.name.replace(/[^a-zA-Zа-яА-Я0-9]/ig,'_');
+                if (title.length>50) title = title.substring(0, 50);
+                //console.log(title);
+                //return cb(null);
+                var full_url = wordpress_url + '?type=PRODUCT&name=' + alias + '&alias=' + alias + '&code=' + secure;
+                console.log(full_url);
+                if (product.site_alias){
+                    counter++;
+                    return cb(null);
+                }
+                request(full_url, function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        console.log('Ответ:',body); // Show the HTML for the Google homepage.
+                        if (body.indexOf('ERROR')!==-1){
+                            counter++;
+                            return cb(null);
+                        }
+                        var params = {
+                            id:product.id,
+                            site_alias:alias
+                        };
+
+                        _t.modify(params, cb);
+                    }else{
+                        console.log('error',error);
+                        return cb(error, response);
+                    }
+                    counter++;
+                    var percent = Math.ceil(counter * 100 / products_count);
+                    _t.user.socket.emit('pushIntoWordpressProduct',{percent:percent});
+                })
+            }, cb);
+        }
+    }, function (err) {
+        if (err) return cb(err);
+        cb (null, new UserOk('Проставили альясы для родуктов.'))
+    });
 };
 
 

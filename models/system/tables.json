@@ -1345,7 +1345,7 @@
       "image": {"type": "varchar", "length": "255", "name": "Изображение"},
       "products_count": {"type": "int", "name": "Товаров"},
       "sort_no" : {"type": "bigint", "length": "20", "name": "Порядок", "default_value": 10000},
-      "site_alias": {"type": "varchar", "length": "255", "name": "Товаров"}
+      "site_alias": {"type": "varchar", "length": "255", "name": "Альяс"}
     }
   },
   "product": {
@@ -1411,7 +1411,8 @@
       "name_ru": "Продукты в корзине",
       "server_parent_table":"cart",
       "server_parent_key":"cart_id",
-      "ending": ""
+      "ending": "",
+      "use_cache": false
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
@@ -1434,6 +1435,80 @@
     }
   },
   "order": {
+    "profile": {
+      "name": "order",
+      "name_ru": "Заказ",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "sid" : {"type": "varchar", "length": "255", "unique":true, "require": true},
+      "order_status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "order_status" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "order_status_id", "return_column": "name", "virtual": true, "name": "Статус"},
+      "order_status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "order_status_id", "return_column": "sysname", "virtual": true, "name": "Статус sys", "visible": false, "default_value":"CREATED"},
+      "additional_order_status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "additional_order_status" : {"type": "varchar", "length": "255", "from_table": "additional_order_status", "keyword": "additional_order_status_id", "return_column": "name", "virtual": true, "name": "Состаяние"},
+      "additional_order_status_sysname" : {"type": "varchar", "length": "255", "from_table": "additional_order_status", "keyword": "additional_order_status_id", "return_column": "sysname", "virtual": true, "name": "Статус sys", "visible": false},
+      "amount" : {"type": "DECIMAL(10, 2)", "name": "Сумма"},
+      "product_count" : {"type": "int", "name": "Кол-во товаров"},
+      "reserv_to_date" : {"type": "datetime", "name": "Резерв до"},
+      "comment": {"type": "text", "name": "Комментарий"}
+    }
+  },
+  "product_in_order": {
+    "profile": {
+      "name": "product_in_order",
+      "name_ru": "Продукты в заказе",
+      "server_parent_table":"order",
+      "server_parent_key":"order_id",
+      "ending": "",
+      "use_cache": false
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "sid" : {"type": "varchar", "length": "255", "require": true},
+      "order_id" : {"type": "bigint", "length": "20", "parent_key":true, "require": true},
+      "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "product_id" : {"type": "bigint", "length": "20"},
+      "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
+      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
+      "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "virtual": true, "name": "Тип количества"},
+      "image": {"type": "varchar", "length": "255", "name": "Изображение"},
+      "images_list": {"type": "text", "name": "Изображения"},
+      "description" : {"type": "varchar", "length": "255", "name": "Описание"},
+      "price" : {"type": "DECIMAL(10, 2)", "name": "Цена"},
+      "product_count" : {"type": "int", "name": "Кол-во товаров"},
+      "category_id" : {"type": "bigint", "length": "20", "visible": false},
+      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
+      "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
+      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"}
+    }
+  },
+  "order_status": {
+    "profile": {
+      "name": "order_status",
+      "name_ru": "Статус заказа",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "additional_order_status": {
+    "profile": {
+      "name": "additional_order_status",
+      "name_ru": "Состояния заказа",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "order_old": {
     "profile": {
       "name": "order",
       "name_ru": "Заказ",
@@ -1502,18 +1577,6 @@
     "profile": {
       "name": "qnt_type",
       "name_ru": "Тип количества",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "order_status": {
-    "profile": {
-      "name": "order_status",
-      "name_ru": "Статус заказа",
       "ending": ""
     },
     "structure": {
