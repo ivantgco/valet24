@@ -328,3 +328,40 @@ api_functions.remove_product_from_cart = function (obj, cb) {
         cb(null, {product: product, cart: res.getCart});
     });
 };
+
+api_functions.clear_cart = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    // Получить cart_id по sid
+    // Вызвать remove с cart_id
+
+    async.series({
+        getCartBySID: function (cb) {
+            var o = {
+                command:'get',
+                object:'cart',
+                params:{
+                    param_where:{
+                        sid:sid
+                    },
+                    collapseData:false
+                }
+            };
+            api(o, cb);
+        },
+        getCart: function (cb) {
+            api_functions.get_cart(obj, cb);
+        }
+    }, function (err, res) {
+        if (err) return cb(err);
+        var product = {product_id:res.add[0].product_id, product_count:res.add[0].product_count};
+        cb(null, {product: product, cart: res.getCart});
+    });
+};
