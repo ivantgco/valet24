@@ -196,4 +196,54 @@ Model.prototype.add_ = function (obj, cb) {
 };
 
 
+Model.prototype.confirmOrder = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (!id) return cb(new MyError('В метод не передан id'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Загрузим заказ
+    // Проверим заказ
+    // Изменим статус
+
+    var order;
+    async.series({
+        get: function (cb) {
+            _t.getById({id:id}, function (err, res) {
+                if (err) return cb(new MyError('Ошибка при попытке получить заказ.',{err:err}));
+                if (!res.length) return cb(new UserError('Заказ не найден'));
+                order = res;
+                cb(null);
+            })
+        },
+        check: function (cb) {
+            if (order.order_status_sysname!=='CREATED') return cb(new UserError('Заказ должен быть в статусе "Новый заказ"',{order:order}));
+            cb(null);
+        },
+        changeStatus: function (cb) {
+            var params = {
+                id:id,
+                order_status_sysname:'CONFIRM'
+            };
+            _t.modify(params, cb);
+        }
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback(rollback_key, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
+            cb(null, new UserOk('Ок'));
+        }
+    });
+
+};
+
+
 module.exports = Model;

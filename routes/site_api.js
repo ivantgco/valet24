@@ -384,3 +384,25 @@ api_functions.clear_cart = function (obj, cb) {
         cb(null, res.removeCart);
     });
 };
+
+api_functions.create_order = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    var o = {
+        command:'add',
+        object:'order',
+        params:{
+            sid:sid
+        }
+    };
+    api(o, function (err, res) {
+        cb(err, res); // Если ставить "cb" то получается лажа
+    });
+};
