@@ -149,6 +149,20 @@ Model.prototype.add_ = function (obj, cb) {
                 cb(null, res);
             })
         },
+        clearCart: function (cb) {
+            var o = {
+                command:'remove',
+                object:'cart',
+                params:{
+                    id:cart_id
+                }
+            };
+            o.params.rollback_key = rollback_key;
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось очистить корзину',{err:err}));
+                cb(null);
+            });
+        },
         createCRMUser: function (cb) {
             if (crm_user){
                 // TODO Дописать обновление покупателя
@@ -217,7 +231,7 @@ Model.prototype.confirmOrder = function (obj, cb) {
             _t.getById({id:id}, function (err, res) {
                 if (err) return cb(new MyError('Ошибка при попытке получить заказ.',{err:err}));
                 if (!res.length) return cb(new UserError('Заказ не найден'));
-                order = res;
+                order = res[0];
                 cb(null);
             })
         },
@@ -229,6 +243,153 @@ Model.prototype.confirmOrder = function (obj, cb) {
             var params = {
                 id:id,
                 order_status_sysname:'CONFIRM'
+            };
+            _t.modify(params, cb);
+        }
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback(rollback_key, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
+            cb(null, new UserOk('Ок'));
+        }
+    });
+
+};
+
+Model.prototype.onDelivery = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (!id) return cb(new MyError('В метод не передан id'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Загрузим заказ
+    // Проверим заказ
+    // Изменим статус ON_DELIVERY
+
+    var order;
+    async.series({
+        get: function (cb) {
+            _t.getById({id:id}, function (err, res) {
+                if (err) return cb(new MyError('Ошибка при попытке получить заказ.',{err:err}));
+                if (!res.length) return cb(new UserError('Заказ не найден'));
+                order = res[0];
+                cb(null);
+            })
+        },
+        check: function (cb) {
+            if (order.order_status_sysname!=='CONFIRM') return cb(new UserError('Заказ должен быть в статусе "Подтвержден"',{order:order}));
+            cb(null);
+        },
+        changeStatus: function (cb) {
+            var params = {
+                id:id,
+                order_status_sysname:'ON_DELIVERY'
+            };
+            _t.modify(params, cb);
+        }
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback(rollback_key, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
+            cb(null, new UserOk('Ок'));
+        }
+    });
+
+};
+
+Model.prototype.closeOrder = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (!id) return cb(new MyError('В метод не передан id'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Загрузим заказ
+    // Проверим заказ
+    // Изменим статус CLOSED
+
+    var order;
+    async.series({
+        get: function (cb) {
+            _t.getById({id:id}, function (err, res) {
+                if (err) return cb(new MyError('Ошибка при попытке получить заказ.',{err:err}));
+                if (!res.length) return cb(new UserError('Заказ не найден'));
+                order = res[0];
+                cb(null);
+            })
+        },
+        check: function (cb) {
+            if (order.order_status_sysname!=='ON_DELIVERY') return cb(new UserError('Заказ должен быть в статусе "В доставке"',{order:order}));
+            cb(null);
+        },
+        changeStatus: function (cb) {
+            var params = {
+                id:id,
+                order_status_sysname:'CLOSED'
+            };
+            _t.modify(params, cb);
+        }
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback(rollback_key, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
+            cb(null, new UserOk('Ок'));
+        }
+    });
+
+};
+
+Model.prototype.cancelOrder = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (!id) return cb(new MyError('В метод не передан id'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Загрузим заказ
+    // Проверим заказ
+    // Изменим статус
+
+    var order;
+    async.series({
+        get: function (cb) {
+            _t.getById({id:id}, function (err, res) {
+                if (err) return cb(new MyError('Ошибка при попытке получить заказ.',{err:err}));
+                if (!res.length) return cb(new UserError('Заказ не найден'));
+                order = res[0];
+                cb(null);
+            })
+        },
+        check: function (cb) {
+            if (order.order_status_sysname==='CLOSED') return cb(new UserError('Нельзя отменить завершенный заказ',{order:order}));
+            cb(null);
+        },
+        changeStatus: function (cb) {
+            var params = {
+                id:id,
+                order_status_sysname:'CANCELED'
             };
             _t.modify(params, cb);
         }
