@@ -52,4 +52,57 @@ Model.prototype.add = function (obj, cb) {
     }
 };
 
+/////////////////////////////////////////////////////////////////
+
+
+Model.prototype.add_ = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var rollback_key = obj.rollback_key || rollback.create();
+    var product_id = obj.product_id;
+    if (isNaN(+product_id)) return cb(new MyError('Не передан product_id или передан не корректно.'));
+
+    // Все недостающие поля о подтягиваем из товара
+
+    // Загрузить товар
+    // проапдейтить и добавить
+
+    var product;
+    async.series({
+        getProduct: function (cb) {
+            var o = {
+                command:'get',
+                object:'product',
+                params:{
+                    param_where:{
+                        id:product_id
+                    },
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(err);
+                if (!res.length) return cb(new UserError('Товар не существует'));
+                product = res[0];
+                cb(null);
+            })
+        },
+        addProductInOrder: function (cb) {
+            for (var i in product) {
+                if (typeof obj[i] === 'undefined') obj[i] = product[i];
+            }
+            _t.addPrototype(obj, function (err, res) {
+                cb(err, res);
+            });
+        }
+    }, function (err, res) {
+        if (err) return cb(err);
+        cb(null, res.addProductInOrder);
+    })
+
+};
+
 module.exports = Model;
