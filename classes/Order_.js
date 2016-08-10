@@ -8,6 +8,8 @@ var BasicClass = require('./system/BasicClass');
 var util = require('util');
 var async = require('async');
 var rollback = require('../modules/rollback');
+var XlsxTemplate = require('xlsx-template');
+var fs = require('fs');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -225,7 +227,7 @@ Model.prototype.confirmOrder = function (obj, cb) {
     // Проверим заказ
     // Изменим статус
 
-    var order;
+    var order, filename, path;
     async.series({
         get: function (cb) {
             _t.getById({id:id}, function (err, res) {
@@ -245,6 +247,14 @@ Model.prototype.confirmOrder = function (obj, cb) {
                 order_status_sysname:'CONFIRM'
             };
             _t.modify(params, cb);
+        },
+        createName: function (cb) {
+            _t.valet_delivery_note({id:id}, function (err, res) {
+                if (err) return cb(err);
+                filename = res.filename;
+                path = res.path;
+                cb(null);
+            });
         }
     }, function (err) {
         if (err) {
@@ -254,7 +264,8 @@ Model.prototype.confirmOrder = function (obj, cb) {
             });
         }else{
             //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
-            cb(null, new UserOk('Ок'));
+            //{filename:filename,path:'/savedFiles/'}
+            cb(null, new UserOk('Ок',{filename:filename,path:path}));
         }
     });
 
@@ -404,6 +415,119 @@ Model.prototype.cancelOrder = function (obj, cb) {
             cb(null, new UserOk('Ок'));
         }
     });
+
+};
+
+Model.prototype.valet_delivery_note = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var name = obj.name || 'valet_delivery_note.xlsx';
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('В метод не передан id'));
+
+    var order, products;
+    var template, binaryData, readyData;
+    var filename;
+    async.series({
+        getData: function (cb) {
+
+            async.series({
+                getOrder: function (cb) {
+
+                    _t.getById({id:id}, function (err, res) {
+                        if (err) return cb(new MyError('Не удалось получить данные по зааказу'),{err:err});
+                        order = res[0];
+                        cb(null);
+                    });
+                },
+                getOrderProducts: function (cb) {
+
+                    var o = {
+                        command: 'get',
+                        object: 'product_in_order',
+                        params: {
+                            param_where:{
+                                order_id:id
+                            },
+                            collapseData: false
+                        }
+                    };
+                    _t.api(o, function (err, res) {
+                        if (err) return cb(err);
+                        for (var i in res) {
+                            products = res;
+                        }
+                        cb(null);
+                    });
+                }
+            }, cb);
+        },
+        prepareData0: function (cb) {
+
+            readyData = {
+                name: order.name || '',
+                phone: order.phone || '',
+                email: order.email || '',
+                address: order.address || '',
+                gate: order.gate || '',
+                level: order.level || '',
+                flat: order.flat || '',
+                order_datetime: order.created || '',
+                order: []
+            };
+            cb(null);
+        },
+        prepareData: function (cb) {
+            var counter = 1;
+            readyData.total_count = 0;
+            readyData.total_amount = 0;
+
+            for (var i in products) {
+
+                readyData.order.push({
+                    no:counter++,
+                    product_id:products[i].id,
+                    product_name:products[i].name,
+                    quantity:products[i].product_count,
+                    price:products[i].price,
+                    amount:products[i].price * products[i].product_count
+                });
+
+                readyData.total_count += products[i].product_count;
+                readyData.total_amount += (products[i].price * products[i].product_count);
+            }
+            readyData.total_amount += ' руб.';
+            cb(null);
+        },
+        getTemplate: function (cb) {
+            fs.readFile('./templates/' + name, function (err, data) {
+                if (err) return cb(new MyError('Не удалось считать файл шаблона test.xlsx.', err));
+                template = new XlsxTemplate(data);
+                cb(null);
+            });
+        },
+        perform: function (cb) {
+            var sheetNumber = 1;
+            template.substitute(sheetNumber, readyData);
+            var dataBuf = template.generate();
+            binaryData = new Buffer(dataBuf, 'binary');
+            cb(null)
+        },
+        writeFile: function (cb) {
+            filename = 'Накладная ' + order.id + '.xlsx';
+            fs.writeFile('./public/savedFiles/' + filename,binaryData, function (err) {
+                if (err) return cb(new MyError('Не удалось записать файл testOutput.xlsx',{err:err}));
+                return cb(null, new UserOk('testOutput.xlsx успешно сформирован'));
+            });
+        }
+    }, function (err) {
+        if (err) return cb(err);
+        cb(null, new UserOk('Ок.',{filename:filename,path:'/savedFiles/'}));
+    });
+
 
 };
 

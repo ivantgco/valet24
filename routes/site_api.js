@@ -400,7 +400,14 @@ api_functions.create_order = function (obj, cb) {
         object:'order_',
         params:{
             sid:sid,
-            phone:obj.phone
+            phone:obj.phone,
+            name:obj.name,
+            address:obj.address,
+            gate:obj.gate,
+            getecode:obj.getecode,
+            level:obj.level,
+            flat:obj.flat,
+            fromServer:true
         }
     };
     api(o, function (err, res) {
