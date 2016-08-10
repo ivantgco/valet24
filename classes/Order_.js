@@ -192,7 +192,7 @@ Model.prototype.add_ = function (obj, cb) {
             //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
             cb(null, res.createOrder);
         }
-    })
+    });
 };
 
 
