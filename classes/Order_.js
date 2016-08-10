@@ -175,8 +175,11 @@ Model.prototype.add_ = function (obj, cb) {
                     object:'product_in_order',
                     params:one_product
                 };
+                o.params.order_id = order_id;
                 o.params.rollback_key = rollback_key;
-                _t.api(o, cb);
+                _t.api(o, function (err, res) {
+                    cb(err, res);
+                });
             }, cb);
         }
     }, function (err, res) {
