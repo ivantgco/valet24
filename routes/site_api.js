@@ -371,10 +371,13 @@ api_functions.clear_cart = function (obj, cb) {
                 command:'remove',
                 object:'cart',
                 params:{
-                    id:cart.id
+                    id:cart.id,
+                    fromServer:true
                 }
             };
-            api(o, cb);
+            api(o, function (err, res) {
+                cb(err, res); // Если ставить "cb" то получается лажа
+            });
         }
     }, function (err, res) {
         if (err) return cb(err);
