@@ -54,7 +54,7 @@
                         var fileName = res.path + res.filename;
                         var linkName = 'my_download_link' + MB.Core.guid();
 
-                        $("body").prepend('<a id="'+linkName+'" href="' + res.path + '?filename='+ res.filename +'" download="'+ res.filename +'" style="display:none;"></a>');
+                        $("body").prepend('<a id="'+linkName+'" href="' + res.filename + '" download="'+ res.filename +'" style="display:none;"></a>');
                         var jqElem = $('#'+linkName);
                         jqElem[0].click();
                         jqElem.remove();
