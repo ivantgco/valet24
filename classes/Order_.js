@@ -145,7 +145,7 @@ Model.prototype.add_ = function (obj, cb) {
             _t.addPrototype(obj, function (err, res) {
                 if (err) return cb(err);
                 order_id = res.id;
-                cb(null);
+                cb(null, res);
             })
         },
         createCRMUser: function (cb) {
@@ -189,7 +189,8 @@ Model.prototype.add_ = function (obj, cb) {
                 return cb(err, err2);
             });
         }else{
-            cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
+            //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
+            cb(null, res.createOrder);
         }
     })
 };
