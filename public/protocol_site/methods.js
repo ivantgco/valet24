@@ -179,5 +179,18 @@ var methodos = {
             command:'clear_cart',
             params:{}
         }
+    },
+    create_order: {
+        name:'create_order',
+        name_ru:'Создать заказ',
+        description:'',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'clear_cart',
+            params:{}
+        }
     }
 };
