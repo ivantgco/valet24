@@ -30,8 +30,11 @@ exports.site_api = function(req, response, next){
     if (typeof o.params!=='object') o.params = {};
     o.params.sid = obj.sid;
     api_functions[command](o.params || {}, function (err, res) {
-        if (err) return response.status(200).json(err);
-        if (res.code) return response.status(200).json(res);
+        if (err) {
+            if (err instanceof UserError) return response.status(200).json(getCode(err.message, err.data));
+            return response.status(200).json(getCode('sysError', err));
+        }
+        if (typeof res.code!=='undefined') return response.status(200).json(res);
         //var s_json = JSON.stringify
         return response.status(200).json(getCode('ok', res));
     });
@@ -342,6 +345,7 @@ api_functions.clear_cart = function (obj, cb) {
     // Получить cart_id по sid
     // Вызвать remove с cart_id
 
+    var cart;
     async.series({
         getCartBySID: function (cb) {
             var o = {
@@ -354,14 +358,26 @@ api_functions.clear_cart = function (obj, cb) {
                     collapseData:false
                 }
             };
-            api(o, cb);
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить корзину',{err:err}));
+                if (!res.length) return cb(new UserError('Корзина не найдена'));
+                if (res.length > 1) return cb(new MyError('Найдено слишком много корзин',{res:res}));
+                cart = res[0];
+                cb(null);
+            });
         },
-        getCart: function (cb) {
-            api_functions.get_cart(obj, cb);
+        removeCart: function (cb) {
+            var o = {
+                command:'remove',
+                object:'cart',
+                params:{
+                    id:cart.id
+                }
+            };
+            api(o, cb);
         }
     }, function (err, res) {
         if (err) return cb(err);
-        var product = {product_id:res.add[0].product_id, product_count:res.add[0].product_count};
-        cb(null, {product: product, cart: res.getCart});
+        cb(null, res.removeCart);
     });
 };

@@ -140,7 +140,7 @@ Model.prototype.add_ = function (obj, cb) {
                 obj.level = crm_user.level;
                 obj.flat = crm_user.flat;
             }
-            obj.name = obj.name || crm_user.name || '';
+            if(crm_user) obj.name = obj.name || crm_user.name || '';
             obj.rollback_key = rollback_key;
             _t.addPrototype(obj, function (err, res) {
                 if (err) return cb(err);

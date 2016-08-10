@@ -166,5 +166,18 @@ var methodos = {
                 }
             }
         }
+    },
+    clear_cart: {
+        name:'clear_cart',
+        name_ru:'Очистить корзину',
+        description:'',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'clear_cart',
+            params:{}
+        }
     }
 };
