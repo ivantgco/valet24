@@ -189,8 +189,15 @@ var methodos = {
         '\nНет примера\n' +
         '',
         o:{
-            command:'clear_cart',
-            params:{}
+            command:'create_order',
+            params:{
+                phone:{
+                    required:true,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Необходимо передать номер телефона.'
+                }
+            }
         }
     }
 };

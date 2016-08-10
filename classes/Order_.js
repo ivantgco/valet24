@@ -141,6 +141,7 @@ Model.prototype.add_ = function (obj, cb) {
                 obj.flat = crm_user.flat;
             }
             if(crm_user) obj.name = obj.name || crm_user.name || '';
+            obj.cart_id = obj.cart_id || cart_id;
             obj.rollback_key = rollback_key;
             _t.addPrototype(obj, function (err, res) {
                 if (err) return cb(err);

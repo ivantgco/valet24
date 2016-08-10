@@ -397,9 +397,10 @@ api_functions.create_order = function (obj, cb) {
 
     var o = {
         command:'add',
-        object:'order',
+        object:'order_',
         params:{
-            sid:sid
+            sid:sid,
+            phone:obj.phone
         }
     };
     api(o, function (err, res) {
