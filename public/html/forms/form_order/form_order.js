@@ -40,27 +40,26 @@
                     if (!res.code) {
                         formInstance.reload();
 
+                        //var file_id = res.file_id;
+                        //
+                        //var o = {
+                        //    command:'download',
+                        //    object:'File',
+                        //    params:{
+                        //        id:file_id
+                        //    }
+                        //};
+                        //socketQuery(o, function (res2) {
 
-                        var file_id = res.file_id;
+                        var fileName = res.path + res.filename;
+                        var linkName = 'my_download_link' + MB.Core.guid();
 
-                        var o = {
-                            command:'download',
-                            object:'File',
-                            params:{
-                                id:file_id
-                            }
-                        };
-                        socketQuery(o, function (res2) {
-
-                            var fileName = res2.path + res2.filename;
-                            var linkName = 'my_download_link' + MB.Core.guid();
-
-                            $("body").prepend('<a id="'+linkName+'" href="' + res2.path + '?filename='+ res2.filename +'" download="'+ doc.document_name + res2.extension +'" style="display:none;"></a>');
-                            var jqElem = $('#'+linkName);
-                            jqElem[0].click();
-                            jqElem.remove();
+                        $("body").prepend('<a id="'+linkName+'" href="' + res.path + '?filename='+ res.filename +'" download="'+ res.filename +'" style="display:none;"></a>');
+                        var jqElem = $('#'+linkName);
+                        jqElem[0].click();
+                        jqElem.remove();
                             //$("#my_download_link").remove();
-                        });
+                        //});
 
                     }
 
