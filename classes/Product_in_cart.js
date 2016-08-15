@@ -113,6 +113,7 @@ Model.prototype.add_ = function (obj, cb) {
 
 
     var cart, product, cart_products, product_in_cart;
+    var this_product_count;
     async.series({
         getOrCreateCart: function (cb) {
 
@@ -178,10 +179,10 @@ Model.prototype.add_ = function (obj, cb) {
             }
             var params;
             if (product_in_cart){ // Изменим текущий
-                product_count = product_in_cart.product_count + product_count;
+                this_product_count = product_in_cart.product_count + product_count;
                 params = {
                     id:product_in_cart.id,
-                    product_count:product_count,
+                    product_count:this_product_count,
                     rollback_key:rollback_key
                 };
                 _t.modify(params, function (err, res) {
@@ -218,6 +219,7 @@ Model.prototype.add_ = function (obj, cb) {
             }
             amount += +product.price;
             //product_count_all = (product_in_cart)? product_count : product_count_all + product_count;
+            //product_count_all = (product_in_cart)? product_count_all : product_count_all + product_count;
             product_count_all = product_count_all + product_count;
             var o = {
                 command:'modify',
@@ -241,7 +243,7 @@ Model.prototype.add_ = function (obj, cb) {
                 return cb(err, err2);
             });
         }else{
-            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:product_count}));
+            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:(this_product_count || product_count)}));
         }
     })
 };

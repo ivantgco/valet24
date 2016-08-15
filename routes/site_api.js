@@ -270,6 +270,7 @@ api_functions.add_product_in_cart = function (obj, cb) {
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
     if (!product_id) return cb(new MyError('Не передан product_id'));
+    var product_count = +obj.product_count || 1;
 
     async.series({
         add: function (cb) {
@@ -279,6 +280,7 @@ api_functions.add_product_in_cart = function (obj, cb) {
                 params:{
                     product_id:product_id,
                     sid:sid,
+                    product_count:product_count,
                     fromServer:true
                 }
             };
