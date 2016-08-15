@@ -1,3 +1,4 @@
+forever start bin\www on_1_34.json
 1) clearCache при изменении связанных таблиц
 if (res.length == 0) return cb(new MyError('!!!Не найден клиентский объект или он пренадлежит к другому классу',{client_object:client_object, class:object})); Client_object
 если нету клиентского объекта ничего не происходит - отладить ош
