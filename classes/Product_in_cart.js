@@ -217,7 +217,8 @@ Model.prototype.add_ = function (obj, cb) {
                 product_count_all += +cart_products[i].product_count;
             }
             amount += +product.price;
-            product_count_all = (product_in_cart)? product_count : product_count_all + product_count;
+            //product_count_all = (product_in_cart)? product_count : product_count_all + product_count;
+            product_count_all = product_count_all + product_count;
             var o = {
                 command:'modify',
                 object:'cart',
