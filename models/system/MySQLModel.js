@@ -2328,3 +2328,6 @@ module.exports = MySQLModel;
 //"category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
 //"parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
 //"parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
+
+
+// В tables.json параметр parent_key:true ставить не надо. Он только для таблиц в форме (клиентских объектов)

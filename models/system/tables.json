@@ -309,7 +309,7 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "test_child_id": { "type": "bigint", "length": "20", "parent_key": true, "from_table": "test_child"},
+      "test_child_id": { "type": "bigint", "length": "20", "from_table": "test_child"},
       "test_child_name": { "type": "varchar", "length": "255", "from_table": "test_child", "keyword": "test_child_id", "return_column": "name", "virtual": true, "name": "Наименование дочки теста"},
       "grandmother_name": { "type": "varchar", "length": "255", "name": "Имя бабушки"},
       "pets_name": { "type": "text", "name": "Имя скотины"},
@@ -587,7 +587,7 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "sid" : {"type": "varchar", "length": "255", "require": true},
-      "cart_id" : {"type": "bigint", "length": "20", "parent_key":true, "require": true},
+      "cart_id" : {"type": "bigint", "length": "20", "require": true},
       "name" : {"type": "varchar", "length": "255", "name": "Название"},
       "product_id" : {"type": "bigint", "length": "20"},
       "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
@@ -645,7 +645,7 @@
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "order_id" : {"type": "bigint", "length": "20", "parent_key":true, "require": true},
+      "order_id" : {"type": "bigint", "length": "20", "require": true},
       "name" : {"type": "varchar", "length": "255", "name": "Название"},
       "product_id" : {"type": "bigint", "length": "20"},
       "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
