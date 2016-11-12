@@ -13,7 +13,7 @@ var async = require('async');
 var fs = require('fs');
 var moment = require('moment');
 var api = require('../../libs/api');
-var Guid = require('Guid');
+var Guid = require('guid');
 
 var BasicClass = function (obj) {
     var mysqlmodel = MySQLModel.call(this, obj);
@@ -46,10 +46,7 @@ BasicClass.prototype.lock = function (obj, cb) {
     var _t = this;
     var id = obj.id;
     if (isNaN(+id)) return cb(new MyError('В метод не передан id'));
-
     var key = Guid.create().value;
-
-
     if (global.class_locks[_t.name][id]) return cb(new UserError('Запись уже заблокирована другим процессом.'));
     global.class_locks[_t.name][id] = key;
     return cb(null, key);

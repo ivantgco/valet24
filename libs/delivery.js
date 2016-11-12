@@ -7,11 +7,11 @@ module.exports = function (io) {
     io.sockets.on('connection', function (socket) {
         var delivery = dl.listen(socket);
         delivery.on('delivery.connect',function(delivery){
-            delivery.send({
-                name: 'sample-image.jpg',
-                path : './sample-image.jpg',
-                params: {foo: 'bar'}
-            });
+            //delivery.send({
+            //    name: 'sample-image.jpg',
+            //    path : 'sample-image.jpg',
+            //    params: {foo: 'bar'}
+            //});
             delivery.on('send.error',function(error){
                 console.log('delivery ERROR', error);
             });

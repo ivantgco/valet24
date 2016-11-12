@@ -13,6 +13,7 @@ var Model = function(obj){
     if (basicclass instanceof MyError) return basicclass;
 };
 util.inherits(Model, BasicClass);
+Model.prototype.removeCascade = Model.prototype.remove;
 
 Model.prototype.init = function (obj, cb) {
     if (arguments.length == 1) {

@@ -9,7 +9,7 @@ var async = require('async');
 var fs = require('fs');
 var moment = require('moment');
 var api = require('../libs/api');
-var Guid = require('Guid');
+var Guid = require('guid');
 var funcs = require('../libs/functions');
 var XlsxTemplate = require('xlsx-template');
 

@@ -19,6 +19,7 @@
     "express-mysql-session": "^0.4.4",
     "express-session": "^1.13.0",
     "fs-extra": "^0.26.5",
+    "ftpsync": "^0.1.10",
     "guid": "0.0.12",
     "jade": "~1.9.2",
     "moment": "^2.11.2",

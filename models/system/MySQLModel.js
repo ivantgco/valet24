@@ -1240,6 +1240,7 @@ MySQLModel.prototype.get = function (params, cb) {
                         s = keyString + " IS NULL ";
                         break;
                     case 'isNotNull':
+                    case '!isNull':
                         s = keyString + " IS NOT NULL ";
                         break;
                     default :
@@ -1391,6 +1392,10 @@ MySQLModel.prototype.add = function (obj, cb) {
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var _t = this;
     var rollback_key;
+
+    var fromClient = !(obj.fromClient === false);
+    delete obj.fromClient;
+
     if (obj.rollback_key) {
         rollback_key = obj.rollback_key;
         delete obj.rollback_key;
@@ -1450,7 +1455,7 @@ MySQLModel.prototype.add = function (obj, cb) {
                     continue;
                 } // Просто игнорируем поля для которых нет профайла
                 var colValue = obj[i];
-                if ((colProfile.virtual && !colProfile.from_table) || (!colProfile.server_editable && !colProfile.server_insertable)) delete obj[i];
+                if ((colProfile.virtual && !colProfile.from_table && fromClient) || (!colProfile.server_editable && !colProfile.server_insertable && fromClient)) delete obj[i];
             }
             delete obj['id'];
             delete obj['created'];
@@ -1555,7 +1560,7 @@ MySQLModel.prototype.add = function (obj, cb) {
             if (_t.auto_publish && !obj.published) {
                 obj.published = funcs.getDateTimeMySQL();
             }
-            console.log('INSERT',obj);
+
             conn.insert(_t.tableName, obj, function (err, recordId) {
                 conn.release();
                 if (err) {
@@ -1609,7 +1614,7 @@ MySQLModel.prototype.modify = function (obj, cb) {
 
     var id = obj.id;
     if (!id) return cb(new MyError('Не передано ключевое поле. id',{object:_t.name,command:'modify',obj:obj}));
-    if (global.class_locks[_t.name][id] && obj.lock_key!==global.class_locks[_t.name][id]) return cb(new MyError('Запись заблокирована.'));
+    if (global.class_locks[_t.name][id] && obj.lock_key!==global.class_locks[_t.name][id]) return cb(new MyError('Запись заблокирована.',{name:_t.name,id:id}));
 
     async.waterfall([
         function (cb) {
@@ -1664,7 +1669,7 @@ MySQLModel.prototype.modify = function (obj, cb) {
                     continue;
                 } // Просто игнорируем поля для которых нет профайла
                 var colValue = obj[i];
-                if ((colProfile.virtual && !colProfile.from_table) || (!colProfile.server_editable && !colProfile.server_updatable && fromClient && colProfile.column_name !== 'id')) delete obj[i];
+                if ((colProfile.virtual && !colProfile.from_table && fromClient) || (!colProfile.server_editable && !colProfile.server_updatable && fromClient && colProfile.column_name !== 'id')) delete obj[i];
             }
             delete obj['created'];
             if (Object.keys(obj).length < 2) return cb(new UserError('Поля, которые вы пытаетесь изменить не редактируемы.'));
@@ -1732,7 +1737,7 @@ MySQLModel.prototype.modify = function (obj, cb) {
             return cb(new MyError('Не удалось изменить ' + _t.table_ru, {id: obj.id, err: err}));
         }
         if (results == 0) {
-            return cb(new UserError('notModified', {id: obj.id}));
+            return cb(new UserError('notModified', {id: obj.id, name:_t.name}));
         }
         _t.clearCache();
         return cb(null, new UserOk(_t.table_ru + ' успешно изменен' + _t.ending + '.', {id: obj.id}));
@@ -1760,7 +1765,7 @@ MySQLModel.prototype.remove = function (obj, cb) {
     }
     var id = obj.id;
     if (!obj.id) return cb(new MyError('Не передано ключевое поле. id'));
-    if (global.class_locks[_t.name][id] && obj.lock_key!==global.class_locks[_t.name][id]) return cb(new UserError('Запись заблокирована.'));
+    if (global.class_locks[_t.name][id] && obj.lock_key!==global.class_locks[_t.name][id]) return cb(new UserError('Запись заблокирована.',{name:_t.name,id:id}));
     // Найдем зависимые таблицы:
     //  - подчиненные
     //  - таблицы эксплуататоры (для которых эта таблица является справочником)
@@ -1850,7 +1855,11 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
 
     var rollback_key = (typeof obj.rollback_key!=='undefined')? obj.rollback_key : rollback.create();
     delete obj.rollback_key;
+    var doNotSaveRollback = obj.doNotSaveRollback;
+    delete obj.doNotSaveRollback;
+
     var id = obj.ids || obj.id;
+    var confirm = obj.confirm;
 
     if (!id) return cb(new MyError('Не передано ключевое поле. id'));
 
@@ -1892,7 +1901,7 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                     return cb(null);
                 }
 
-                async.each(res, function (item, cb) {
+                async.eachSeries(res, function (item, cb) {
                     // Есть ли данные и сколько
                     child_tables_arr.push(item.name);
                     var o = {
@@ -1910,12 +1919,15 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                     _t.api(o, function (err, res) {
                         if (err) return cb(err);
                         if (!res.length) return cb(null);
+
                         var ids = [];
                         for (var i in res) {
                             ids.push(res[i].id)
                         }
+
                         child_tables[_t.name].nodes.push({
                             name:item.name,
+                            name_ru:item.name_ru || item.name,
                             records:res,
                             count:res.length,
                             nodes:[]
@@ -1930,7 +1942,8 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                         var o = {
                             command:'removeCascade',
                             object:item.name,
-                            params:obj2
+                            params:obj2,
+                            fromClient:false
                         };
                         _t.api(o, function (err, res) {
                             if (err) return cb(err);
@@ -1982,7 +1995,7 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                     if (parasite_tables[one.class]) continue;
                     parasite_tables[one.class] = one.keyword;
                 }
-                async.each(Object.keys(parasite_tables), function (key, cb) {
+                async.eachSeries(Object.keys(parasite_tables), function (key, cb) {
                     var keyword = parasite_tables[key];
                     // Есть ли данные и сколько
                     if (child_tables_arr.indexOf(key)!=-1) {
@@ -2004,19 +2017,22 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                                 params:{
                                     where: [{
                                         key: keyword,
-                                        type: '=',
+                                        type: 'in',
                                         val1: id
                                     }],
                                     collapseData:false
                                 }
                             };
                             _t.api(o, function (err, res) {
-                                if (err) return cb(err);
+                                if (err) {
+                                    return cb(err);
+                                }
                                 if (!res.length) return cb(null);
                                 // Данные есть.
                                 child_tables[_t.name].parasite_tables[key] = {
                                     name:key,
                                     name_ru: parasite_tables[key].name_ru || key,
+                                    keyword:keyword,
                                     count:res.length,
                                     records:res
                                 };
@@ -2031,7 +2047,82 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
         //console.log(err, 'child_tables ====>',rollback_key, child_tables);
         if (err) return cb(err);
         if (obj.child_request) return cb(err, child_tables[_t.name].nodes);
-        return cb(new UserError('needConfirm', {confirm_type:'modal',message: 'Удаление этой записи, удалит связанные данные из дочерних таблиц. Вы уверены что хотите удалить эту запись?',data:child_tables}));
+        if (child_tables[_t.name].nodes.length == 0 && Object.keys(child_tables[_t.name].parasite_tables).length == 0){
+            // Нет зависимых данных, просто удалим
+            return _t.remove(obj, cb);
+        }
+
+        var removed_data = {};
+        if (obj.confirm){
+            // Пользователь подтвердил
+            var remove = function (nodes, cb) {
+                async.eachSeries(nodes, function (node, cb) {
+                    async.eachSeries(node.records, function (record, cb) {
+                        if (!removed_data[node.name]) removed_data[node.name] = [];
+                        removed_data[node.name].push(record.id);
+                        var o = {
+                            command:'remove',
+                            object:node.name,
+                            params:{
+                                id:record.id,
+                                rollback_key:rollback_key
+                            }
+                        };
+                        _t.api(o, cb);
+                    }, function (err) {
+                        if (err) return cb(err);
+                        if (!node.nodes.length) return cb(null);
+                        remove(node.nodes, cb);
+    });
+                }, cb);
+            };
+            async.series({
+                removeChild: function (cb) {
+                    remove(child_tables[_t.name].nodes, cb);
+                },
+                removeParasire: function (cb) {
+                    // Вычистить зависимые данные
+                    async.eachSeries(Object.keys(child_tables[_t.name].parasite_tables), function (key, cb) {
+                        var item = child_tables[_t.name].parasite_tables[key];
+                        async.eachSeries(item.records, function (record, cb) {
+                            if (typeof removed_data[item.name]=='object'){
+                                if (removed_data[item.name].indexOf(record.id)!==-1) {
+                                    // Эта запись уже была удалена и не нуждается в изменении
+                                    return cb(null);
+                                }
+                            }
+                            var o = {
+                                command:'modify',
+                                object:item.name,
+                                params:{
+                                    id:record.id,
+                                    rollback_key:rollback_key
+                                }
+                            };
+                            o.params[item.keyword] = null;
+                            _t.api(o, cb);
+                        }, cb);
+
+                    }, cb);
+                },
+                removeSelf: function (cb) {
+                    // Удалим саму запись
+                    obj.rollback_key = rollback_key;
+                    _t.remove(obj, cb);
+                }
+            }, function (err) {
+                if (err) {
+                    rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err, res) {
+                        console.log('Результат выполнения rollback', err, res);
+                    });
+                    return cb(err);
+                }
+                if (!doNotSaveRollback) rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'removeCascade', params:obj});
+                return cb(null, new UserOk(_t.table_ru + ' успешно удален' + _t.ending + '.', {id: obj.id, child_tables:child_tables}));
+            });
+        }else{
+            return cb(new UserError('needConfirm', {confirmType:'dialog',message: 'Удаление этой записи, удалит связанные данные из дочерних таблиц. Вы уверены что хотите удалить эту запись?',data:child_tables}));
+        }
     });
 
     //
@@ -2231,3 +2322,9 @@ MySQLModel.prototype.clearCache = function (cb) {
 };
 
 module.exports = MySQLModel;
+
+// Пример как работать с виртуальными полями ссылающимися на уже подключенные таблицы
+//"category_id" : {"type": "bigint", "length": "20", "visible": false},
+//"category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
+//"parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
+//"parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},

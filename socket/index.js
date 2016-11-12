@@ -150,16 +150,27 @@ module.exports = function (server) {
     //        callback(err);
     //    });
     //});
-    io.sockets.on('session:logout', function (sid) {
-        var clients = io.sockets.clients();
+    global.logout = function (obj, cb) {
+        var sid = obj.sid;
+        var user = obj.user;
+        //var clients = io.sockets.clients();
+        var clients = io.sockets.sockets;
         var real_client = [];
         async.eachSeries(clients, function (client, cb) {
-
+            if (!client) return cb(null);
             loadSession(sid, function (err, session) {
                 if (err) {
                     return cb(new MyError('Во время логаута произошла ошибка',{err:err}));
                 }
-                if (client.handshake.session.id != sid) return cb(null);
+                if (client.handshake.session){ // Иначе возникает ошибка при переключении с базы на базу
+                    if (client.handshake.session.id != sid) {
+                        var user_data = client.handshake.user.user_data || {};
+                        if (user_data.email !== user.user_data.email) return cb(null);
+                    }
+                }
+
+
+
                 real_client.push(client);
                 if (session) {
                     session.destroy(function (err) {
@@ -176,9 +187,39 @@ module.exports = function (server) {
                 real_client[i].emit("logout");
                 real_client[i].disconnect();
             }
+            cb(null);
         });
-
-    });
+    };
+    //io.sockets.on('session:logout', function (sid) {
+    //    //var clients = io.sockets.clients();
+    //    var clients = io.sockets.sockets;
+    //    var real_client = [];
+    //    async.eachSeries(clients, function (client, cb) {
+    //
+    //        loadSession(sid, function (err, session) {
+    //            if (err) {
+    //                return cb(new MyError('Во время логаута произошла ошибка',{err:err}));
+    //            }
+    //            if (client.handshake.session.id != sid) return cb(null);
+    //            real_client.push(client);
+    //            if (session) {
+    //                session.destroy(function (err) {
+    //                    if (err) return cb(new MyError('Во время логаута произошла ошибка 2',{err:err}));
+    //                    cb(null);
+    //                });
+    //            }else{
+    //                cb(null);
+    //            }
+    //        });
+    //    }, function (err) {
+    //        if (err) console.log(err);
+    //        for (var i in real_client) {
+    //            real_client[i].emit("logout");
+    //            real_client[i].disconnect();
+    //        }
+    //    });
+    //
+    //});
 
     //io.sockets.on('session:reload', function (sid) {
     //    var clients = io.sockets.clients();
@@ -247,6 +288,7 @@ module.exports = function (server) {
             if (typeof data!=='object') return socket.emit('socketQueryCallbackError', new MyError('Парметрами запроса должен быть объект'));
             if (systemCommands.indexOf(data.command)!==-1) return socket.emit('socketQueryCallbackError', getCode('sysCommand'));
             data.params = data.params || {};
+            data.params.fromClient = true;
             for (var i in data.params) {
                 if (systemParams.indexOf(i)!==-1) {
                     console.log('Параметр запрещен', i);

@@ -25,8 +25,11 @@ var send = function(obj, cb){
     }
     transporter.sendMail(mailOptions, function(error, info){
         if(error){
+            console.log(config.get('mail:mailTransport'));
+            console.log(error, info);
             cb(error, info);
         }else{
+            console.log('mail sended ---' + obj.email + '----> Ок');
             cb(null, info);
         }
     });

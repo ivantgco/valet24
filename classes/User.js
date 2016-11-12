@@ -10,6 +10,8 @@ var async = require('async');
 var crypto = require('crypto');
 var api = require('../libs/api');
 
+var admin_users = ['ivantgco@gmail.com','alextgco@gmail.com'];
+
 var Model = function(obj){
     this.name = obj.name;
     this.tableName = obj.name.toLowerCase();
@@ -19,6 +21,8 @@ var Model = function(obj){
 };
 util.inherits(Model, BasicClass);
 Model.prototype.addPrototype = Model.prototype.add;
+Model.prototype.modifyPrototype = Model.prototype.modify;
+Model.prototype.removeCascade = Model.prototype.remove;
 
 Model.prototype.init = function (obj, cb) {
     if (arguments.length == 1) {
@@ -119,6 +123,11 @@ Model.prototype.add = function (obj, cb) {
     var user_type;
     async.series([
         function (cb) {
+            // Проверим доступ на добавление пользователей
+            if (admin_users.indexOf(_t.user.user_data.email)==-1) return cb(new UserError('У вас нет прав на добавление нового пользователя.'));
+            cb(null);
+        },
+        function (cb) {
             // Получим тип пользователя
             var o = {
                 command:'get',
@@ -146,9 +155,10 @@ Model.prototype.add = function (obj, cb) {
             cb(null);
         },
         function (cb) {
-            // получим ID нужного статуса - WAIT_CONFIRM
+            // получим ID нужного статуса - WAIT_CONFIRM/ACTIVE
 
-            var status = 'WAIT_CONFIRM';
+            //var status = 'WAIT_CONFIRM';
+            var status = 'ACTIVE';
             var o = {
                 command:'get',
                 object:'user_status',
@@ -175,9 +185,99 @@ Model.prototype.add = function (obj, cb) {
         },
         function (cb) {
             // выполним добавление
+            obj.fromClient = false;
             _t.addPrototype(obj, cb);
         }
     ], cb);
+
+};
+Model.prototype.modify = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы параметры'));
+    var _t = this;
+
+    var password = obj.password;
+    var user = _t.user;
+
+    var passObj;
+
+
+    if (password){
+        passObj = _t.encryptPassword(password);
+        obj.hashedPassword = passObj.hashedPassword;
+        obj.salt = passObj.salt;
+        delete obj.password;
+    }
+
+    async.series([
+        function (cb) {
+            // удалим login
+            delete obj.login;
+            cb(null);
+        },
+        function (cb) {
+            // Если устанавливается новый пароль то проверим доступ и добавим fromClient = false
+            if (!password) return cb(null);
+            if (obj.id !== user.user_data.id && admin_users.indexOf(user.user_data.email)==-1) return cb(new UserError('У вас нет доступа на изменение пароля для данного пользователя.'));
+            obj.fromClient = false;
+            cb(null);
+        },
+        function (cb) {
+            // выполним изменения
+            _t.modifyPrototype(obj, cb);
+        }
+    ], cb);
+
+};
+Model.prototype.changePassword = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы параметры'));
+    var _t = this;
+
+    var password = obj.password;
+    var new_password = obj.new_password;
+    if (!password) return cb(new UserError('Необходимо указать текущий пароль'));
+    if (!new_password) return cb(new UserError('Необходимо указать новый пароль'));
+    var user = _t.user;
+    var passObj;
+
+    // Проверить старый пароль
+    // Установить новый пароль
+
+    passObj = _t.encryptPassword(new_password);
+    obj.hashedPassword = passObj.hashedPassword;
+    obj.salt = passObj.salt;
+
+
+    async.series([
+        function (cb) {
+            // Сверим пароль
+            var confirm = _t.checkPassword(user.user_data.salt, password, user.user_data.hashedPassword);
+            if (!confirm) return cb(new UserError('Текущий пароль указан не верно.'));
+            cb(null);
+        },
+        function (cb) {
+            // выполним изменения
+            var params = {
+                id:user.user_data.id,
+                hashedPassword:passObj.hashedPassword,
+                salt:passObj.salt,
+                fromClient:false
+            };
+            _t.modify(params, cb);
+        }
+    ], function (err) {
+        if (err) return cb(err);
+        cb(null, new UserOk('Ваш пароль успешно изменен.'));
+    });
 
 };
 Model.prototype.confirmUser = function (obj, cb) {
@@ -309,9 +409,8 @@ Model.prototype.logout = function (obj, cb) {
     }
     if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы параметры'));
-    var user = obj.user;
-    if (typeof user !== 'object') return cb(new MyError('В метод не передан user'));
     var _t = this;
+    var user = _t.user;
     var sid = user.sid;
     var io = global.io;
 
@@ -320,9 +419,15 @@ Model.prototype.logout = function (obj, cb) {
         sid:null
     }, function (err) {
         if (err) return cb(err);
-        delete _t.user;
-        io.sockets.$emit('session:logout',sid);
+
+        //io.sockets.$emit('session:logout',sid);
+        global.logout({sid:sid, user:_t.user}, function (err) {
+            var alias = 'User_-_' + sid;
+            delete _t.user.user_data;
+            delete global.classes[alias];
         cb(null, new UserOk('Вы успешно вышли из системы.'));
+    });
+
     });
 
     /*async.series([

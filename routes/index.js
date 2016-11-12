@@ -5,8 +5,12 @@ var checkAccess = require('../middleware/checkAccess');
 var path = require('path');
 
 module.exports = function (app, express) {
+    //var ftpSync = require('../libs/ftpSync')
     app.get('/test', function (req, res, next) {
-        res.render('test');
+        //ftpSync(function (err, res2) {
+        //    console.log(err, res2);
+        //    //res.status(200).send(err || res2);
+        //})
     });
 //    app.use('/test2', app.static(path.join(__dirname, 'public')));
 
@@ -57,6 +61,8 @@ module.exports = function (app, express) {
     app.get('/files/*+', function (req, res, next) {
         res.status(403).send('Отказано в доступе');
     });
+
+
 
 };
 

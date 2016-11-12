@@ -9,7 +9,7 @@ var util = require('util');
 var async = require('async');
 var fs = require('fs-extra');
 var parsePath = require('parse-filepath');
-var Guid = require('Guid');
+var Guid = require('guid');
 var moment = require('moment');
 
 var Model = function(obj){

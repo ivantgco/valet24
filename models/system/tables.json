@@ -457,84 +457,6 @@
       "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя"}
     }
   },
-  "investor": {
-    "profile": {
-      "name": "investor",
-      "name_ru": "Инвестор",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "firstname" : {"type": "varchar", "length": "255", "name": "Имя"},
-      "midname" : {"type": "varchar", "length": "255", "name": "Отчество"},
-      "lastname" : {"type": "varchar", "length": "255", "name": "Фамилия"},
-      "fio" : {"type": "varchar", "length": "255", "concat_fields": "firstname midname lastname", "virtual": true, "name": "ФИО"},
-      "company_id" : {"type": "bigint", "length": "20"},
-      "company" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "name", "virtual": true, "name": "Компания"},
-      "ogrn" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "ogrn", "virtual": true, "name": "ОГРН"},
-      "inn" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "inn", "virtual": true, "name": "ИНН"},
-      "address" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "address", "virtual": true, "name": "Юр. Адрес"},
-      "phone" : {"type": "varchar", "length": "255", "name": "Телефон"},
-      "phone2" : {"type": "varchar", "length": "255", "name": "Телефон 2"},
-      "email" : {"type": "varchar", "length": "255", "name": "email"},
-      "email2" : {"type": "varchar", "length": "255", "name": "email 2"},
-      "principal_amount" : {"type": "bigint", "length": "20", "name": "Всего внесено"},
-      "invested_amount" : {"type": "bigint", "length": "20", "name": "Всего проинвестировано"},
-      "collected_amount" : {"type": "bigint", "length": "20", "name": "Всего заработано"},
-      "default_amount" : {"type": "bigint", "length": "20", "name": "Всего потеряно"},
-      "day_amount" : {"type": "bigint", "length": "20", "name": "Заработано сегодня"},
-      "week_amount" : {"type": "bigint", "length": "20", "name": "Заработано на неделе"},
-      "weeks_in_program" : {"type": "bigint", "length": "20", "name": "Работает недель"},
-      "main_agreement_id" : {"type": "bigint", "length": "20"},
-      "main_agreement" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "main_agreement_id", "return_column": "name", "virtual": true, "name": "Основной договор"},
-      "main_agreement_path" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "main_agreement_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу"},
-      "access_agreement_id" : {"type": "bigint", "length": "20"},
-      "access_agreement" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "access_agreement_id", "return_column": "name", "virtual": true, "name": "Разрешение на просмотр"},
-      "access_agreement_path" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "access_agreement_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу"}
-    }
-  },
-  "companyOLD": {
-    "profile": {
-      "name": "companyOLD",
-      "name_ru": "Компания",
-      "ending": "а"
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "ogrn" : {"type": "varchar", "length": "255", "name": "ОГРН"},
-      "inn" : {"type": "varchar", "length": "255", "name": "ИНН"},
-      "address" : {"type": "varchar", "length": "255", "name": "Юр. Адрес"},
-      "phone" : {"type": "varchar", "length": "255", "name": "Телефон"},
-      "email" : {"type": "varchar", "length": "255", "name": "email"}
-    }
-  },
-  "document":{
-    "profile": {
-      "name": "document",
-      "name_ru": "Документ",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя"},
-      "discription" : {"type": "text", "name": "Описание"}
-    }
-  },
-  "document_status": {
-    "profile": {
-      "name": "document_status",
-      "name_ru": "Статус документа",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
   "file": {
     "profile": {
       "name": "file",
@@ -550,158 +472,6 @@
       "absolute_path" : {"type": "varchar", "length": "255", "name": "Полный путь к файлу"}
     }
   },
-  "merchant_document": {
-    "profile": {
-      "name": "merchant_document",
-      "name_ru": "Документ торговца",
-      "server_parent_table":"merchant",
-      "server_parent_key":"merchant_id",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_id" : {"type": "bigint", "length": "20", "visible":false, "parent_key": true},
-      "merchant_name" : {"type": "varchar", "length": "255", "from_table": "merchant", "keyword": "merchant_id", "return_column": "name", "virtual": true, "name": "Торговец"},
-      "document_id" : {"type": "bigint", "length": "20", "visible":false},
-      "document_name" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "document_id", "return_column": "name", "virtual": true, "name": "Документ"},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "discription" : {"type": "text", "name": "Описание"},
-      "date_created" : {"type": "datetime", "name": "Заведен в систму"},
-      "date_signed" : {"type": "datetime", "name": "Дата подписания"},
-      "status_id" : {"type": "bigint", "length": "20", "visible":false},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "document_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "Статус sysname", "visible":false},
-      "status" : {"type": "varchar", "length": "255", "from_table": "document_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус", "default_value":"CREATED"},
-      "file_id" : {"type": "bigint", "length": "20", "visible":false},
-      "file" : {"type": "text", "from_table": "file", "keyword": "file_id", "return_column": "name", "virtual": true, "name": "Файл"},
-      "absolute_path" : {"type": "varchar", "length": "255", "from_table": "file", "keyword": "file_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу"}
-    }
-  },
-  "merchant_financing_document": {
-    "profile": {
-      "name": "merchant_financing_document",
-      "name_ru": "Документ финансирования торговца",
-      "server_parent_table":"merchant_financing",
-      "server_parent_key":"merchant_financing_id",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_financing_id" : {"type": "bigint", "length": "20", "visible":false, "parent_key": true},
-      "document_id" : {"type": "bigint", "length": "20", "visible":false},
-      "document_name" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "document_id", "return_column": "name", "virtual": true, "name": "Документ"},
-      "document_sysname" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "document_id", "return_column": "sysname", "virtual": true, "name": "Документ sysname", "visible": false},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "discription" : {"type": "text", "name": "Описание"},
-      "date_created" : {"type": "datetime", "name": "Заведен в систму"},
-      "date_signed" : {"type": "datetime", "name": "Дата подписания"},
-      "status_id" : {"type": "bigint", "length": "20", "visible":false},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "document_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "Статус sysname", "visible":false},
-      "status" : {"type": "varchar", "length": "255", "from_table": "document_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус", "default_value":"CREATED"},
-      "file_id" : {"type": "bigint", "length": "20", "visible":false},
-      "file" : {"type": "text", "from_table": "file", "keyword": "file_id", "return_column": "name", "virtual": true, "name": "Файл"},
-      "absolute_path" : {"type": "varchar", "length": "255", "from_table": "file", "keyword": "file_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу"}
-    }
-  },
-  "merchant_old": {
-    "profile": {
-      "name": "merchant_old",
-      "name_ru": "Торговец_old",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "firstname" : {"type": "varchar", "length": "255", "name": "Имя"},
-      "midname" : {"type": "varchar", "length": "255", "name": "Отчество"},
-      "lastname" : {"type": "varchar", "length": "255", "name": "Фамилия"},
-      "fio" : {"type": "varchar", "length": "255", "concat_fields": "firstname midname lastname", "virtual": true, "name": "ФИО"},
-      "company_id" : {"type": "bigint", "length": "20"},
-      "company" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "name", "virtual": true, "name": "Компания"},
-      "ogrn" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "ogrn", "virtual": true, "name": "ОГРН"},
-      "inn" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "inn", "virtual": true, "name": "ИНН"},
-      "address" : {"type": "varchar", "length": "255", "from_table": "companyOLD", "keyword": "company_id", "return_column": "address", "virtual": true, "name": "Юр. Адрес"},
-      "phone" : {"type": "varchar", "length": "255", "name": "Телефон"},
-      "phone2" : {"type": "varchar", "length": "255", "name": "Телефон 2"},
-      "email" : {"type": "varchar", "length": "255", "name": "email"},
-      "email2" : {"type": "varchar", "length": "255", "name": "email 2"},
-      "main_agreement_id" : {"type": "bigint", "length": "20"},
-      "main_agreement" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "main_agreement_id", "return_column": "name", "virtual": true, "name": "Основной договор"},
-      "main_agreement_path" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "main_agreement_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу"},
-      "access_agreement_id" : {"type": "bigint", "length": "20"},
-      "access_agreement" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "access_agreement_id", "return_column": "name", "virtual": true, "name": "Разрешение на просмотр"},
-      "access_agreement_path" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "access_agreement_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу"},
-      "monthly_сс_turnover" : {"type": "bigint", "length": "20", "name": "Месячный оборот по картам"},
-      "settlement_account" : {"type": "bigint", "length": "20", "name": "Cостояние расчетного счета"},
-      "settlement_account_updated" : {"type": "datetime", "name": "Дата обновления инфо. по Р/С"},
-      "total_recieved" : {"type": "bigint", "length": "20", "name": "Сумма полученых инвестиций"},
-      "total_returned" : {"type": "bigint", "length": "20", "name": "Возвращенная сумма"},
-      "defaults_count" : {"type": "bigint", "length": "20", "name": "Пропусков платежей"},
-      "business_type_id" : {"type": "bigint", "length": "20"},
-      "business_type" : {"type": "varchar", "length": "255", "from_table": "business_type", "keyword": "business_type_id", "return_column": "name", "virtual": true, "name": "Тип бизнеса"},
-      "business_description" : {"type": "text", "name": "Описание бизнеса"},
-      "rating" : {"type": "int", "length": "2", "name": "Рейтинг"}
-    }
-  },
-  "business_type": {
-    "profile": {
-      "name": "business_type",
-      "name_ru": "Тип бизнеса",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
-      "profitability" : {"type": "bigint", "length": "10", "name": "Процент рентабельности (%)"},
-      "factoring_rate": {"type": "bigint", "length": "3", "name": "Ставка факторинга", "validation": "percent"},
-      "visa_mc_percent" : {"type": "bigint", "length": "10", "name": "Процент visa/mc (%)"},
-      "acquiring_days_count" : {"type": "int", "length": "2", "name": "Рабочих дней в месяце"},
-      "avl_mth_withdraw_rate": {"type": "bigint", "length": "255", "name": "Макс. % списания в месяц", "validation": "percent"},
-      "avl_proc_dly_withdraw_rate": {"type": "bigint", "length": "255", "name": "Макс. % списания в день (процессинг)", "validation": "percent"}
-    }
-  },
-  "document_for_business_type":{
-    "profile": {
-      "name": "document_for_business_type",
-      "name_ru": "Документ для бизнеса",
-      "server_parent_table":"business_type",
-      "server_parent_key":"business_type_id",
-      "ending": ""
-
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "business_type_id" : {"type": "bigint", "length": "20", "visible":false, "parent_key": true},
-      "business_type" : {"type": "varchar", "length": "255", "from_table": "business_type", "keyword": "business_type_id", "return_column": "name", "virtual": true, "name": "Тип бизнеса"},
-      "document_id" : {"type": "bigint", "length": "20", "visible":false},
-      "document_name" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "document_id", "return_column": "name", "virtual": true, "name": "Документ"}
-    }
-
-  },
-  "merchant_investment_request": {
-    "profile": {
-      "name": "merchant_investment_request",
-      "name_ru": "Запрос инвестирования торговца",
-      "ending": "а"
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "incoming_date" : {"type": "datetime", "name": "Дата запроса"},
-      "request_amount" : { "type": "bigint", "length": "20", "name": "Запрос на сумму"},
-      "request_term" : { "type": "bigint", "length": "20", "name": "Запрос на срок (дней)"},
-      "request_start" : { "type": "datetime", "name": "Запрос старта работы"},
-      "status_id" : {"type": "bigint", "length": "20"},
-      "status" : {"type": "varchar", "length": "255", "from_table": "request_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус запроса"},
-      "approved_amount" : { "type": "bigint", "length": "20", "name": "Подтвержденная сумма"},
-      "approved_term" : { "type": "bigint", "length": "20", "name": "Подтвержденный срок (дней)"},
-      "approved_start" : { "type": "datetime", "name": "Подтвержденный старт работы"},
-      "merchant_id" : {"type": "bigint", "length": "20"},
-      "merchant" : {"type": "varchar", "length": "255", "from_table": "merchant_old", "keyword": "merchant_id", "return_column": "firstname", "virtual": true, "name": "Торговец"},
-      "merchant_rating" : {"type": "varchar", "length": "255", "from_table": "merchant_old", "keyword": "merchant_id", "return_column": "rating", "virtual": true, "name": "Рейтинг торговца"},
-      "request_document_id" : {"type": "bigint", "length": "20"},
-      "request_document" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "request_document_id", "return_column": "name", "virtual": true, "name": "Анкета запроса инвестирования"},
-      "request_document_path" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "request_document_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу"}
-    }
-  },
   "request_status": {
     "profile": {
       "name": "request_status",
@@ -712,25 +482,6 @@
       "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
       "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "transaction_daily_registry": {
-    "profile": {
-      "name": "transaction_daily_registry",
-      "name_ru": "Ежедневный реестр транзакций",
-      "ending": ""
-    },
-    "structure": {
-      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "incoming_date" : { "type": "datetime", "name": "Поступил"},
-      "registry_file_id" : {"type": "bigint", "length": "20"},
-      "registry_file" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "registry_file_id", "return_column": "name", "virtual": true, "name": "Файл реестра"},
-      "registry_file_path" : {"type": "varchar", "length": "255", "from_table": "document", "keyword": "registry_file_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу реестра"},
-      "has_parse_errors" : {"type": "int", "length": "1", "name": "Есть ошибки парсинга"},
-      "defaults_count" : {"type": "bigint", "length": "20", "name": "Количество пропусков"},
-      "defaults_amount" : {"type": "bigint", "length": "20", "name": "Пропусков на сумму"},
-      "default_merchants_list" : {"type": "varchar", "length": "255", "name": "Список торговцев с пропуском"},
-      "default_investors_list" : {"type": "varchar", "length": "255", "name": "Список инвесторов с пропуском"}
     }
   },
   "city": {
@@ -744,589 +495,6 @@
       "title": { "type": "varchar", "length": "255", "name": "Наименование"},
       "test_id" : {"type": "bigint", "length": "20"},
       "test" : {"type": "varchar", "length": "255", "from_table": "test", "keyword": "test_id", "return_column": "name", "virtual": true, "name": "Из test"}
-    }
-  },
-  "merchant_payment_registry": {
-    "profile": {
-      "name": "merchant_payment_registry",
-      "name_ru": "Реестр платежей торговца",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_id": { "type": "bigint", "length": "20"},
-      "datetime": {"type": "datetime", "name": "Дата платежа"},
-      "is_default": {"type": "tinyint", "length": "1", "name": "Пропуск"},
-      "amount": {"type": "bigint", "length": "20", "name": "Сумма платежа"},
-      "complete_percent": {"type": "int", "length": "3", "name": "Процент закрытия"},
-      "total_paid": {"type": "bigint", "length": "20", "name": "Итого выплачено"},
-      "total_to_pay": {"type": "bigint", "length": "20", "name": "Итого осталось"}
-    }
-  },
-  "merchant_payment_investor": {
-    "profile": {
-      "name": "merchant_payment_investor",
-      "name_ru": "Инвестор торговца",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_id": { "type": "bigint", "length": "20"},
-      "investor_id": {"type": "bigint", "length": "20"},
-      "investor" : {"type": "varchar", "length": "255", "from_table": "investor", "keyword": "investor_id", "return_column": "fio", "virtual": true, "name": "Инвестор"},
-      "invested" : {"type": "bigint", "length": "20", "name": "Проинвестировано"},
-      "returned" : {"type": "bigint", "length": "20", "name": "Возвращено"},
-      "last_payment_date": {"type": "datetime", "name": "Последний платеж"},
-      "single_payment_amount": {"type": "bigint", "length": "20", "name": "Сумма одного платежа"}
-    }
-  },
-  "merchant_financing_status": {
-    "profile": {
-      "name": "merchant_financing_status",
-      "name_ru": "Статус финансирования",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-
-  "merchant_financing": {
-    "profile": {
-      "name": "merchant_financing",
-      "name_ru": "Финансирование торговца",
-      "server_parent_table":"merchant",
-      "server_parent_key":"merchant_id",
-      "ending": "о"
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true},
-      "merchant_name" : {"type": "varchar", "length": "255", "from_table": "merchant", "keyword": "merchant_id", "return_column": "name", "virtual": true, "name": "Мерчант"},
-      "status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "status" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "Статус sys", "visible": false, "default_value":"CREATED"},
-      "agreement_date": {"type": "date", "name": "Дата договора"},
-      "is_active" : {"type": "tinyint", "length": "1", "name": "Активно", "editable": false},
-      "bank_notified": { "type": "tinyint", "length": "1", "name": "Банк уведомлен"},
-      "money_sent": { "type": "tinyint", "length": "1", "name": "Деньги отправлены"},
-
-      "processing_bank_id" : {"type": "bigint", "length": "20", "visible": false, "visible": false, "editable": false},
-      "processing_bank" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "processing_bank_id", "return_column": "name", "virtual": true, "name": "Рабочий Банк (Эквайер)", "visible": true, "editable": false},
-
-      "total_mouthly_turnover" : {"type": "varchar", "length": "255", "name": "Общий оборот в месяц"},
-      "total_mouthly_credit_card_turnover" : {"type": "varchar", "length": "255", "name": "Оборот по картам в месяц"},
-
-      "visa_mc_percent" : {"type": "bigint", "length": "10", "name": "Процент visa/mc (%)"},
-      "factoring_rate": {"type": "bigint", "length": "3", "name": "Ставка факторинга", "validation": "percent"},
-      "acquiring_days_count" : {"type": "int", "length": "2", "name": "Рабочих дней в месяц"},
-      "avl_mth_withdraw_rate": {"type": "bigint", "length": "255", "name": "Макс. % списания в месяц", "validation": "percent"},
-      "avl_proc_dly_withdraw_rate": {"type": "bigint", "length": "255", "name": "Макс. % списания в день (процессинг)", "validation": "percent"},
-
-
-      "founding_amount": {"type": "bigint", "length": "255", "name": "Сумма фондирования", "validation": "number"},
-      "amount_to_return": {"type": "bigint", "length": "255", "name": "Сумма возврата", "validation": "number"},
-      "payment_amount": {"type": "bigint", "length": "255", "name": "Размер платежа", "validation": "number"},
-      "payments_count": {"type": "bigint", "length": "255", "name": "Количество платежей", "validation": "number"},
-
-      "payments_pending" : {"type": "bigint", "length": "20", "name": "Осталось платежей"},
-      "payments_paid" : {"type": "bigint", "length": "20", "name": "Оплаченных"},
-      "payments_default" : {"type": "bigint", "length": "20", "name": "Дефолтных"},
-      "total_returned" : {"type": "bigint", "length": "20", "name": "Возвращено, руб."},
-      "to_return" : {"type": "bigint", "length": "20", "name": "Осталось вернуть, руб."},
-      "complete_percent" : {"type": "int", "length": "3", "name": "Процент закрытия"},
-
-      "refinancing_amount" : {"type": "bigint", "length": "20", "name": "Рефинансировано, сумма", "editable": false},
-      "closed_by_financing_id" : {"type": "bigint", "length": "20", "name": "Рефинансировано финансированием, №", "editable": false},
-      "closing_financing_id" : {"type": "bigint", "length": "20", "name": "Рефинансирует финансирование, №", "editable": false},
-      "closing_date": {"type": "date", "name": "Дата закрытия"},
-      "closing_type_id" : {"type": "bigint", "length": "20", "editable": false, "visible": false},
-      "closing_type" : {"type": "varchar", "length": "255", "from_table": "financing_close_type", "keyword": "closing_type_id", "return_column": "name", "virtual": true, "name": "Тип закрытия"},
-      "closing_type_sysname" : {"type": "varchar", "length": "255", "from_table": "financing_close_type", "keyword": "closing_type_id", "return_column": "sysname", "virtual": true, "name": "Тип закрытия SYS", "visible": false},
-
-      "financing_date": {"type": "date", "name": "Дата финансирования", "visible": false},
-      "bank_comission_summ": {"type": "bigint", "length": "20", "name": "Комиссия банка", "visible": false},
-      "pending_remittance": {"type": "bigint", "length": "20", "name": "Собрано в отч. неделю", "visible": false},
-      "final_vg_profit": {"type": "bigint", "length": "20", "name": "В пользу VG после закрытия", "visible": false},
-      "cut_off_collected": {"type": "bigint", "length": "20", "name": "Собрано на cut-off", "visible": false},
-
-      "business_type_id" : {"type": "bigint", "length": "20", "visible": false},
-      "business_type" : {"type": "varchar", "length": "255", "from_table": "business_type", "keyword": "business_type_id", "return_column": "name", "virtual": true, "name": "Тип бизнеса"},
-      "current_calendar_id": { "type": "bigint", "length": "20", "name": "Активный календарь"},
-      "payments_start_date": {"type": "date", "name": "Дата начала платежей", "editable":false}
-    }
-  },
-  "merchant_status": {
-    "profile": {
-      "name": "merchant_status",
-      "name_ru": "Статус торговца",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "merchant": {
-    "profile": {
-      "name": "merchant",
-      "name_ru": "Торговец",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "work_bank_merchant_id": { "type": "bigint", "length": "20", "name": "id от Банка"},
-      "name" : {"type": "varchar", "length": "255", "name": "Компания"},
-      "short_name" : {"type": "varchar", "length": "255", "name": "Сокращенное название"},
-      "branch_office" : {"type": "varchar", "length": "255", "name": "Отделение"},
-      "phone" : {"type": "varchar", "length": "255", "name": "Телефон"},
-      "email" : {"type": "varchar", "length": "255", "name": "email"},
-      "rko_bank_id" : {"type": "bigint", "length": "20", "visible": false, "editable": false, "insertable": true, "server_insertable": true, "updatable": false, "server_updatable": false},
-      "rko_bank" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "rko_bank_id", "return_column": "name", "virtual": true, "name": "Банк (РКО)", "visible": true, "editable": false, "insertable": true, "server_insertable": true, "updatable": false, "server_updatable": false},
-      "processing_bank_id" : {"type": "bigint", "length": "20", "visible": false, "visible": false, "editable": false, "insertable": true, "server_insertable": true, "updatable": false, "server_updatable": false},
-      "processing_bank" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "processing_bank_id", "return_column": "name", "virtual": true, "name": "Банк (Эквайер)", "visible": true, "editable": false, "insertable": true, "server_insertable": true, "updatable": false, "server_updatable": false},
-      "rs" : {"type": "varchar", "length": "255", "name": "Р/С (Торговец))"},
-      "ks" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "bank_id", "return_column": "ks", "virtual": true, "name": "К/С (Банк)"},
-      "bik" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "bank_id", "return_column": "bik", "virtual": true, "name": "БИК (Банк)"},
-      "business_type_id" : {"type": "bigint", "length": "20", "visible": false},
-      "business_type" : {"type": "varchar", "length": "255", "from_table": "business_type", "keyword": "business_type_id", "return_column": "name", "virtual": true, "name": "Тип бизнеса"},
-      "profitability" : {"type": "bigint", "length": "10", "name": "Процент рентабельности (%)"},
-      "visa_mc_percent" : {"type": "bigint", "length": "10", "name": "Процент visa/mc (%)"},
-      "acquiring_days_count" : {"type": "int", "length": "2", "name": "Рабочих дней в месяц"},
-      "avl_mth_withdraw_rate": {"type": "bigint", "length": "255", "name": "Макс. % списания в месяц", "validation": "percent"},
-      "avl_proc_dly_withdraw_rate": {"type": "bigint", "length": "255", "name": "Макс. % списания в день (процессинг)", "validation": "percent"},
-      "avr_ticket" : {"type": "varchar", "length": "255", "name": "Средний чек"},
-      "transactions_per_mouth" : {"type": "varchar", "length": "255", "name": "Транзакций в месяц"},
-      "total_mouthly_turnover" : {"type": "varchar", "length": "255", "name": "Общий оборот в месяц"},
-      "total_mouthly_credit_card_turnover" : {"type": "varchar", "length": "255", "name": "Оборот по картам в месяц"},
-      "last_three_mouths_pofit" : {"type": "varchar", "length": "255", "name": "Прибыль за последние 3 месяца"},
-      "bki_rate" : {"type": "varchar", "length": "255", "name": "Баллы БКИ"},
-      "business_seasonality": { "type": "tinyint", "length": "1", "name": "Сезонный бизнес"},
-      "inn" : {"type": "varchar", "length": "255", "name": "ИНН"},
-      "kpp" : {"type": "varchar", "length": "255", "name": "КПП"},
-      "ogrn" : {"type": "varchar", "length": "255", "name": "ОГРН"},
-      "legal_address" : {"type": "varchar", "length": "255", "name": "Юр. адрес"},
-      "real_address" : {"type": "varchar", "length": "255", "name": "Факт. адрес"},
-      "executive" : {"type": "varchar", "length": "255", "name": "Исполнительный орган"},
-      "executive_fio" : {"type": "varchar", "length": "255", "name": "ФИО Исполнительного органа"},
-      "grounds_on" : {"type": "varchar", "length": "255", "name": "Действ. на основании"},
-      "merchant_status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "merchant_status" : {"type": "varchar", "length": "255", "from_table": "merchant_status", "keyword": "merchant_status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "merchant_status_sysname" : {"type": "varchar", "length": "255", "from_table": "merchant_status", "keyword": "merchant_status_id", "return_column": "sysname", "virtual": true, "name": "Статус sys", "visible": false, "default_value":"CREATED"},
-      "profit": {"type": "bigint", "length": "255", "name": "Прибыль cash + card", "validation": "number"},
-      "profit_card": {"type": "bigint", "length": "255", "name": "Прибыль card", "validation": "number"},
-      "invoice_file_id" : {"type": "bigint", "length": "20", "visible":false, "name":"Файл квитанции"},
-      "invoice_file" : {"type": "text", "from_table": "file", "keyword": "invoice_file_id", "return_column": "name", "virtual": true, "name": "Файл квитанции"},
-      "invoice_absolute_path" : {"type": "varchar", "length": "255", "from_table": "file", "keyword": "invoice_file_id", "return_column": "absolute_path", "virtual": true, "name": "Путь к файлу квитанции"},
-      "gov_registrator" : {"type": "varchar", "length": "255", "name": "Регистрирующий орган"},
-      "registration_date": {"type": "date", "name": "Дата регистрации юр. лица"},
-      "current_financing_id": { "type": "bigint", "length": "20", "name": "Активное финансирование"},
-      "current_calendar_id": { "type": "bigint", "length": "20", "name": "Активный календарь"},
-      "payments_start_date" : {"type": "varchar", "length": "255", "from_table": "merchant_financing", "keyword": "current_financing_id", "return_column": "payments_start_date", "virtual": true, "name": "Дата начала платежей", "editable":false},
-      "factoring_rate": {"type": "bigint", "length": "3", "name": "Ставка факторинга", "validation": "percent"},
-      "payments_pending" : {"type": "bigint", "length": "20", "name": "Осталось платежей"},
-      "payments_paid" : {"type": "bigint", "length": "20", "name": "Оплаченных"},
-      "payments_default" : {"type": "bigint", "length": "20", "name": "Дефолтных"},
-      "total_returned" : {"type": "bigint", "length": "20", "name": "Возвращено, руб."},
-      "to_return" : {"type": "bigint", "length": "20", "name": "Осталось вернуть, руб."},
-      "complete_percent" : {"type": "int", "length": "3", "name": "Процент закрытия"}
-    }
-  },
-  "merchant_representative":{
-    "profile": {
-      "name": "merchant_representative",
-      "name_ru": "Представитель",
-      "server_parent_table":"merchant",
-      "server_parent_key":"merchant_id",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Имя"},
-      "surname" : {"type": "varchar", "length": "255", "name": "Фамилия"},
-      "lastname" : {"type": "varchar", "length": "255", "name": "Отчество"},
-      "position" : {"type": "varchar", "length": "255", "name": "Должность"},
-      "phone_work" : {"type": "varchar", "length": "255", "name": "Телефон Раб."},
-      "phone_mobile" : {"type": "varchar", "length": "255", "name": "Телефон Моб."},
-      "email" : {"type": "varchar", "length": "255", "name": "Почта"},
-      "merchant_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true}
-    }
-  },
-  "merchant_bank_change":{
-    "profile": {
-      "name": "merchant_bank_change",
-      "name_ru": "Смена банка торговца",
-      "server_parent_table":"merchant",
-      "server_parent_key":"merchant_id",
-      "ending": "а"
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true},
-      "bank_service_type_id" : {"type": "bigint", "length": "20", "visible": false},
-      "bank_service_type" : {"type": "varchar", "length": "255", "from_table": "bank_service_type", "keyword": "bank_service_type_id", "return_column": "name", "virtual": true, "name": "Тип обслуживания в банке"},
-      "change_date": {"type": "datetime", "name": "Дата"},
-      "old_bank_id": {"type": "bigint", "length": "20", "visible": false, "required": true},
-      "old_bank" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "old_bank_id", "return_column": "name", "virtual": true, "name": "Был банк"},
-      "new_bank_id": {"type": "bigint", "length": "20", "visible": false, "required": true},
-      "new_bank" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "new_bank_id", "return_column": "name", "virtual": true, "name": "Стал банк"}
-    }
-  },
-  "bank_service_type":{
-    "profile": {
-      "name": "bank_service_type",
-      "name_ru": "Тип обслучивания в банке",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "merchant_history_log": {
-    "profile": {
-      "name": "merchant_history_log",
-      "name_ru": "История Торговца",
-      "server_parent_table":"merchant",
-      "server_parent_key":"merchant_id",
-      "ending": "а"
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "datetime": {"type": "datetime", "name": "Дата"},
-      "history_log_status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "history_log_status" : {"type": "varchar", "length": "255", "from_table": "merchant_history_log_status", "keyword": "history_log_status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "history_log_status_sysname" : {"type": "varchar", "length": "255", "from_table": "merchant_history_log_status", "keyword": "history_log_status_id", "return_column": "sysname", "virtual": true, "name": "Статус_sysname","visible":false},
-      "merchant_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true},
-      "merchant" : {"type": "varchar", "length": "255", "from_table": "merchant", "keyword": "merchant_id", "return_column": "name", "virtual": true, "name": "Торговец"},
-      "merchant_status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "merchant_status" : {"type": "varchar", "length": "255", "from_table": "merchant_status", "keyword": "merchant_status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "comment" : {"type": "text", "name": "Комментарий"},
-      "total_turnover": {"type": "bigint", "length": "255", "name": "Общая выручка / мес", "validation": "number"},
-      "total_mouthly_credit_card_turnover" : {"type": "varchar", "length": "255", "name": "Оборот по картам в месяц"},
-      "profitability" : {"type": "bigint", "length": "10", "name": "Процент рентабельности (%)"},
-      "visa_mc_percent" : {"type": "bigint", "length": "10", "name": "Процент visa/mc (%)"},
-      "acquiring_days_count" : {"type": "int", "length": "2", "name": "Прибыльных дней в месяц(card)"},
-      "avl_mth_withdraw_rate": {"type": "bigint", "length": "255", "name": "Месячный процент изъятия", "validation": "percent"},
-      "avl_proc_dly_withdraw_rate": {"type": "bigint", "length": "255", "name": "Ежедневный процент изъятия (процессинг)", "validation": "percent"},
-      "profit": {"type": "bigint", "length": "255", "name": "Прибыль cash + card", "validation": "number"},
-      "profit_card": {"type": "bigint", "length": "255", "name": "Прибыль card", "validation": "number"},
-      "founding_amount": {"type": "bigint", "length": "255", "name": "Сумма фондирования", "validation": "number"},
-      "payments_count": {"type": "bigint", "length": "255", "name": "Количество платежей", "validation": "number"},
-      "factoring_rate": {"type": "bigint", "length": "3", "name": "Ставка факторинга", "validation": "percent"},
-      "amount_to_return": {"type": "bigint", "length": "255", "name": "Сумма возврата", "validation": "number"},
-      "payment_amount": {"type": "bigint", "length": "255", "name": "Размер платежа", "validation": "number"},
-      "docs_list" : {"type": "text", "name": "Запрошенные док-ты"}
-    }
-  },
-  "merchant_financing_history_log": {
-    "profile": {
-      "name": "merchant_financing_history_log",
-      "name_ru": "История финансирования",
-      "server_parent_table":"merchant_financing",
-      "server_parent_key":"merchant_financing_id",
-      "ending": "а"
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "datetime": {"type": "datetime", "name": "Дата"},
-      "history_log_status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "history_log_status" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_history_log_status", "keyword": "history_log_status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "history_log_status_sysname" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_history_log_status", "keyword": "history_log_status_id", "return_column": "sysname", "virtual": true, "name": "Статус_sysname","visible":false},
-      "merchant_financing_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true},
-      "merchant_status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "merchant_status" : {"type": "varchar", "length": "255", "from_table": "merchant_status", "keyword": "merchant_status_id", "return_column": "name", "virtual": true, "name": "Статус торговца"},
-      "merchant_financing_deny_reason_id" : {"type": "bigint", "length": "20", "visible": false},
-      "merchant_financing_deny_reason" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_deny_reason", "keyword": "merchant_financing_deny_reason_id", "return_column": "name", "virtual": true, "name": "Причина отказа"},
-      "merchant_financing_deny_reason_sysname" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_deny_reason", "keyword": "merchant_financing_deny_reason_id", "return_column": "sysname", "virtual": true, "name": "Причина отказа sys", "visible": false},
-      "processing_bank_id" : {"type": "bigint", "length": "20", "visible": false, "visible": false, "editable": false},
-      "processing_bank" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "processing_bank_id", "return_column": "name", "virtual": true, "name": "Рабочий Банк (Эквайер)", "visible": true, "editable": false},
-      "comment" : {"type": "text", "name": "Комментарий"},
-      "agreement_date": {"type": "date", "name": "Дата договора"},
-      "payments_start_date": {"type": "date", "name": "Дата начала платежей"},
-      "total_turnover": {"type": "bigint", "length": "255", "name": "Общая выручка / мес", "validation": "number"},
-      "total_mouthly_credit_card_turnover" : {"type": "varchar", "length": "255", "name": "Оборот по картам в месяц"},
-      "profitability" : {"type": "bigint", "length": "10", "name": "Процент рентабельности (%)"},
-      "visa_mc_percent" : {"type": "bigint", "length": "10", "name": "Процент visa/mc (%)"},
-      "acquiring_days_count" : {"type": "int", "length": "2", "name": "Прибыльных дней в месяц(card)"},
-      "avl_mth_withdraw_rate": {"type": "bigint", "length": "255", "name": "Месячный процент изъятия", "validation": "percent"},
-      "avl_proc_dly_withdraw_rate": {"type": "bigint", "length": "255", "name": "Ежедневный процент изъятия (процессинг)", "validation": "percent"},
-      "profit": {"type": "bigint", "length": "255", "name": "Прибыль cash + card", "validation": "number"},
-      "profit_card": {"type": "bigint", "length": "255", "name": "Прибыль card", "validation": "number"},
-      "founding_amount": {"type": "bigint", "length": "255", "name": "Сумма фондирования", "validation": "number"},
-      "payments_count": {"type": "bigint", "length": "255", "name": "Количество платежей", "validation": "number"},
-      "factoring_rate": {"type": "bigint", "length": "3", "name": "Ставка факторинга", "validation": "percent"},
-      "amount_to_return": {"type": "bigint", "length": "255", "name": "Сумма возврата", "validation": "number"},
-      "payment_amount": {"type": "bigint", "length": "255", "name": "Размер платежа", "validation": "number"},
-      "docs_list" : {"type": "text", "name": "Запрошенные док-ты"}
-    }
-  },
-  "merchant_history_log_status": {
-    "profile": {
-      "name": "merchant_history_log_status",
-      "name_ru": "Статус истории торговца",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "merchant_financing_history_log_status": {
-    "profile": {
-      "name": "merchant_financing_history_log_status",
-      "name_ru": "Статус истории финансирования торговца",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "merchant_financing_deny_reason": {
-    "profile": {
-      "name": "merchant_financing_deny_reason",
-      "name_ru": "Причина отказа торговца",
-      "ending": "а"
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "bank_log_type": {
-    "profile": {
-      "name": "bank_log_type",
-      "name_ru": "Тип лога взаимодействия с банком",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "bank_log_status": {
-    "profile": {
-      "name": "bank_log_status",
-      "name_ru": "Статус лога взаимодействия с банком",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "bank_log_direction": {
-    "profile": {
-      "name": "bank_log_direction",
-      "name_ru": "Направление запроса",
-      "ending": "о"
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "bank_log": {
-    "profile": {
-      "name": "bank_log",
-      "name_ru": "Лог взаимодействия с банком",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "bank_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true},
-      "log_type" : {"type": "varchar", "length": "255", "from_table": "bank_log_type", "keyword": "log_type_id", "return_column": "name", "virtual": true, "name": "Тпп"},
-      "log_type_id" : {"type": "bigint", "length": "20", "visible": false},
-      "log_type_sysname" : {"type": "varchar", "length": "255", "from_table": "bank_log_type", "keyword": "log_type_id", "return_column": "sysname", "virtual": true, "name": "Тип_sysname","visible":false},
-      "log_direction" : {"type": "varchar", "length": "255", "from_table": "bank_log_direction", "keyword": "log_direction_id", "return_column": "name", "virtual": true, "name": "Направление"},
-      "log_direction_id" : {"type": "bigint", "length": "20", "visible": false},
-      "log_direction_sysname" : {"type": "varchar", "length": "255", "from_table": "bank_log_direction", "keyword": "log_direction_id", "return_column": "sysname", "virtual": true, "name": "Направление_sysname","visible":false},
-      "log_status" : {"type": "varchar", "length": "255", "from_table": "bank_log_status", "keyword": "log_status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "log_status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "log_status_sysname" : {"type": "varchar", "length": "255", "from_table": "bank_log_status", "keyword": "log_status_id", "return_column": "sysname", "virtual": true, "name": "Статус_sysname","visible":false},
-      "input": {"type": "text", "name": "INPUT"},
-      "output": {"type": "text", "name": "OUTPUT"}
-    }
-  },
-  "bank_merchant":{
-    "profile": {
-      "name": "bank_merchant",
-      "name_ru": "Пара банк - торговец",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_id" : {"type": "bigint", "length": "20", "visible": false},
-      "merchant" : {"type": "varchar", "length": "255", "from_table": "merchant", "keyword": "merchant_id", "return_column": "name", "virtual": true, "name": "Торговец"},
-      "bank_id" : {"type": "bigint", "length": "20", "visible": false},
-      "bank" : {"type": "varchar", "length": "255", "from_table": "bank", "keyword": "bank_id", "return_column": "name", "virtual": true, "name": "Банк"},
-      "secret": { "type": "varchar", "length": "255", "name": "Secret word"}
-    }
-  },
-  "merchant_financing_calendar_status": {
-    "profile": {
-      "name": "merchant_financing_calendar_status",
-      "name_ru": "Статус календаря финансирования",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "merchant_financing_calendar": {
-    "profile": {
-      "name": "merchant_financing_calendar",
-      "name_ru": "Календарь платежей финансирования",
-      "server_parent_table":"merchant_financing",
-      "server_parent_key":"merchant_financing_id",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "merchant_financing_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true},
-      "merchant_id" : {"type": "bigint", "length": "20", "visible": false},
-      "merchant" : {"type": "varchar", "length": "255", "from_table": "merchant", "keyword": "merchant_id", "return_column": "name", "virtual": true, "name": "Торговец"},
-      "status" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_calendar_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_calendar_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "Статус_sysname","visible":false},
-
-      "closing_type_id" : {"type": "bigint", "length": "20", "editable": false, "visible": false},
-      "closing_type" : {"type": "varchar", "length": "255", "from_table": "calendar_close_type", "keyword": "closing_type_id", "return_column": "name", "virtual": true, "name": "Тип закрытия"},
-      "closing_type_sysname" : {"type": "varchar", "length": "255", "from_table": "calendar_close_type", "keyword": "closing_type_id", "return_column": "sysname", "virtual": true, "name": "Тип закрытия SYS", "visible": false},
-      "closing_date": {"type": "date", "name": "Дата закрытия"},
-
-      "payments_start_date": {"type": "date", "name": "Дата начала платежей", "editable":false},
-      "payments_count" : {"type": "bigint", "length": "20", "name": "Количество платежей"},
-      "payments_pending" : {"type": "bigint", "length": "20", "name": "Осталось платежей"},
-      "payments_paid" : {"type": "bigint", "length": "20", "name": "Оплаченных"},
-      "payments_default" : {"type": "bigint", "length": "20", "name": "Дефолтных"},
-      "total_returned" : {"type": "bigint", "length": "20", "name": "Возвращено, руб."},
-      "to_return" : {"type": "bigint", "length": "20", "name": "Осталось вернуть, руб."},
-      "complete_percent" : {"type": "int", "length": "3", "name": "Процент закрытия"}
-    }
-  },
-  "merchant_financing_payment_status": {
-    "profile": {
-      "name": "merchant_financing_payment_status",
-      "name_ru": "Статус платежа финансирования",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "financing_close_type": {
-    "profile": {
-      "name": "financing_close_type",
-      "name_ru": "Тип закрытия финансирования",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "calendar_close_type": {
-    "profile": {
-      "name": "calendar_close_type",
-      "name_ru": "Тип закрытия календаря",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "payment_close_type": {
-    "profile": {
-      "name": "payment_close_type",
-      "name_ru": "Тип закрытия платежа",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
-    }
-  },
-  "merchant_financing_payment": {
-    "profile": {
-      "name": "merchant_financing_payment",
-      "name_ru": "Платеж финанснирования торговца",
-      "server_parent_table":"merchant_financing_calendar",
-      "server_parent_key":"calendar_id",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-
-      "payment_date" : {"type": "date", "name": "Дата платежа"},
-      "paid_date" : {"type": "date", "name": "Дата оплаты"},
-      "default_date" : {"type": "date", "name": "Дата дефолта"},
-
-      "paid_by_user_id" : {"type": "bigint", "length": "20", "visible": false},
-      "paid_by_user" : {"type": "varchar", "length": "255", "from_table": "user", "keyword": "paid_by_user_id", "return_column": "firstname", "virtual": true, "name": "Оплачен пользователем","visible": false},
-
-      "default_by_user_id" : {"type": "bigint", "length": "20", "visible": false},
-      "default_by_user" : {"type": "varchar", "length": "255", "from_table": "user", "keyword": "default_by_user_id", "return_column": "firstname", "virtual": true, "name": "Дефолт пользователем","visible": false},
-
-      "closing_type_id" : {"type": "bigint", "length": "20", "editable": false, "visible": false},
-      "closing_type" : {"type": "varchar", "length": "255", "from_table": "payment_close_type", "keyword": "closing_type_id", "return_column": "name", "virtual": true, "name": "Тип закрытия"},
-      "closing_type_sysname" : {"type": "varchar", "length": "255", "from_table": "payment_close_type", "keyword": "closing_type_id", "return_column": "sysname", "virtual": true, "name": "Тип закрытия SYS", "visible": false},
-      "closing_date": {"type": "date", "name": "Дата закрытия"},
-
-      "merchant_id" : {"type": "bigint", "length": "20", "visible": false},
-      "merchant" : {"type": "varchar", "length": "255", "from_table": "merchant", "keyword": "merchant_id", "return_column": "name", "virtual": true, "name": "Торговец"},
-      "merchant_financing_id" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_calendar", "keyword": "calendar_id", "return_column": "merchant_financing_id", "virtual": true, "name": "Финансирование id", "visible":false},
-
-      "calendar_id" : {"type": "bigint", "length": "20", "visible": false, "parent_key": true},
-      "status" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_payment_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "merchant_financing_payment_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "Статус_sysname","visible":false},
-      "pending_amount": {"type": "bigint", "length": "255", "name": "Ожидаемая сумма", "validation": "number"},
-      "paid_amount": {"type": "bigint", "length": "255", "name": "Полученная сумма", "validation": "number"},
-      "complete_percent" : {"type": "int", "length": "3", "name": "Процент закрытия"}
-    }
-  },
-  "bank": {
-    "profile": {
-      "name": "bank",
-      "name_ru": "Банк",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "name" : {"type": "varchar", "length": "255", "name": "Название"},
-      "fio" : {"type": "varchar", "length": "255", "name": "Представитель"},
-      "phone" : {"type": "varchar", "length": "255", "name": "Телефон"},
-      "email" : {"type": "varchar", "length": "255", "name": "email"},
-      "is_default": { "type": "tinyint", "length": "1", "name": "Банк по умолчанию"},
-      "rs" : {"type": "varchar", "length": "255", "name": "Р/С"},
-      "ks" : {"type": "varchar", "length": "255", "name": "К/С"},
-      "bik" : {"type": "varchar", "length": "255", "name": "БИК"},
-      "inn" : {"type": "varchar", "length": "255", "name": "ИНН"},
-      "kpp" : {"type": "varchar", "length": "255", "name": "КПП"},
-      "ogrn" : {"type": "varchar", "length": "255", "name": "ОГРН"},
-      "comission_percent" : {"type": "int", "length": "3", "name": "Вознаграждение (%)"},
-      "legal_address" : {"type": "varchar", "length": "255", "name": "Юр. адрес"},
-      "is_work" : {"type": "tinyint", "length": "1", "name": "Рабочий банк"}
     }
   },
   "category": {
@@ -1352,10 +520,13 @@
     "profile": {
       "name": "product",
       "name_ru": "Продукт",
+      "server_parent_table":"category",
+      "server_parent_key":"category_id",
       "ending": ""
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "category_id" : {"type": "bigint", "length": "20", "visible": false, "require": true},
       "from_file_name" : {"type": "varchar", "length": "255", "name": "Excel файл"},
       "from_file_id" : {"type": "bigint", "length": "20", "name": "Excel №"},
       "name" : {"type": "varchar", "length": "255", "name": "Название", "unique": true},
@@ -1366,7 +537,6 @@
       "images_list": {"type": "text", "name": "Изображения"},
       "description" : {"type": "varchar", "length": "255", "name": "Описание"},
       "price" : {"type": "DECIMAL(10, 2)", "name": "Цена"},
-      "category_id" : {"type": "bigint", "length": "20", "visible": false},
       "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
       "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
       "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"},
@@ -1534,71 +704,6 @@
       "flat": { "type": "varchar", "length": "255", "name": "Кв."}
     }
   },
-  "order_old": {
-    "profile": {
-      "name": "order",
-      "name_ru": "Заказ",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "sid" : {"type": "varchar", "length": "255"},
-      "status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys", "default_value":"RESERVED"},
-      "status" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "amount" : {"type": "varchar", "length": "255", "name": "Сумма"},
-      "reserv_to_date" : {"type": "datetime", "name": "Резерв до"}
-    }
-  },
-  "order_old": {
-    "profile": {
-      "name": "order",
-      "name_ru": "Заказ",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "order_datetime" : {"type": "datetime", "name": "Дата заказа"},
-      "order_confirm_datetime" : {"type": "datetime", "name": "Дата подтверждения заказа"},
-      "delivery_datetime" : {"type": "datetime", "name": "Дата доставки"},
-      "status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys"},
-      "status" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "amount" : {"type": "varchar", "length": "255", "name": "Сумма"},
-      "address" : {"type": "varchar", "length": "255", "name": "Адрес доставки"},
-      "customer_name" : {"type": "varchar", "length": "255", "name": "Покупатель"},
-      "customer_phone" : {"type": "varchar", "length": "255", "name": "Телефон"},
-      "customer_email" : {"type": "varchar", "length": "255", "name": "Почта"},
-      "customer_flat" : {"type": "varchar", "length": "255", "name": "Квартира"},
-      "customer_gate" : {"type": "varchar", "length": "255", "name": "Подъезд"},
-      "customer_stage" : {"type": "varchar", "length": "255", "name": "Этаж"},
-      "customer_code" : {"type": "varchar", "length": "255", "name": "Код домофона"},
-      "sid" : {"type": "varchar", "length": "255", "name": "sid", "visible": false},
-      "comment" : {"type": "varchar", "length": "255", "name": "Комментарий"}
-    }
-  },
-  "order_product": {
-    "profile": {
-      "name": "order_product",
-      "name_ru": "Продукт в заказе",
-      "ending": ""
-    },
-    "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "order_id" : {"type": "bigint", "length": "20", "visible": false},
-      "status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_product_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys"},
-      "status" : {"type": "varchar", "length": "255", "from_table": "order_product_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
-      "product_id" : {"type": "bigint", "length": "20", "visible": false},
-      "name" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "name", "virtual": true, "name": "Наименование"},
-      "image": {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "image", "virtual": true, "name": "Изображение"},
-      "price" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "price", "virtual": true, "name": "Цена"},
-      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type_sys", "virtual": true, "name": "Тип количества sys"},
-      "qnt_type" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type", "virtual": true, "name": "Тип количества"},
-      "quantity" : {"type": "varchar", "length": "255", "name": "Количество"},
-      "description" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "description", "virtual": true, "name": "Описание"}
-    }
-  },
   "qnt_type": {
     "profile": {
       "name": "qnt_type",
@@ -1621,6 +726,95 @@
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "name": { "type": "varchar", "length": "255", "name": "Наименование"},
       "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "sync_file_type": {
+    "profile": {
+      "name": "sync_file_type",
+      "name_ru": "Тип файла синхронизации",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "sync_file_status": {
+    "profile": {
+      "name": "sync_file_status",
+      "name_ru": "Статус файла синхронизации",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "sync_file_item_type": {
+    "profile": {
+      "name": "sync_file_item_type",
+      "name_ru": "Тип записи файла синхронизации",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "sync_file_item_status": {
+    "profile": {
+      "name": "sync_file_item_status",
+      "name_ru": "Статус записи файла синхронизации",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
+  },
+  "sync_file": {
+    "profile": {
+      "name": "sync_file",
+      "name_ru": "Файл синхронизации",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "filename": { "type": "varchar", "length": "255", "name": "Файл"},
+      "status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys"},
+      "status" : {"type": "varchar", "length": "255", "from_table": "sync_file_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
+      "sync_file_type_id" : {"type": "bigint", "length": "20", "visible": false},
+      "sync_file_type_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_type_id", "return_column": "sysname", "virtual": true, "name": "sync_file_type sys"},
+      "sync_file_type" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_type_id", "return_column": "name", "virtual": true, "name": "Тип"},
+      "local_removed" : {"type": "tinyint", "length": "1", "name": "Удален локольно"},
+      "server_removed" : {"type": "tinyint", "length": "1", "name": "Удален с сервера"}
+    }
+  },
+  "sync_file_item": {
+    "profile": {
+      "name": "sync_file_item",
+      "name_ru": "Запись файла синхронизации",
+      "server_parent_table":"sync_file",
+      "server_parent_key":"sync_file_id",
+      "ending": "а"
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "sync_file_id" : {"type": "bigint", "length": "20", "visible": false, "require": true, "server_editable":false, "server_insertable":true, "server_updatable":false, "visible": false, "require":true},
+      "filename": { "type": "varchar", "length": "255", "name": "Файл"},
+      "status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_item_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys"},
+      "status" : {"type": "varchar", "length": "255", "from_table": "sync_file_item_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
+      "sync_file_item_type_id" : {"type": "bigint", "length": "20", "visible": false},
+      "sync_file_item_type_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_item_type_id", "return_column": "sysname", "virtual": true, "name": "sync_file_item_type sys"},
+      "sync_file_item_type" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_item_type_id", "return_column": "name", "virtual": true, "name": "Тип"},
+      "sync_file_type_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file", "keyword": "sync_file_id", "return_column": "sysname", "virtual": true, "name": "sync_file_type sys"},
+      "sync_file_type" : {"type": "varchar", "length": "255", "from_table": "sync_file", "keyword": "sync_file_id", "return_column": "name", "virtual": true, "name": "Тип"}
     }
   }
 }

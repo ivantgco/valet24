@@ -82,7 +82,7 @@ Model.prototype.add_ = function (obj, cb) {
     var categorys = obj.categorys;
     var from_file_name = obj.from_file_name;
     var from_file_id = obj.from_file_id;
-    if (!category_id && !categorys) return cb(new UserError('Необходимо указать категорию товара'));
+    if (!category_id && !categorys) return cb(new UserError('Необходимо указать подкатегорию товара'));
 
     var product, category, new_category_id;
 

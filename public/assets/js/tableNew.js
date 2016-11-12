@@ -1122,8 +1122,8 @@
 									}
 
 									var sObj = {
-										//command: 'removeCascade',
-										command: 'remove',
+										command: 'removeCascade',
+										//command: 'remove',
 										object: _t.profile['extra_data']['object_profile']['class'],
 										params: rowPKs
 									};

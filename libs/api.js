@@ -79,8 +79,23 @@ module.exports = function (obj, cb, user) {
                     alias += "&" + i + ":" + object_params[i];
                 }
                 global.classes[alias] = global.classes[alias] || {};
-                var _сlass = global.classes[alias][alias_client_object];
-                if (_сlass) return cb(null, _сlass);
+                var _class = global.classes[alias][alias_client_object];
+                if (_class) {
+                    //var checkBusy = function () {
+                    //    if (!_class.is_busy){
+                    //        console.log('Класс освободился, можно использовать');
+                    //        return cb(null, _class);
+                    //    }
+                    //    setTimeout(function () {
+                    //        checkBusy();
+                    //    }, 1000);
+                    //};
+                    //checkBusy();
+                    //if (_class.is_busy){
+                    //
+                    //}
+                    return cb(null, _class);
+                }
                 // Если еще не создан, то создадим.
                 var path = './classes/' + object + '.js';
                 fs.access(path, function (err) {
@@ -98,7 +113,7 @@ module.exports = function (obj, cb, user) {
                         if (err) return cb(new MyError('При инициализации класса произошла ошибка.', err));
                         classInstance.alias = alias;
                         classInstance.alias_client_object = alias_client_object;
-                        if (object!=='Table') {
+                        if (object!=='Table' && object!=='User' && alias_client_object!==0) {
                             if (typeof global.classes[alias]!=='object') global.classes[alias] = {};
                             global.classes[alias][alias_client_object] = classInstance;
                         }
@@ -131,7 +146,11 @@ module.exports = function (obj, cb, user) {
                 }
                 if (typeof _сlass !== 'object') return cb(new MyError('Класс не является объектом.'));
                 if (typeof _сlass[command] !== 'function') return cb(new MyError('Класс не имеет такого метода.', {method: command}));
-                _сlass[command](params, cb);
+                _сlass.is_busy = true;
+                _сlass[command](params, function (err, res) {
+                    delete _сlass.is_busy;
+                    cb(err, res);
+                });
             }
         ], function (err, res) {
             // Проверить на ошибки
