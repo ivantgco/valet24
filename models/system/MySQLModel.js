@@ -108,6 +108,7 @@ var MySQLModel = function (obj) {
                             return (profile.field_length == 1) ? 'parseBool' : null;
                             break;
                         case "DECIMAL(10, 2)":
+                        case "DECIMAL(15, 2)":
                             return 'formatMoney';
                             break;
                         default :
