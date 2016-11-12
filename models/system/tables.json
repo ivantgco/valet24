@@ -285,6 +285,22 @@
       "prev_value" : {"type": "text", "name": "Предыдущее значение"}
     }
   },
+  "rollback_backup": {
+    "profile": {
+      "name": "rollback_backup",
+      "name_ru": "Архив важных изменений",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "rollbackKey": { "type": "varchar", "length": "255", "name": "Ключ"},
+      "class_name": { "type": "varchar", "length": "255", "name": "Class"},
+      "class_name_ru": { "type": "varchar", "length": "255", "name": "Класс"},
+      "method": { "type": "varchar", "length": "255", "name": "Метод"},
+      "params": { "type": "text", "name": "Параметры"},
+      "filename": { "type": "text", "name": "Файл"}
+    }
+  },
   "test": {
     "profile": {
       "name": "test",
@@ -502,6 +518,8 @@
       "name": "category",
       "name_ru": "Категория",
       "ending": "а",
+      "server_parent_table":"category",
+      "server_parent_key":"parent_category_id",
       "default_order_by":"sort_no"
     },
     "structure": {
