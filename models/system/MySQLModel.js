@@ -1007,7 +1007,7 @@ MySQLModel.prototype.get = function (params, cb) {
         cacheAlias += JSON.stringify(params);//.replace(/"|:|\{|\}|\,|\>|\=|\*/ig,'');
         if (!global.classesCache[_t.name]) global.classesCache[_t.name] = {};
         if (global.classesCache[_t.name][cacheAlias]) {
-            console.log('\n========USE_CACHE==================================================\n');
+            console.log('\n========USE_CACHE=======\n',cacheAlias);
             return cb(null, global.classesCache[_t.name][cacheAlias]);
         }
         //if (_t.cache[cacheAlias]) {

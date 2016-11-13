@@ -802,15 +802,16 @@
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "filename": { "type": "varchar", "length": "255", "name": "Файл"},
+      "filename": { "type": "varchar", "length": "255", "name": "Файл", "unique":true},
       "status_id" : {"type": "bigint", "length": "20", "visible": false},
       "status_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys", "default":"NEW"},
       "status" : {"type": "varchar", "length": "255", "from_table": "sync_file_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
       "sync_file_type_id" : {"type": "bigint", "length": "20", "visible": false},
       "sync_file_type_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_type_id", "return_column": "sysname", "virtual": true, "name": "sync_file_type sys"},
       "sync_file_type" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_type_id", "return_column": "name", "virtual": true, "name": "Тип"},
-      "local_removed" : {"type": "tinyint", "length": "1", "name": "Удален локольно"},
-      "server_removed" : {"type": "tinyint", "length": "1", "name": "Удален с сервера"}
+      "to_remove" : {"type": "tinyint", "length": "1", "name": "К удалению", "default": 0},
+      "local_removed" : {"type": "tinyint", "length": "1", "name": "Удален локольно", "default": 0},
+      "server_removed" : {"type": "tinyint", "length": "1", "name": "Удален с сервера", "default": 0}
     }
   },
   "sync_file_item": {
@@ -822,27 +823,34 @@
       "ending": "а"
     },
     "structure": {
-      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "id": {"type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "sync_file_id" : {"type": "bigint", "length": "20", "visible": false, "visible": false, "require":true},
-      "filename": { "type": "varchar", "length": "255", "name": "Файл"},
+      "filename" : {"type": "varchar", "length": "255", "from_table": "sync_file", "keyword": "sync_file_id", "return_column": "filename", "virtual": true, "name": "Файл"},
       "status_id" : {"type": "bigint", "length": "20", "visible": false},
       "status_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_item_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys", "default":"NEW"},
       "status" : {"type": "varchar", "length": "255", "from_table": "sync_file_item_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
       "sync_file_item_type_id" : {"type": "bigint", "length": "20", "visible": false},
       "sync_file_item_type_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_item_type_id", "return_column": "sysname", "virtual": true, "name": "sync_file_item_type sys"},
       "sync_file_item_type" : {"type": "varchar", "length": "255", "from_table": "sync_file_type", "keyword": "sync_file_item_type_id", "return_column": "name", "virtual": true, "name": "Тип"},
-      "ext_id": { "type": "varchar", "length": "255", "name": "Код"},
-      "barcode": { "type": "varchar", "length": "255", "name": "Штрихкод"},
-      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
-      "name_check": { "type": "varchar", "length": "255", "name": "Наименование(чек)"},
-      "check_text": { "type": "varchar", "length": "255", "name": "Текст для чека"},
-      "price": { "type": "DECIMAL(15, 2)", "name": "Цена"},
-      "balance_of_goods": { "type": "DECIMAL(17, 3)", "name": "Остаток товара"},
-      "not_used_1": { "type": "varchar", "length": "255", "name": "notUsed"},
-      "control_of_fractional_amounts": { "type": "int", "name": "Контроль дробного количества"},
-      "section_num": { "type": "int", "name": "Номер секции"},
-      "max_discount_percent": { "type": "DECIMAL(17, 3)", "name": "Макс. процент скидки"},
-      "taxes_group_code": { "type": "int", "name": "Код группы налогов"},
+      "ext_id": {"type": "varchar", "length": "255", "name": "Код"},
+      "barcode": {"type": "varchar", "length": "255", "name": "Штрихкод"},
+      "name": {"type": "varchar", "length": "255", "name": "Наименование"},
+      "name_check": {"type": "varchar", "length": "255", "name": "Наименование(чек)"},
+      "check_text": {"type": "varchar", "length": "255", "name": "Текст для чека"},
+      "price": {"type": "DECIMAL(15, 2)", "name": "Цена"},
+      "balance_of_goods": {"type": "DECIMAL(17, 3)", "name": "Остаток товара"},
+      "not_used_1": {"type": "varchar", "length": "255", "name": "notUsed"},
+      "control_of_fractional_amounts": {"type": "int", "name": "Контроль дробного количества"},
+      "section_num": {"type": "int", "name": "Номер секции"},
+      "max_discount_percent": {"type": "DECIMAL(17, 3)", "name": "Макс. процент скидки"},
+      "taxes_group_code": {"type": "int", "name": "Код группы налогов"},
+      "vendor_code": {"type": "varchar", "length": "255", "name": "Артикул"},
+      "request_mark": {"type": "int", "name": "Запрашивать марку"},
+      "not_used_2": {"type": "varchar", "length": "255", "name": "notUsed"},
+      "not_used_3": {"type": "varchar", "length": "255", "name": "notUsed"},
+      "parent_category": {"type": "varchar", "length": "255", "name": "Код родительской группы"},
+      "is_product": {"type": "tinyint", "length": "1", "name": "Товар/группа"},
+      "grapp_list": {"type": "varchar", "length": "255", "name": "Список грапп"}
     }
   }
 }
