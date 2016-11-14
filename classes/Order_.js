@@ -202,7 +202,7 @@ Model.prototype.add_ = function (obj, cb) {
     }, function (err, res) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
-            rollback.rollback(rollback_key, function (err2) {
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
             });
         }else{
@@ -259,7 +259,7 @@ Model.prototype.confirmOrder = function (obj, cb) {
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
-            rollback.rollback(rollback_key, function (err2) {
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
             });
         }else{
@@ -309,7 +309,7 @@ Model.prototype.onDelivery = function (obj, cb) {
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
-            rollback.rollback(rollback_key, function (err2) {
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
             });
         }else{
@@ -358,7 +358,7 @@ Model.prototype.closeOrder = function (obj, cb) {
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
-            rollback.rollback(rollback_key, function (err2) {
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
             });
         }else{
@@ -407,7 +407,7 @@ Model.prototype.cancelOrder = function (obj, cb) {
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
-            rollback.rollback(rollback_key, function (err2) {
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
             });
         }else{

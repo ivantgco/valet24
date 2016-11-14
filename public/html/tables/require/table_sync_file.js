@@ -14,6 +14,45 @@
             callback: function(){
                 tableInstance.openRowInModal();
             }
+        },
+        {
+            name: 'option2',
+            title: 'Загрузить в систему',
+            disabled: function(){
+                return false;
+            },
+            callback: function(){
+
+                bootbox.dialog({
+                    title: 'Загрузить файл в систему',
+                    message: 'Файл будет считан и элементы загружены в соответствующую таблицу',
+                    buttons: {
+                        confirm: {
+                            label: 'Огонь',
+                            callback: function(){
+                                var row = tableInstance.ct_instance.selectedRowIndex;
+                                var id = tableInstance.data.data[row].id;
+                                var o = {
+                                    command: 'upload_file',
+                                    object: 'sync_file',
+                                    params: {id: id}
+                                };
+
+                                socketQuery(o, function (res) {
+                                    toastr[res.toastr.type](res.toastr.message);
+                                    tableInstance.reload();
+                                });
+                            }
+                        },
+                        cancel: {
+                            label: 'Отмена',
+                            callback: function(){
+
+                            }
+                        }
+                    }
+                });
+            }
         }
     ];
 

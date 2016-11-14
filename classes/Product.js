@@ -184,7 +184,7 @@ Model.prototype.add_ = function (obj, cb) {
     }, function (err) {
         if (err && !(err instanceof UserOk)) {
             if (err.message == 'needConfirm') return cb(err);
-            rollback.rollback(rollback_key, function (err2) {
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
             });
         }else{
@@ -257,7 +257,7 @@ Model.prototype.importFromExcel = function (obj, cb) {
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
-            rollback.rollback(rollback_key, function (err2) {
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
             });
         } else {
