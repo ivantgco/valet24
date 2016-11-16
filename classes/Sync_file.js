@@ -267,13 +267,14 @@ Model.prototype.upload_file = function (obj, cb) {
                     console.log(str);
                     var lines = str.split('\n');
                     var items = [];
+                    lines.length = 10;
                     for (var i in lines) {
 
                         lines[i] = lines[i].replace(/\n|\r/ig,'');
                         if (!lines[i].length) continue;
                         if (!lines[i][0].match(/\d/)) continue;
                         var one_item =  lines[i].split(';');
-                        var is_product = one_item[16];
+                        var is_product = !!+one_item[16];
                         if (typeof is_product === 'undefined'){
                             console.log('Не возможно определить товар это или группа');
                             console.log(lines[i]);
@@ -342,6 +343,30 @@ Model.prototype.upload_file = function (obj, cb) {
         }
     })
 
+}
+Model.prototype.apply_category = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var ids = obj.id || obj.ids;
+    if (!ids) return cb(new MyError('id обязателен для метода'));
+    if (!Array.isArray(ids)) ids = [ids];
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Загрузить все категории которые еще не были применены
+
+    async.series({}, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Категории успешно применены.'));
+        }
+    })
 }
 
 /*Model.prototype.upload_files = function (obj, cb) {

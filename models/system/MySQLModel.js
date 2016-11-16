@@ -1611,6 +1611,7 @@ MySQLModel.prototype.modify = function (obj, cb) {
         rollback_key = obj.rollback_key;
         delete obj.rollback_key;
     }
+    var doNotClearCache = obj.doNotClearCache;
 
 
     var id = obj.id;
@@ -1740,7 +1741,9 @@ MySQLModel.prototype.modify = function (obj, cb) {
         if (results == 0) {
             return cb(new UserError('notModified', {id: obj.id, name:_t.name}));
         }
-        _t.clearCache();
+        if (!doNotClearCache){
+            _t.clearCache();
+        }
         return cb(null, new UserOk(_t.table_ru + ' успешно изменен' + _t.ending + '.', {id: obj.id}));
     });
 };
@@ -1806,7 +1809,8 @@ MySQLModel.prototype.remove = function (obj, cb) {
                     function (cb) {
                         var o = {
                             id: id,
-                            deleted: funcs.getDateTimeMySQL()
+                            deleted: funcs.getDateTimeMySQL(),
+                            doNotClearCache:obj.doNotClearCache
                         };
                         if (row && typeof row.name!=='undefined') o.name = row.name + obj.name_postfix;
                         _t.modify(o, cb);
@@ -1819,7 +1823,9 @@ MySQLModel.prototype.remove = function (obj, cb) {
     ], function (err, results) {
         if (err) return cb(new MyError('Не удалось удалить запись.', err));
         if (results == 0) return cb(new UserError('rowNotFound'));
-        _t.clearCache();
+        if (!obj.doNotClearCache){
+            _t.clearCache();
+        }
         if (rollback_key) {
             var o = {
                 type: 'remove',
@@ -2066,7 +2072,8 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                             object:node.name,
                             params:{
                                 id:record.id,
-                                rollback_key:rollback_key
+                                rollback_key:rollback_key,
+                                doNotClearCache:true
                             }
                         };
                         _t.api(o, cb);
@@ -2118,6 +2125,7 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                     });
                     return cb(err);
                 }
+                _t.clearCache();
                 if (!doNotSaveRollback) rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'removeCascade', params:obj});
                 return cb(null, new UserOk(_t.table_ru + ' успешно удален' + _t.ending + '.', {id: obj.id, child_tables:child_tables}));
             });
