@@ -199,6 +199,8 @@ Model.prototype.sync_with_system = function (obj, cb) {
 
 }
 
+
+
 Model.prototype.upload_file = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
@@ -233,7 +235,8 @@ Model.prototype.upload_file = function (obj, cb) {
                     {
                         key:'status_sysname',
                         type:'in',
-                        val1:'NEW,ERR'
+                        //val1:'NEW,ERR'
+                        val1:'NEW'
                     }
                 ],
                 collapseData:false
@@ -267,13 +270,14 @@ Model.prototype.upload_file = function (obj, cb) {
                     console.log(str);
                     var lines = str.split('\n');
                     var items = [];
-                    lines.length = 10; // Временно, чтобы не работать со всем объемом
+                    //lines.length = 10; // Временно, чтобы не работать со всем объемом
                     for (var i in lines) {
 
                         lines[i] = lines[i].replace(/\n|\r/ig,'');
                         if (!lines[i].length) continue;
                         if (!lines[i][0].match(/\d/)) continue;
                         var one_item =  lines[i].split(';');
+                        if (one_item.length < 16) continue;
                         var is_product = !!+one_item[16];
                         if (typeof is_product === 'undefined'){
                             console.log('Не возможно определить товар это или группа');

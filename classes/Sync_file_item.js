@@ -63,7 +63,7 @@ Model.prototype.apply_category = function (obj, cb) {
     //if (!Array.isArray(ids)) ids = [ids];
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var limitSyncCategories = 100;
+    var limitSyncCategories = obj.limitSyncCategories || 200;
     // Загрузить все категории которые еще не были применены limit limitSyncCategories
     // Загрузить из основной таблицы категорий по ext_id
     // Применить к категориям sync_category
@@ -127,54 +127,20 @@ Model.prototype.apply_category = function (obj, cb) {
                     if (cat.ext_id == sync_cat.ext_id){
                         for (var k in cat) {
                             if (k == 'to_modify') continue;
+                            if (k == 'id'){
+                                sync_cat.cat_id = cat.id;
+                                continue;
+                            }
                             if (cat[k] !== sync_cat[k]){
                                 if (!sync_cat.to_modify) sync_cat.to_modify = [];
+                                //sync_cat[k] = cat[k];
+                                sync_cat[k] = (typeof sync_cat[k] != 'undefined')? sync_cat[k] : cat[k];
                                 sync_cat.to_modify.push(k);
                             }
                         }
                     }
                 }
             }
-
-
-            //for (var i in categories) {
-            //    var cat = categories[i];
-            //    for (var j in syncCategories) {
-            //        var sync_cat = syncCategories[j];
-            //        if (cat.ext_id == sync_cat.ext_id){
-            //            if (!cat.to_modify) cat.to_modify = [];
-            //            if (cat.name != sync_cat.name){
-            //                cat.to_modify.push('name');
-            //                cat.name = sync_cat.name;
-            //            }
-            //            if (cat.parent_ext_category_id != sync_cat.parent_category){
-            //                cat.to_modify.push('parent_ext_category_id');
-            //                cat.parent_ext_category_id = sync_cat.parent_category;
-            //            }
-            //        }
-            //    }
-            //}
-            // Построим дерево
-            //function addTreeLevel(objOfObj, parent_key, tree){
-            //    tree = tree || {
-            //        items:[]
-            //    };
-            //    for (var i in objOfObj) {
-            //        var item = objOfObj[i];
-            //        if (!item[parent_key]) {
-            //            tree.items.push(item);
-            //        }else{
-            //
-            //        }
-            //        //if (is_root){
-            //        //    if (!item[parent_key]) tree[item[key]] = item;
-            //        //} else {
-            //        //
-            //        //}
-            //    }
-            //    return tree;
-            //}
-
             cb(null);
         },
         addNew: function (cb) {
@@ -201,7 +167,10 @@ Model.prototype.apply_category = function (obj, cb) {
                     if (err) return cb(new MyError('При получении категории по имени возникла ош.',{o:o, err:err}));
                     if (res.length) {
                         for (var i in res[0]) {
-                            if (i == 'id') continue;
+                            if (i == 'id') {
+                                sync_cat.cat_id = res[0].id;
+                                continue;
+                            }
                             sync_cat[i] = (typeof sync_cat[i]==='undefined')? res[0][i] : (function () {
                                 if (!sync_cat.to_modify) sync_cat.to_modify = [];
                                 sync_cat.to_modify.push(i);
@@ -215,19 +184,57 @@ Model.prototype.apply_category = function (obj, cb) {
                         command:'add',
                         object:'category',
                         params:{
+                            ext_id:sync_cat.ext_id,
+                            parent_ext_category_id:sync_cat.parent_category,
+                            name:sync_cat.name,
+                            is_active:true,
                             rollback_key:rollback_key,
                             fromClient:false
                         }
                     }
-                    for (var i in sync_cat) {
-                        if (typeof sync_cat[i] == 'object') continue;
-                        o.params[i] = sync_cat[i];
-                    }
+                    if (sync_cat.parent_category == 0) o.params.is_root = true;
+                    //for (var i in sync_cat) {
+                    //    if (typeof sync_cat[i] == 'object') continue;
+                    //    o.params[i] = sync_cat[i];
+                    //}
                     _t.api(o, function (err, res) {
                         if (err) return cb(new MyError('При добавлении новой категории возникла ошибка.',{o:o, err:err}));
                         sync_cat.cat_id = res.id;
 
                         async.series({
+                            updateParent: function (cb) {
+                                // Если родитель уже загружен, то выставим его
+                                var o = {
+                                    command:'get',
+                                    object:'category',
+                                    params:{
+                                        param_where:{
+                                            ext_id: sync_cat.parent_category
+                                        },
+                                        collapseData:false,
+                                        limit:1
+                                    }
+                                };
+                                _t.api(o, function (err, res) {
+                                    if (err) return cb(new MyError('При попытке получить родительскую категории для новосозданной, возникла ош.',{o:o, err:err}));
+                                    if (!res.length) return cb(null); // Нет родительского
+                                    var parent_cat = res[0];
+                                    var o = {
+                                        command:'modify',
+                                        object:'category',
+                                        params:{
+                                            id: sync_cat.cat_id,
+                                            parent_category_id:parent_cat.id,
+                                            rollback_key:rollback_key,
+                                            fromClient:false
+                                        }
+                                    };
+                                    _t.api(o, function (err, res) {
+                                        if (err) return cb(new MyError('При попытке установить родительскую категорию для новосозданной возникла ош.', {o:o,err:err}));
+                                        cb(null);
+                                    });
+                                });
+                            },
                             updateChild: function (cb) {
                                 // Теперь поищем зависящие от нее и проставим им parent_id
                                 var o = {
@@ -279,13 +286,120 @@ Model.prototype.apply_category = function (obj, cb) {
                     });
                 })
             }, cb);
+        },
+        modifyExist: function (cb) {
+            async.eachSeries(Object.keys(syncCategories), function (cat_key, cb) {
+                var sync_cat = syncCategories[cat_key];
+                if (!sync_cat.to_modify) return cb(null); // Были добавлены в систему. Они новые
+                //name,parent_category, ext_id
+                //created,updated,deleted,published,created_by_user_id
+                var o = {
+                    command:'modify',
+                    object:'category',
+                    params:{
+                        id: sync_cat.cat_id,
+                        name:sync_cat.name,
+                        parent_category_id:sync_cat.parent_category_id,
+                        parent_ext_category_id:sync_cat.parent_ext_category_id,
+                        is_active:true,
+                        ext_id:sync_cat.ext_id,
+                        rollback_key:rollback_key,
+                        is_root:!!sync_cat.parent_ext_category_id,
+                        fromClient:false
+                    }
+                };
+                _t.api(o, function (err, res) {
+                    if (err) return cb(new MyError('При попытке обновить существующую категорию на основе записи из файла произошла ош..', {o:o,err:err}));
+                    async.series({
+                        updateParent: function (cb) {
+                            // Если родитель уже загружен, то выставим его
+                            var o = {
+                                command:'get',
+                                object:'category',
+                                params:{
+                                    param_where:{
+                                        ext_id: sync_cat.parent_category
+                                    },
+                                    collapseData:false,
+                                    limit:1
+                                }
+                            };
+                            _t.api(o, function (err, res) {
+                                if (err) return cb(new MyError('При попытке получить родительскую категории для новосозданной, возникла ош.',{o:o, err:err}));
+                                if (!res.length) return cb(null); // Нет родительского
+                                var parent_cat = res[0];
+                                var o = {
+                                    command:'modify',
+                                    object:'category',
+                                    params:{
+                                        id: sync_cat.cat_id,
+                                        parent_category_id:parent_cat.id,
+                                        rollback_key:rollback_key,
+                                        fromClient:false
+                                    }
+                                };
+                                _t.api(o, function (err, res) {
+                                    if (err) return cb(new MyError('При попытке установить родительскую категорию для новосозданной возникла ош.', {o:o,err:err}));
+                                    cb(null);
+                                });
+                            });
+                        },
+                        updateChild: function (cb) {
+                            // Теперь поищем зависящие от нее и проставим им parent_id
+                            var o = {
+                                command:'get',
+                                object:'category',
+                                params:{
+                                    param_where:{
+                                        parent_ext_category_id: sync_cat.ext_id
+                                    },
+                                    collapseData:false,
+                                    limit:100000
+                                }
+                            };
+                            _t.api(o, function (err, res) {
+                                if (err) return cb(new MyError('При попытке получить дочернии категории для новосозданной, возникла ош.',{o:o, err:err}));
+                                if (!res.length) return cb(null); // Нет дочерних
+                                async.eachSeries(Object.keys(res), function (key, cb) {
+                                    var child_cat = res[key];
+                                    var o = {
+                                        command:'modify',
+                                        object:'category',
+                                        params:{
+                                            id: child_cat.id,
+                                            parent_category_id:sync_cat.cat_id,
+                                            rollback_key:rollback_key,
+                                            fromClient:false
+                                        }
+                                    };
+                                    _t.api(o, function (err, res) {
+                                        if (err) return cb(new MyError('При попытке установить родительскую категорию после добавления новой возникла ош.', {o:o,err:err}));
+                                        cb(null);
+                                    });
+                                }, cb);
+                            });
+                        },
+                        modifyStatus: function (cb) {
+                            var params = {
+                                id:sync_cat.id,
+                                status_sysname:'APPLIED',
+                                rollback_key:rollback_key
+                            }
+                            _t.modify(params, function (err) {
+                                if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
+                                cb(null);
+                            });
+                        }
+                    },cb);
+                });
+            }, cb);
         }
 
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
-            if (err instanceof UserOk){
-                err.data.count = 0;
+            if (err instanceof UserOk || err instanceof UserError){
+                //err.data.count = 0;
                 return cb(null, err)
             }
             rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
