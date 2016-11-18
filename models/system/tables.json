@@ -552,7 +552,7 @@
       "from_file_name" : {"type": "varchar", "length": "255", "name": "Excel файл"},
       "from_file_id" : {"type": "bigint", "length": "20", "name": "Excel №"},
       "is_active" : {"type": "tinyint", "length": "1", "name": "Активен", "default":0},
-      "name" : {"type": "varchar", "length": "255", "name": "Название", "unique": true},
+      "name" : {"type": "varchar", "length": "255", "name": "Название"},
       "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
       "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
       "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "virtual": true, "name": "Тип количества"},
@@ -568,9 +568,9 @@
       "slider_image": {"type": "varchar", "length": "255", "name": "Изображение для слайдера"},
       "site_alias": {"type": "varchar", "length": "255", "name": "Альяс"},
       "in_basket_count": {"type": "int", "name": "Товаров в корзине", "visible":true},
+      "quantity": {"type": "DECIMAL(17, 3)", "name": "Остаток товара"},
       "ext_id": {"type": "varchar", "length": "255", "name": "Код"},
       "barcode": {"type": "varchar", "length": "255", "name": "Штрихкод"},
-      "quantity": {"type": "DECIMAL(17, 3)", "name": "Остаток товара"},
       "control_of_fractional_amounts": {"type": "int", "name": "Контроль дробного количества"},
       "section_num": {"type": "int", "name": "Номер секции"},
       "vendor_code": {"type": "varchar", "length": "255", "name": "Артикул"}
@@ -854,6 +854,7 @@
       "name_check": {"type": "varchar", "length": "255", "name": "Наименование(чек)"},
       "price": {"type": "DECIMAL(15, 2)", "name": "Цена"},
       "quantity": {"type": "DECIMAL(17, 3)", "name": "Остаток товара"},
+      "quantity_minus_in_order": {"type": "DECIMAL(17, 3)", "name": "Остаток (Текущий)"},
       "not_used_1": {"type": "varchar", "length": "255", "name": "notUsed"},
       "control_of_fractional_amounts": {"type": "int", "name": "Контроль дробного количества"},
       "section_num": {"type": "int", "name": "Номер секции"},
@@ -863,7 +864,7 @@
       "request_mark": {"type": "int", "name": "Запрашивать марку"},
       "not_used_2": {"type": "varchar", "length": "255", "name": "notUsed"},
       "not_used_3": {"type": "varchar", "length": "255", "name": "notUsed"},
-      "parent_category": {"type": "varchar", "length": "255", "name": "Код родительской группы"},
+      "parent_category_cod": {"type": "varchar", "length": "255", "name": "Код родительской группы"},
       "is_product": {"type": "tinyint", "length": "1", "name": "Товар/группа"},
       "grapp_list": {"type": "varchar", "length": "255", "name": "Список грапп"}
     }
