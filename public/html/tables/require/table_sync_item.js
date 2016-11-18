@@ -68,6 +68,10 @@
         '<i class="fa fa-upload"></i>' +
         '<div class="btnDoubleInner">Применить категории</div>' +
         '</div>';
+    btn1Html += '<div class="nb btn btnDouble blue toRight " id="sync_with_system_product" style="opacity: 1;">' +
+    '<i class="fa fa-upload"></i>' +
+    '<div class="btnDoubleInner">Применить продкукты</div>' +
+    '</div>';
 
     $('.ct-environment-buttons ul').append(btn1Html);
 
@@ -84,6 +88,38 @@
 
                         var o = {
                             command: 'apply_category',
+                            object: 'Sync_file_item',
+                            params: {}
+                        };
+                        socketQuery(o, function(res){
+                            console.log(res);
+                        });
+                    }
+                },
+                error: {
+                    label: 'Отмена',
+                    callback: function(){
+
+                    }
+                }
+            }
+        })
+
+    });
+
+    $('#sync_with_system_product').off('click').on('click', function(){
+
+
+        bootbox.dialog({
+            title: 'Применение продуктов',
+            message: 'Новые продукты будут применены к основной таблице продуктов.',
+            buttons: {
+                success: {
+                    label: 'Огонь',
+                    callback: function(){
+
+                        var o = {
+                            command: 'apply_product',
                             object: 'Sync_file_item',
                             params: {}
                         };

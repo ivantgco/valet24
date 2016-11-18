@@ -72,7 +72,12 @@ api_functions.get_category = function (obj, cb) {
         command:'get',
         object:'category',
         params:{
-            where:[]
+            where:[
+                {
+                    key:'is_active',
+                    val1:true
+                }
+            ]
         }
     };
     if (obj.columns) o.params.columns = obj.columns.split(',');
@@ -115,7 +120,12 @@ api_functions.get_product = function (obj, cb) {
                 command:'get',
                 object:'product',
                 params:{
-                    where:[],
+                    where:[
+                        {
+                            key:'is_active',
+                            val1:true
+                        }
+                    ],
                     collapseData:false
                 }
             };

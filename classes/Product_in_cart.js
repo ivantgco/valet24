@@ -214,10 +214,10 @@ Model.prototype.add_ = function (obj, cb) {
             var amount = 0;
             var product_count_all = 0;
             for (var i in cart_products) {
-                amount += +(cart_products[i].price * cart_products[i].product_count);
+                amount += +(cart_products[i].price_site * cart_products[i].product_count);
                 product_count_all += +cart_products[i].product_count;
             }
-            amount += +product.price;
+            amount += +product.price_site;
             //product_count_all = (product_in_cart)? product_count : product_count_all + product_count;
             //product_count_all = (product_in_cart)? product_count_all : product_count_all + product_count;
             product_count_all = product_count_all + product_count;
@@ -338,7 +338,7 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
             var amount = 0;
             product_count_all = 0;
             for (var i in cart_products) {
-                amount += +(cart_products[i].price * cart_products[i].product_count);
+                amount += +(cart_products[i].price_site * cart_products[i].product_count);
                 product_count_all += +cart_products[i].product_count;
             }
             var o = {

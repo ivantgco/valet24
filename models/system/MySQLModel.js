@@ -1301,7 +1301,10 @@ MySQLModel.prototype.get = function (params, cb) {
             async.waterfall([
                 pool.getConn,
                 function (conn, cb) {
-                    if (distinct) return cb(null);
+                    if (distinct) {
+                        conn.release();
+                        return cb(null);
+                    }
                     conn.queryValue(sqlCount, [], function (err, res) {
                         conn.release();
                         if (err) {
@@ -1596,13 +1599,14 @@ MySQLModel.prototype.add = function (obj, cb) {
     });
 };
 
-MySQLModel.prototype.modify = function (obj, cb) {
+MySQLModel.prototype.modify = function (obj_in, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
-        obj = {};
+        obj_in = {};
     }
     if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
-    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    if (typeof obj_in !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var obj = funcs.cloneObj(obj_in);
     var _t = this;
     var fromClient = !(obj.fromClient === false);
     delete obj.fromClient;
@@ -1724,6 +1728,7 @@ MySQLModel.prototype.modify = function (obj, cb) {
         pool.getConn,
         function (conn, cb) {
             obj.updated = funcs.getDateTimeMySQL();
+            console.log(obj);
             conn.update(_t.tableName, obj, function (err, affected) {
                 conn.release();
                 if (err) {
@@ -2327,6 +2332,36 @@ MySQLModel.prototype.clearCache = function (cb) {
             console.log('Во время запроса связаных таблиц для очистки кеша возникла ош.', err);
         }
         if (typeof cb === 'function') cb(null);
+    });
+};
+
+MySQLModel.prototype.execProcedure = function (params, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        params = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof params !== 'object') return cb(new MyError('В метод не переданы params'));
+    var _t = this;
+    var procedureName = obj.procedureName;
+    if (!procedureName) return cb(new MyError('Не передан procedureName'));
+    async.waterfall([
+        pool.getConn,
+        function (conn, cb) {
+            conn.query('CALL '+ procedureName +'()', function (err, res) {
+                conn.release();
+                if (err) {
+                    err.msg = err.message;
+                    return cb(new MyError('Не удалось выполнить хранимую процедуру', err));
+                }
+                cb(null);
+            });
+        },
+    ], function (err, results) {
+        if (err) {
+            return cb(err);
+        }
+        cb(null, results);
     });
 };
 
