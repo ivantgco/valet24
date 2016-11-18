@@ -842,6 +842,10 @@ var classicTable = function () {
                 params.value = params.value.replaceAll('"','&#34;');
             }
 
+            if(!params.isTd){
+                console.log('APA->', params);
+            }
+
             switch (params.type) {
                 case 'text':
                     res = '<input type="text" value="' + params.value + '">';
