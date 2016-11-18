@@ -18,6 +18,7 @@ var Model = function(obj){
 };
 util.inherits(Model, BasicClass);
 Model.prototype.addPrototype = Model.prototype.add;
+Model.prototype.modifyPrototype = Model.prototype.modify;
 
 Model.prototype.init = function (obj, cb) {
     if (arguments.length == 1) {
@@ -50,6 +51,35 @@ Model.prototype.add = function (obj, cb) {
             _t.addPrototype(obj, cb);
         }
     }
+};
+Model.prototype.modify = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var client_object = _t.client_object || '';
+
+    var coFunction = 'modify_' + client_object;
+    if (typeof _t[coFunction] === 'function') {
+        _t[coFunction](obj, cb);
+    } else {
+        if (typeof _t['modify_'] === 'function') {
+            _t['modify_'](obj, cb);
+        } else {
+            _t.modifyPrototype(obj, cb);
+        }
+    }
+};
+
+Model.prototype.modify_ = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    // Изменим
+    // Обновим статистику по заказу
 };
 
 /////////////////////////////////////////////////////////////////

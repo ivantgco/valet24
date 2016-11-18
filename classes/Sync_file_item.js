@@ -126,6 +126,7 @@ Model.prototype.apply_category = function (obj, cb) {
                 for (var j in syncCategories) {
                     var sync_cat = syncCategories[j];
                     sync_cat.is_root = !+sync_cat.parent_category_cod;
+                    sync_cat.is_active = true;
                     if (cat.ext_id == sync_cat.ext_id){
                         sync_cat.is_modify = true;
                         for (var k in cat) {
@@ -142,8 +143,6 @@ Model.prototype.apply_category = function (obj, cb) {
                             }
                         }
                     }
-                    if (sync_cat.to_modify)
-                        console.log(sync_cat.to_modify.join(','));
                 }
             }
             cb(null);
@@ -171,7 +170,7 @@ Model.prototype.apply_category = function (obj, cb) {
                 _t.api(o, function (err, res) {
                     if (err) return cb(new MyError('При получении категории по имени возникла ош.',{o:o, err:err}));
                     if (res.length) {
-                        sync_cat.image = res[0];
+                        sync_cat.image = res[0].image;
                         //for (var i in res[0]) {
                         //    if (i == 'id') {
                         //        sync_cat.cat_id = res[0].id;
@@ -195,7 +194,8 @@ Model.prototype.apply_category = function (obj, cb) {
                             name:sync_cat.name,
                             is_active:true,
                             rollback_key:rollback_key,
-                            fromClient:false
+                            fromClient:false,
+                            fromServer:true
                         }
                     }
                     if (sync_cat.parent_category_cod == 0) o.params.is_root = true;
@@ -477,7 +477,7 @@ Model.prototype.apply_product = function (obj, cb) {
     //if (!Array.isArray(ids)) ids = [ids];
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var limitSyncProducts = obj.limitSyncProducts || 10000;
+    var limitSyncProducts = obj.limitSyncProducts || 5000;
     // Загрузить все категории которые еще не были применены limit limitSyncProducts
     // Загрузить из основной таблицы категорий по ext_id
     // Применить к категориям sync_category
@@ -535,14 +535,16 @@ Model.prototype.apply_product = function (obj, cb) {
             })
         },
         mergeProduct: function (cb) {
-
+            var excludeToModify = ['to_modify','created','updated','published','deleted','deleted_by_user_id','remove_comment','created_by_user_id','self_company_id','ext_company_id']
             for (var i in products) {
                 var product = products[i];
                 for (var j in syncProducts) {
                     var sync_product = syncProducts[j];
+                    sync_product.is_active = true;
                     if (product.ext_id == sync_product.ext_id){
+                        sync_product.is_modify = true;
                         for (var k in product) {
-                            if (k == 'to_modify') continue;
+                            if (excludeToModify.indexOf(k)!=-1) continue;
                             if (k == 'id'){
                                 sync_product.prod_id = product.id;
                                 continue;
@@ -596,7 +598,7 @@ Model.prototype.apply_product = function (obj, cb) {
             _t.api(o, function (err, res) {
                 if (err) return cb(new MyError('При попытке получить категорию для товара возникла ош.', {o:o, err:err}));
                 for (var i in res) {
-                    categories[res[i].parent_ext_category_id] = res[i].id;
+                    categories[res[i].ext_id] = res[i].id;
                 }
                 cb(null);
             })
@@ -608,7 +610,7 @@ Model.prototype.apply_product = function (obj, cb) {
             // После добавления поищем его категорию и проставим (если еще не проставлена)
             async.eachSeries(Object.keys(syncProducts), function (cat_key, cb) {
                 var sync_prod = syncProducts[cat_key];
-                if (sync_prod.to_modify) return cb(null); // Уже есть, отправим на изменение
+                if (sync_prod.is_modify) return cb(null); // Уже есть, отправим на изменение
                 var o = {
                     command:'get',
                     object:'product',
@@ -624,22 +626,38 @@ Model.prototype.apply_product = function (obj, cb) {
                 _t.api(o, function (err, res) {
                     if (err) return cb(new MyError('При получении товара по имени возникла ош.',{o:o, err:err}));
                     if (res.length) {
-                        for (var i in res[0]) {
-                            if (i == 'id') {
-                                sync_prod.prod_id = res[0].id;
-                                continue;
-                            }
-                            sync_prod[i] = (typeof sync_prod[i]==='undefined')? res[0][i] : (function () {
-                                if (!sync_prod.to_modify) sync_prod.to_modify = [];
-                                sync_prod.to_modify.push(i);
-                                return sync_prod[i];
-                            })();
-                        }
-                        return cb(null);
+                        sync_prod.image = res[0].image;
+                        sync_prod.image_list = res[0].image_list;
+                        //for (var i in res[0]) {
+                        //    if (i == 'id') {
+                        //        sync_prod.prod_id = res[0].id;
+                        //        continue;
+                        //    }
+                        //    sync_prod[i] = (typeof sync_prod[i]==='undefined')? res[0][i] : (function () {
+                        //        if (!sync_prod.to_modify) sync_prod.to_modify = [];
+                        //        sync_prod.to_modify.push(i);
+                        //        return sync_prod[i];
+                        //    })();
+                        //}
+                        //return cb(null);
                     }
                     // Если не нашли то добавим
                     var category_id = categories[sync_prod.parent_category_cod];
-                    if(!category_id) return cb(null);
+                    if(!category_id) {
+                        //NO_CATEGORY
+                        var params = {
+                            id:sync_prod.id,
+                            status_sysname:'NO_CATEGORY',
+                            rollback_key:rollback_key,
+                            fromClient:false,
+                            fromServer:true
+                        }
+                        _t.modify(params, function (err) {
+                            if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
+                            cb(null);
+                        });
+                        return;
+                    }
                     var o = {
                         command:'add',
                         object:'product',
@@ -656,7 +674,8 @@ Model.prototype.apply_product = function (obj, cb) {
                             section_num:sync_prod.section_num,
                             vendor_code:sync_prod.vendor_code,
                             rollback_key:rollback_key,
-                            fromClient:false
+                            fromClient:false,
+                            fromServer:true
                         }
                     }
                     _t.api(o, function (err, res) {
@@ -744,31 +763,63 @@ Model.prototype.apply_product = function (obj, cb) {
         modifyExist: function (cb) {
             async.eachSeries(Object.keys(syncProducts), function (cat_key, cb) {
                 var sync_prod = syncProducts[cat_key];
-                if (!sync_prod.to_modify) return cb(null); // Были добавлены в систему. Они новые
+                if (!sync_prod.is_modify) return cb(null); // Были добавлены в систему. Они новые
+                if (!sync_prod.to_modify){
+                    // Обновим статус и выйдем
+                    var params = {
+                        id:sync_prod.id,
+                        status_sysname:'APPLIED',
+                        rollback_key:rollback_key,
+                        fromClient:false,
+                        fromServer:true
+                    }
+                    _t.modify(params, function (err) {
+                        if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
+                        cb(null);
+                    });
+                    return;
+                }
 
                 var category_id = categories[sync_prod.parent_category_cod];
-                if(!category_id) return cb(null);
+                if(!category_id) {
+                    //NO_CATEGORY
+                    var params = {
+                        id:sync_prod.id,
+                        status_sysname:'NO_CATEGORY',
+                        rollback_key:rollback_key,
+                        fromClient:false,
+                        fromServer:true
+                    }
+                    _t.modify(params, function (err) {
+                        if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
+                        cb(null);
+                    });
+                    return;
+                }
 
                 var o = {
                     command:'modify',
                     object:'product',
                     params:{
                         id:sync_prod.prod_id,
-                        category_id:sync_prod.category_id,
-                        is_active:true,
-                        name:sync_prod.name,
-                        qnt_type_sys:(sync_prod.control_of_fractional_amounts)? 'KG' : 'UNIT',
-                        price:sync_prod.price,
-                        ext_id:sync_prod.ext_id,
-                        barcode:sync_prod.barcode,
-                        quantity:sync_prod.quantity,
-                        control_of_fractional_amounts:sync_prod.control_of_fractional_amounts,
-                        section_num:sync_prod.section_num,
-                        vendor_code:sync_prod.vendor_code,
+                        //category_id:sync_prod.category_id,
+                        //is_active:true,
+                        //name:sync_prod.name,
+                        //qnt_type_sys:(sync_prod.control_of_fractional_amounts)? 'KG' : 'UNIT',
+                        //price:sync_prod.price,
+                        //ext_id:sync_prod.ext_id,
+                        //barcode:sync_prod.barcode,
+                        //quantity:sync_prod.quantity,
+                        //control_of_fractional_amounts:sync_prod.control_of_fractional_amounts,
+                        //section_num:sync_prod.section_num,
+                        //vendor_code:sync_prod.vendor_code,
                         rollback_key:rollback_key,
                         fromClient:false,
                         fromServer:true
                     }
+                }
+                for (var i in sync_prod.to_modify) {
+                    o.params[sync_prod.to_modify[i]] = sync_cat[sync_prod.to_modify[i]];
                 }
                 _t.api(o, function (err, res) {
                     if (err) return cb(new MyError('При добавлении нового товара возникла ошибка.',{o:o, err:err}));
@@ -852,8 +903,17 @@ Model.prototype.apply_product = function (obj, cb) {
                 //    }
                 //},cb);
             }, cb);
+        },
+        inWordpress: function (cb) {
+            var o = {
+                command:'pushIntoWordpress',
+                object:'Product'
+            };
+            socketQuery(o, function (err, res) {
+                console.log(err, res);
+            });
+            _t.api(o, cb);
         }
-
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);

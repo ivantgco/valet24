@@ -385,5 +385,36 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
     });
 };
 
+Model.prototype.updatePriceSite = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+
+
+
+    var products;
+
+
+    async.series({
+        getDate: function (cb) {
+            var params = {
+                limit:1000000,
+                collapseData:false
+            };
+            _t.get(params, function (err, res) {
+                if (err) return cb(err);
+                products = res;
+                cb(null);
+            });
+        },
+
+    }, function (err) {
+        if (err) return cb(err);
+        cb (null, new UserOk('Проставили альясы для родуктов.'))
+    });
+};
+
 
 module.exports = Model;
