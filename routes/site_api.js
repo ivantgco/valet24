@@ -124,6 +124,11 @@ api_functions.get_product = function (obj, cb) {
                         {
                             key:'is_active',
                             val1:true
+                        },
+                        {
+                            key:'quantity',
+                            type:'>',
+                            val1:0
                         }
                     ],
                     collapseData:false
@@ -190,6 +195,7 @@ api_functions.get_product = function (obj, cb) {
                 for (var i in res) {
                     var product_id = res[i].product_id;
                     for (var j in products) {
+                        products[j].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
                         if (products[j].id == product_id){
                             products[j].in_basket_count = res[i].product_count;
                         }
@@ -321,7 +327,7 @@ api_functions.remove_product_from_cart = function (obj, cb) {
 
 
     async.series({
-        add: function (cb) {
+        remove: function (cb) {
             var o = {
                 command:'decrise_product_in_cart',
                 object:'product_in_cart',
@@ -339,7 +345,7 @@ api_functions.remove_product_from_cart = function (obj, cb) {
         }
     }, function (err, res) {
         if (err) return cb(err);
-        var product = {product_id:res.add[0].product_id, product_count:res.add[0].product_count};
+        var product = {product_id:res.remove[0].product_id, product_count:res.remove[0].product_count};
         cb(null, {product: product, cart: res.getCart});
     });
 };

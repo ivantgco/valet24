@@ -69,6 +69,11 @@
         '<div class="btnDoubleInner">Синхронизировать файлы</div>' +
         '</div>';
 
+    btn1Html += '<div class="nb btn btnDouble blue toRight " id="upload_all_files" style="opacity: 1;">' +
+        '<i class="fa fa-upload"></i>' +
+        '<div class="btnDoubleInner">Загрузить все</div>' +
+        '</div>';
+
     $('.ct-environment-buttons ul').append(btn1Html);
 
     $('#sync_with_system').off('click').on('click', function(){
@@ -84,6 +89,37 @@
 
                         var o = {
                             command: 'sync_with_system',
+                            object: 'Sync_file',
+                            params: {}
+                        };
+                        socketQuery(o, function(res){
+                            console.log(res);
+                        });
+                    }
+                },
+                error: {
+                    label: 'Отмена',
+                    callback: function(){
+
+                    }
+                }
+            }
+        })
+
+    });
+    $('#upload_all_files').off('click').on('click', function(){
+
+
+        bootbox.dialog({
+            title: 'Загрузка записей из всех файлов',
+            message: 'Данная операция загрузит в систему все записи продуктов из всех новых файлов. Это может быть долго. Начать?',
+            buttons: {
+                success: {
+                    label: 'Да, я подожду',
+                    callback: function(){
+
+                        var o = {
+                            command: 'upload_all_files',
                             object: 'Sync_file',
                             params: {}
                         };

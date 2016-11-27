@@ -74,6 +74,12 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
     async.series({
         getDate: function (cb) {
             var params = {
+                where:[
+                    {
+                        key:'site_alias',
+                        type:'isNull'
+                    }
+                ],
                 limit:100000,
                 collapseData:false
             };

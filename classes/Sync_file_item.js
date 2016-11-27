@@ -821,7 +821,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                     o.params[sync_prod.to_modify[i]] = sync_prod[sync_prod.to_modify[i]];
                 }
                 _t.api(o, function (err, res) {
-                    if (err) return cb(new MyError('При добавлении нового товара возникла ошибка.',{o:o, err:err}));
+                    if (err) return cb(new MyError('При изменении нового товара возникла ошибка.',{o:o, err:err}));
                     sync_prod.prod_id = res.id;
 
                     var params = {
@@ -937,12 +937,13 @@ Model.prototype.apply_product = function (obj, cb) {
     var _t = this;
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var limitSyncProducts = obj.limitSyncProducts || 5000;
+    var limitSyncProducts = obj.limitSyncProducts || 1000;
 
     var syncProducts, products;
     var syncProduct_barcodes = [];
     var using_categories = [];
     var categories = {};
+    var lastApplicableFile;
     async.series({
         getSyncProducts: function (cb) {
             // Загрузить все продукты которые еще не были применены limit limitSyncProducts
@@ -963,7 +964,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 for (var i in syncProducts) {
                     syncProduct_barcodes.push(syncProducts[i].barcode);
                 }
-                if (!syncProduct_barcodes.length) return cb(new UserOk('Нет записей для применения'));
+                if (!syncProduct_barcodes.length) return cb(new UserOk({msg:'Нет записей для применения',all_applied:true}));
                 cb(null);
             });
         },
@@ -1032,7 +1033,7 @@ Model.prototype.apply_product = function (obj, cb) {
                                 }
                                 continue;
                             }
-                            if (product[k] !== sync_product[k] && typeof sync_product[k] != 'undefined'){
+                            if (product[k] !== sync_product[k] && typeof sync_product[k] != 'undefined' || sync_product.quantity!==''){
                                 if (!sync_product.to_modify) sync_product.to_modify = [];
                                 //sync_product[k] = product[k];
                                 //sync_product[k] = product[k];
@@ -1041,10 +1042,10 @@ Model.prototype.apply_product = function (obj, cb) {
                         }
                     }
                 }
-
             }
             cb(null);
         },
+
         modifyExist: function (cb) {
             async.eachSeries(Object.keys(syncProducts), function (cat_key, cb) {
                 var sync_prod = syncProducts[cat_key];
@@ -1056,7 +1057,8 @@ Model.prototype.apply_product = function (obj, cb) {
                         status_sysname:'DOES_NOT_EXIST',
                         rollback_key:rollback_key,
                         fromClient:false,
-                        fromServer:true
+                        fromServer:true,
+                        doNotClearCache:true
                     }
                     _t.modify(params, function (err) {
                         if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -1071,7 +1073,8 @@ Model.prototype.apply_product = function (obj, cb) {
                         status_sysname:'NO_BARCODE',
                         rollback_key:rollback_key,
                         fromClient:false,
-                        fromServer:true
+                        fromServer:true,
+                        doNotClearCache:true
                     }
                     _t.modify(params, function (err) {
                         if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -1086,7 +1089,8 @@ Model.prototype.apply_product = function (obj, cb) {
                         status_sysname:'APPLIED',
                         rollback_key:rollback_key,
                         fromClient:false,
-                        fromServer:true
+                        fromServer:true,
+                        doNotClearCache:true
                     }
                     _t.modify(params, function (err) {
                         if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -1094,68 +1098,114 @@ Model.prototype.apply_product = function (obj, cb) {
                     });
                     return;
                 }
-                var o = {
-                    command:'modify',
-                    object:'product',
-                    params:{
-                        id:sync_prod.prod_id,
-                        //category_id:sync_prod.category_id,
-                        //is_active:true,
-                        //name:sync_prod.name,
-                        //qnt_type_sys:(sync_prod.control_of_fractional_amounts)? 'KG' : 'UNIT',
-                        //price:sync_prod.price,
-                        //ext_id:sync_prod.ext_id,
-                        //barcode:sync_prod.barcode,
-                        //quantity:sync_prod.quantity,
-                        //control_of_fractional_amounts:sync_prod.control_of_fractional_amounts,
-                        //section_num:sync_prod.section_num,
-                        //vendor_code:sync_prod.vendor_code,
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
-                    }
-                }
-                for (var i in sync_prod.to_modify) {
-                    if (typeof sync_prod[sync_prod.to_modify[i]] != 'undefined'){
-                        o.params[sync_prod.to_modify[i]] = sync_prod[sync_prod.to_modify[i]];
-                    }
-                }
+                async.series({
+                    clearCacheProduct: function (cb) {
+                        if (!lastApplicableFile || lastApplicableFile == sync_prod.filename) return cb(null); // не надо чистить кеш
+                        console.log('ЧИСТИМ КЕШ --> Применяем файл');
+                        var o = {
+                            command:'clearCache',
+                            object:'product'
+                        }
+                        _t.api(o, cb);
+                    },
+                    modify: function (cb) {
+                        var o = {
+                            command:'modify',
+                            object:'product',
+                            params:{
+                                id:sync_prod.prod_id,
+                                //category_id:sync_prod.category_id,
+                                //is_active:true,
+                                //name:sync_prod.name,
+                                //qnt_type_sys:(sync_prod.control_of_fractional_amounts)? 'KG' : 'UNIT',
+                                //price:sync_prod.price,
+                                //ext_id:sync_prod.ext_id,
+                                //barcode:sync_prod.barcode,
+                                //quantity:sync_prod.quantity,
+                                //control_of_fractional_amounts:sync_prod.control_of_fractional_amounts,
+                                //section_num:sync_prod.section_num,
+                                //vendor_code:sync_prod.vendor_code,
+                                rollback_key:rollback_key,
+                                fromClient:false,
+                                fromServer:true,
+                                doNotClearCache:true
+                            }
+                        }
 
-                //console.log('ПРОДУКТ',o);
-                //return cb(null);
-                _t.api(o, function (err, res) {
-                    if (err) return cb(new MyError('При добавлении нового товара возникла ошибка.',{o:o, err:err}));
-                    sync_prod.prod_id = res.id;
+                        for (var i in sync_prod.to_modify) {
+                            if (typeof sync_prod[sync_prod.to_modify[i]] != 'undefined'){
+                                o.params[sync_prod.to_modify[i]] = sync_prod[sync_prod.to_modify[i]];
+                            }
+                        }
 
-                    var params = {
-                        id:sync_prod.id,
-                        status_sysname:'APPLIED',
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        //console.log('ПРОДУКТ',o);
+                        //return cb(null);
+                        _t.api(o, function (err, res) {
+                            if (err) {
+                                if (err.message != 'notModified') {
+                                    return cb(new MyError('При измении товара возникла ошибка.',{o:o, err:err}));
+                                }
+                                return cb(null);
+                            }
+                            lastApplicableFile = sync_prod.filename;
+                            sync_prod.prod_id = res.id;
+                            var params = {
+                                id:sync_prod.id,
+                                status_sysname:'APPLIED',
+                                rollback_key:rollback_key,
+                                fromClient:false,
+                                fromServer:true,
+                                doNotClearCache:true
+                            }
+                            _t.modify(params, function (err) {
+                                if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
+                                cb(null);
+                            });
+
+                        });
                     }
-                    _t.modify(params, function (err) {
-                        if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
-                        cb(null);
-                    });
+                },cb);
 
-                });
 
 
 
             }, cb);
         },
+        clearCache: function (cb) {
+            async.series({
+                product: function (cb) {
+                    var o = {
+                        command:'clearCache',
+                        object:'product'
+                    }
+                    _t.api(o,cb);
+                },
+                self: function (cb) {
+                    _t.clearCache(cb);
+                }
+            },cb);
+        },
         inWordpress: function (cb) {
-            return cb(null);
-            // В WP надо пушить при добавлении новых из excel
-
             var o = {
                 command:'pushIntoWordpress',
-                object:'Product'
+                object:'Product',
+                params:{
+                    fromClient:false,
+                    fromServer:true,
+                }
             };
-            socketQuery(o, function (err, res) {
-                console.log(err, res);
-            });
+
+            _t.api(o, cb);
+        },
+        updateSitePrice: function (cb) {
+            var o = {
+                command:'updateSitePrice',
+                object:'product',
+                params:{
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
             _t.api(o, cb);
         }
     }, function (err) {
@@ -1165,13 +1215,36 @@ Model.prototype.apply_product = function (obj, cb) {
                 //err.data.count = 0;
                 return cb(null, err)
             }
-            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
-                return cb(err, err2);
-            });
+            //rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+            //    return cb(err, err2);
+            //});
         }else{
             cb(null, new UserOk('Продукты успешно применены.'));
         }
     })
+}
+
+Model.prototype.apply_product_all = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    //var rollback_key = obj.rollback_key || rollback.create();
+
+    var fire = function () {
+        _t.apply_product({
+            fromClient:false,
+            fromServer:true
+        }, function (err, res) {
+            if (err) return cb(err);
+            if (typeof res!='object') return cb(new MyError('В ответ на apply_product вернулся не корректный результат',{err:err,res:res}));
+            if (!res.all_applied) return fire();
+            cb(err, res);
+        });
+    };
+    fire();
+
 }
 
 module.exports = Model;

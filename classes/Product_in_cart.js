@@ -86,7 +86,7 @@ Model.prototype.add_ = function (obj, cb) {
     if (!sid) return cb(new MyError('sid необходим для добавления в карзину'));
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var product_count = obj.product_count || 1;
+    var product_count = +obj.product_count || 1;
     // Получим корзину по sid
     // Создадим корзину если ее еще нет
     // Получим продукт
@@ -114,6 +114,7 @@ Model.prototype.add_ = function (obj, cb) {
 
     var cart, product, cart_products, product_in_cart;
     var this_product_count;
+    var balance;
     async.series({
         getOrCreateCart: function (cb) {
 
@@ -153,6 +154,8 @@ Model.prototype.add_ = function (obj, cb) {
                 if (err) return cb(new MyError('Не удалось получить информацию по продукту',{err:err}));
                 if (!res.length) return cb(new UserError('Продукт не найден'));
                 product = res[0];
+                balance = +product.quantity - product_count;
+                if (balance < 0) return cb(new UserError('В магазине не достаточно товара.',{product_count:product_count,quantity:+product.quantity}));
                 cb(null);
             });
         },
@@ -169,6 +172,24 @@ Model.prototype.add_ = function (obj, cb) {
                 cb(null);
             })
         },
+        decreaseInProducts: function (cb) {
+            var o = {
+                command:'modify',
+                object:'product',
+                params:{
+                    id:product.id,
+                    quantity:balance,
+                    in_basket_count:+product.in_basket_count + product_count,
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось изменить остаток товара',{o:o, err:err}));
+                cb(null);
+            })
+        },
         createOrModifyCartProduct: function (cb) {
             // Поищем в корзине
             for (var i in cart_products) {
@@ -179,15 +200,16 @@ Model.prototype.add_ = function (obj, cb) {
             }
             var params;
             if (product_in_cart){ // Изменим текущий
-                this_product_count = product_in_cart.product_count + product_count;
+                this_product_count = +product_in_cart.product_count + product_count;
                 params = {
                     id:product_in_cart.id,
                     product_count:this_product_count,
-                    rollback_key:rollback_key
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
                 };
                 _t.modify(params, function (err, res) {
                     if (err) return cb(new MyError('Не удалось добавить продукт',{err:err}));
-
                     cb(null);
                 });
             }else{
@@ -228,7 +250,9 @@ Model.prototype.add_ = function (obj, cb) {
                     id:cart.id,
                     amount:amount,
                     product_count:product_count_all,
-                    rollback_key:rollback_key
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
                 }
             };
             _t.api(o, function (err, res) {
@@ -267,7 +291,10 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
 
 
 
-    var cart, product, cart_products, product_count_all;
+    var cart, cart_product, cart_products, product_count_all;
+    var product;
+    var balance;
+    //balance = +product.quantity - product_count;
     async.series({
         getProductFromCart: function (cb) {
 
@@ -281,7 +308,26 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
             _t.get(params, function (err, res) {
                 if (err) return cb(new MyError('Не удалось получить информацию по продукту',{err:err}));
                 if (!res.length) return cb(new UserError('Продукт не найден'));
+                cart_product = res[0];
+                cb(null);
+            });
+        },
+        getProduct: function (cb) {
+            var o = {
+                command:'get',
+                object:'product',
+                params:{
+                    param_where:{
+                        id:product_id
+                    },
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить информацию по продукту',{err:err}));
+                if (!res.length) return cb(new UserError('Продукт не найден'));
                 product = res[0];
+                balance = +product.quantity + product_count;
                 cb(null);
             });
         },
@@ -303,20 +349,42 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                 return cb(null);
             });
         },
-        modifyOrRemoveProduct: function (cb) {
-            product.product_count -= product_count;
-            var params;
-            if (product.product_count<=0){ // удалим элемент
-                params = {
+        increaseInProducts: function (cb) {
+            var o = {
+                command:'modify',
+                object:'product',
+                params:{
                     id:product.id,
-                    rollback_key:rollback_key
+                    quantity:balance,
+                    in_basket_count:+product.in_basket_count - product_count,
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось изменить остаток товара',{o:o, err:err}));
+                cb(null);
+            })
+        },
+        modifyOrRemoveProduct: function (cb) {
+            cart_product.product_count -= product_count;
+            var params;
+            if (cart_product.product_count<=0){ // удалим элемент
+                params = {
+                    id:cart_product.id,
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
                 };
-                _t.remove(params, cb);
+                _t.removePrototype(params, cb);
             }else{ // изменим количество
                 params = {
-                    id:product.id,
-                    product_count:product.product_count,
-                    rollback_key:rollback_key
+                    id:cart_product.id,
+                    product_count:cart_product.product_count,
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
                 };
                 _t.modify(params, cb);
             }
@@ -348,7 +416,9 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                     id:cart.id,
                     amount:amount,
                     product_count:product_count_all,
-                    rollback_key:rollback_key
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
                 }
             };
             _t.api(o, function (err, res) {
@@ -363,7 +433,87 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                 return cb(err, err2);
             });
         }else{
-            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:product.product_count}));
+            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:cart_product.product_count}));
+        }
+    })
+};
+
+Model.prototype.remove_ = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id или передан не корректно'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Получить продукты из корзины
+    // Получить товар
+    // Вернуть товар в продажу (количество)
+
+    var product, product_in_cart;
+    async.series({
+        getCartProducts: function (cb) {
+            _t.getById({id:id}, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить информацию по прдуктам в корзине',{err:err}));
+                if (!res.length) {
+                    return cb(null);
+                }
+                product_in_cart = res[0];
+                cb(null);
+            })
+        },
+        getProduct: function (cb) {
+            if (!product_in_cart) return cb(null);
+            var o = {
+                command:'get',
+                object:'product',
+                params:{
+                    param_where:{
+                        id:product_in_cart.product_id
+                    },
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить информацию по продукту',{err:err}));
+                if (!res.length) return cb(null); // Игнорим ошибку
+                product = res[0];
+                cb(null);
+            });
+        },
+
+        increaseInProducts: function (cb) {
+            if (!product) return cb(null);
+            var o = {
+                command:'modify',
+                object:'product',
+                params:{
+                    id:product.id,
+                    quantity:+product.quantity + +product_in_cart.product_count,
+                    in_basket_count:+product.in_basket_count - product_in_cart.product_count,
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    froServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось изменить остаток товара',{o:o, err:err}));
+                cb(null);
+            })
+        },
+        remove: function (cb) {
+            _t.removePrototype(obj, cb);
+        }
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Продукт удален из корзины.'));
         }
     })
 };

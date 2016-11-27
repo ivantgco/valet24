@@ -460,6 +460,17 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
                 });
             }, cb);
         },
+        createWPpage: function (cb) {
+            var o = {
+                command:'pushIntoWordpress',
+                object:'category',
+                params:{
+                    fromClient:false,
+                    fromServer:true,
+                }
+            }
+            _t.api(o, cb);
+        }
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
@@ -758,7 +769,7 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
                         type:'isNull'
                     }
                 ],
-                limit:100000,
+                limit:10000000,
                 collapseData:false
             };
             _t.get(params, function (err, res) {
@@ -812,36 +823,21 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
     });
 };
 
-Model.prototype.updatePriceSite = function (obj, cb) {
+Model.prototype.updateSitePrice = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
         obj = {};
     }
     var _t = this;
-
-
-
-    var products;
-
-
-    async.series({
-        getDate: function (cb) {
-            var params = {
-                limit:1000000,
-                collapseData:false
-            };
-            _t.get(params, function (err, res) {
-                if (err) return cb(err);
-                products = res;
-                cb(null);
-            });
-        },
-
-    }, function (err) {
-        if (err) return cb(err);
-        cb (null, new UserOk('Проставили альясы для родуктов.'))
-    });
+    var params = {
+        procedureName:'update_product_sale_price',
+        fromClient:false,
+        fromServer:true
+    }
+    _t.execProcedure(params, cb);
 };
+
+//4606272022113
 
 
 module.exports = Model;

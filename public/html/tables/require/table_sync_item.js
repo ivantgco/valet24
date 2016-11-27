@@ -64,13 +64,13 @@
 (function () {
     // Добавим кнопки
 
-    var btn1Html = '<div class="nb btn btnDouble blue toRight " id="sync_with_system" style="opacity: 1;">' +
-        '<i class="fa fa-upload"></i>' +
-        '<div class="btnDoubleInner">Применить категории</div>' +
-        '</div>';
-    btn1Html += '<div class="nb btn btnDouble blue toRight " id="sync_with_system_product" style="opacity: 1;">' +
+    //var btn1Html = '<div class="nb btn btnDouble blue toRight " id="sync_with_system" style="opacity: 1;">' +
+    //    '<i class="fa fa-upload"></i>' +
+    //    '<div class="btnDoubleInner">Применить категории</div>' +
+    //    '</div>';
+    var btn1Html = '<div class="nb btn btnDouble blue toRight " id="sync_with_system_product" style="opacity: 1;">' +
     '<i class="fa fa-upload"></i>' +
-    '<div class="btnDoubleInner">Применить продкукты</div>' +
+    '<div class="btnDoubleInner">Применить продукты</div>' +
     '</div>';
 
     $('.ct-environment-buttons ul').append(btn1Html);
@@ -119,7 +119,7 @@
                     callback: function(){
 
                         var o = {
-                            command: 'apply_product',
+                            command: 'apply_product_all',
                             object: 'Sync_file_item',
                             params: {}
                         };

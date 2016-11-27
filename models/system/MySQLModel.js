@@ -471,7 +471,7 @@ MySQLModel.prototype.init = function (obj, cb) {
                     }
                     var sql = "SELECT " + ready_columns.join(', ') + " FROM " + tableName + join_tables.join('') + ' WHERE ' +
                         tableName + ".name = " + pool.escape(_t.client_object) + " AND " + tableName + ".class_id = " + pool.escape(_t.class_profile.id);
-                    console.log(sql);
+                    //console.log(sql);
                     //conn.select("client_object_profile",'*', {name:_t.client_object, class_id:_t.class_profile.id}, function (err, res) {
                     conn.query(sql, function (err, res) {
                         conn.release();
@@ -1294,7 +1294,7 @@ MySQLModel.prototype.get = function (params, cb) {
             }
 
             var realSQL = sqlStart + sql;
-            console.log(realSQL);
+            //console.log(realSQL);
 
             var count_all;
 
@@ -1728,7 +1728,7 @@ MySQLModel.prototype.modify = function (obj_in, cb) {
         pool.getConn,
         function (conn, cb) {
             obj.updated = funcs.getDateTimeMySQL();
-            console.log(obj);
+            //console.log(obj);
             conn.update(_t.tableName, obj, function (err, affected) {
                 conn.release();
                 if (err) {
@@ -2314,7 +2314,11 @@ MySQLModel.prototype.validate = function (obj) {
     }
 };
 
-MySQLModel.prototype.clearCache = function (cb) {
+MySQLModel.prototype.clearCache = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
     var _t = this;
 
     _t.uniqueColumns = [];
@@ -2335,14 +2339,17 @@ MySQLModel.prototype.clearCache = function (cb) {
     });
 };
 
-MySQLModel.prototype.execProcedure = function (params, cb) {
+MySQLModel.prototype.execProcedure = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
-        params = {};
+        obj = {};
     }
     if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
-    if (typeof params !== 'object') return cb(new MyError('В метод не переданы params'));
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var _t = this;
+    var fromClient = !(obj.fromClient === false);
+    delete obj.fromClient;
+    if (fromClient) return cb(new MyError('Запрещено!'));
     var procedureName = obj.procedureName;
     if (!procedureName) return cb(new MyError('Не передан procedureName'));
     async.waterfall([
@@ -2361,6 +2368,7 @@ MySQLModel.prototype.execProcedure = function (params, cb) {
         if (err) {
             return cb(err);
         }
+        if (!obj.doNotClearCache) _t.clearCache();
         cb(null, results);
     });
 };

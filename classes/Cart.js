@@ -154,7 +154,9 @@ Model.prototype.remove_ = function (obj, cb) {
                     object:'product_in_cart',
                     params:{
                         id:product.id,
-                        rollback_key:rollback_key
+                        rollback_key:rollback_key,
+                        fromClient:false,
+                        froServer:true
                     }
                 };
                 _t.api(o, cb);
@@ -162,6 +164,8 @@ Model.prototype.remove_ = function (obj, cb) {
         },
         removeCart: function (cb) {
             obj.rollback_key = rollback_key;
+            obj.fromClient = false;
+            obj.froServer = true;
             _t.removePrototype(obj,cb);
         }
     }, function (err) {

@@ -8,8 +8,9 @@ var BasicClass = require('./system/BasicClass');
 var util = require('util');
 var async = require('async');
 var rollback = require('../modules/rollback');
-var fs = require('fs');
+var fs = require('fs-extra');
 var iconvlite = require('iconv-lite');
+var path = require('path')
 
 var Model = function(obj){
     this.name = obj.name;
@@ -100,6 +101,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
 
     var filelist = [];
     var filesInDB = [];
+
     async.series({
         get_file_list: function (cb) {
             // Считать список файлов из директории
@@ -145,6 +147,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                 // Считать первую строку чтобы выяснить тип
                 // добавить в базу
                 // Ошибки игнорим (можно в лог писать)
+                var newFileCounter = 0;
                 var filetype;
                 var str = '';
                 var stream = fs.createReadStream(_t.sync_dir + '/' + filename);
@@ -164,19 +167,68 @@ Model.prototype.sync_with_system = function (obj, cb) {
                     //console.log('FILETYPE',filename,filetype);
                     var a = str.match(/\$\$\$\w{3}/ig);
                     filetype = a[0].replace('$$$','');
-                    if (a.length>1) filetype = 'ERR';
+                    if (a.length>1) {
+                        filetype = 'SPLITED';
+
+                        var filenameParsed = path.parse(filename);
+                        //fs.unlinkSync('source_file');
+                        // Надо разбить на несколько файлов
+                        var fileContens = str.split('##@@&&$$$');
+
+                        async.eachSeries(fileContens, function (one_content, cb) {
+                            if (!one_content.length) return cb(null);
+                            var data = iconvlite.encode('##@@&&$$$' + one_content, 'cp1251');
+                            var portion_filename = filenameParsed.name + '_' + ++newFileCounter + filenameParsed.ext;
+                            var newFileType = one_content.substr(0,3);
+                            fs.writeFile(_t.sync_dir + '/' + portion_filename, data, function (err) {
+                                if (err) return cb(new MyError('При попытке записать файл возникла ош.',{filename:portion_filename}));
+                                var params = {
+                                    filename:portion_filename,
+                                    sync_file_type_sysname:newFileType,
+                                    fromClient:false,
+                                    fromServer:true
+                                }
+                                _t.add(params, function (err) {
+                                    if (err){
+                                        console.log('Не удалось добавить файл в базу', err, portion_filename, newFileType);
+                                        return cb(null);
+                                    }
+                                    cb(null);
+                                });
+                            });
+                        }, function (err) {
+                            if (err) return cb(err);
+                            var params = {
+                                filename:filename,
+                                sync_file_type_sysname:'SPLITED',
+                                status_sysname:'SPLITED',
+                                fromClient:false,
+                                fromServer:true
+                            }
+                            _t.add(params, function (err) {
+                                if (err){
+                                    console.log('Не удалось добавить файл в базу', err, filename, 'SPLITED');
+                                    return cb(null);
+                                }
+                                cb(null);
+                            });
+                        });
+                        return; // Выходим, чтобы не делать стандартное действие
+                    }
                     if (!filetype) {
                         console.log('Не удалось считать тип файла', filename);
                         return cb(null);
                     }
                     var params = {
                         filename:filename,
-                        sync_file_type_sysname:filetype
+                        sync_file_type_sysname:filetype,
+                        fromClient:false,
+                        fromServer:true
                     }
                     if (a.length>1) params.status_sysname = 'ERR';
                     _t.add(params, function (err) {
                         if (err){
-                            console.log('Не удалось добавить файл в базу', err);
+                            console.log('Не удалось добавить файл в базу', err, filename, filetype);
                             return cb(null);
                         }
                         cb(null);
@@ -284,6 +336,10 @@ Model.prototype.upload_file = function (obj, cb) {
                             console.log(lines[i]);
                             continue;
                         }
+                        if (!is_product){
+                            console.log('Категории мы не загружаем');
+                            continue;
+                        }
                         items.push({
                             sync_file_id:fileitem.id,
                             type_sysname:(is_product)? 'PRODUCT' : 'CATEGORY',
@@ -334,6 +390,64 @@ Model.prototype.upload_file = function (obj, cb) {
                         });
                     });
                 });
+            }, cb);
+
+        }
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Файл успешно загружен.'));
+        }
+    })
+
+}
+
+Model.prototype.upload_all_files = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Получить файлы для применения (со статусом NEW)
+    // Применить по очереди
+
+    var filesToUpload;
+    async.series({
+        getSyncFiles: function (cb) {
+            // Загрузить данные о файлах (проверить статус)
+            var params = {
+                where:[
+                    {
+                        key:'status_sysname',
+                        type:'in',
+                        //val1:'NEW,ERR'
+                        val1:'NEW'
+                    }
+                ],
+                sort:'filename',
+                collapseData:false
+            }
+            _t.get(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить данные о файлах',{err:err}));
+                filesToUpload = res;
+                cb(null);
+            });
+        },
+        uploadFiles: function (cb) {
+            // Подходящие загружаем
+            if (!filesToUpload) return cb(null); // Нет файлов для загрузки
+            async.eachSeries(Object.keys(filesToUpload), function (key, cb) {
+                var fileitem = filesToUpload[key];
+                var params = {
+                    id: fileitem.id
+                }
+                _t.upload_file(params, cb);
             }, cb);
 
         }
