@@ -59,6 +59,7 @@ Model.prototype.apply_category = function (obj, cb) {
         obj = {};
     }
     var _t = this;
+    return cb(new UserError('Метод устарел и более не используется. Категории применяются на основе excel файлов. См. класс продукт. Метод importCategoryExcel'));
     //var ids = obj.id || obj.ids;
     //if (!ids) return cb(new MyError('id обязателен для метода'));
     //if (!Array.isArray(ids)) ids = [ids];

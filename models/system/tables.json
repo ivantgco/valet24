@@ -525,6 +525,7 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "ext_id": { "type": "bigint", "length": "20"},
+      "deep": { "type": "int", "length": "10"},
       "is_active" : {"type": "tinyint", "length": "1", "name": "Активна", "default":0},
       "name" : {"type": "varchar", "length": "255", "name": "Название"},
       "is_root" : {"type": "tinyint", "length": "1", "name": "Корневая"},
@@ -548,7 +549,7 @@
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "category_id" : {"type": "bigint", "length": "20", "visible": false, "require": true},
+      "category_id" : {"type": "bigint", "length": "20", "visible": false},
       "from_file_name" : {"type": "varchar", "length": "255", "name": "Excel файл"},
       "from_file_id" : {"type": "bigint", "length": "20", "name": "Excel №"},
       "is_active" : {"type": "tinyint", "length": "1", "name": "Активен", "default":0},
