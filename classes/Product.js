@@ -518,8 +518,14 @@ Model.prototype.importImageExcel = function (obj, cb) {
                     row['picture'] = row['# основного фото'] || row['Фото 1'];
                     row['barcode'] = row['Штрих'];
 
+                    if (typeof row['picture'] !=='string' || isNaN(+row['barcode']) || !row['barcode']) {
+                        console.log('picture', row['picture']);
+                        console.log('barcode', row['barcode']);
+                        continue;
+                    }
                     row['picture'] = row['picture'].replace(/\s+.*/ig,''); // только одно изображение
-                    if (!row['picture'] || isNaN(+row['barcode'])) continue;
+                    // Добавим нули в начале до 13 символов в штрихкоде
+                    row['barcode'] = row['barcode'].length<13?row['barcode']=Array(13+1).join('0').replace(RegExp(".{"+row['barcode'].length+"}$"),row['barcode']):row['barcode'];
 
                     products[row['picture']] = {
                         image:row['picture'],
@@ -746,6 +752,12 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
     async.series({
         getDate: function (cb) {
             var params = {
+                where:[
+                    {
+                        key:'site_alias',
+                        type:'isNull'
+                    }
+                ],
                 limit:100000,
                 collapseData:false
             };
