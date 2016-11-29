@@ -485,7 +485,7 @@ Model.prototype.remove_ = function (obj, cb) {
         },
 
         increaseInProducts: function (cb) {
-            if (!product) return cb(null);
+            if (!product || obj.sold) return cb(null);
             var o = {
                 command:'modify',
                 object:'product',

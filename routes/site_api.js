@@ -129,6 +129,11 @@ api_functions.get_product = function (obj, cb) {
                             key:'quantity',
                             type:'>',
                             val1:0
+                        },
+                        {
+                            key:'price_site',
+                            type:'>',
+                            val1:0
                         }
                     ],
                     collapseData:false
@@ -176,6 +181,9 @@ api_functions.get_product = function (obj, cb) {
             api(o, function (err, res) {
                 if (err) return cb(err);
                 products = funcs.cloneObj(res);
+                for (var i in products) {
+                    products[i].image = '/images/products/' + products[i].image + '.jpg';
+                }
                 cb(null, err);
             });
         },
@@ -265,6 +273,9 @@ api_functions.get_cart = function (obj, cb) {
             api(o, function (err, res) {
                 if (err) return cb(new MyError('Не удалось получить товары в корзине', {err:err}));
                 cart.products = res;
+                for (var i in cart.products) {
+                    cart.products[i].image = '/images/products/' + cart.products[i].image + '.jpg';
+                }
                 cb(null);
             });
         }

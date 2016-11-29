@@ -513,6 +513,19 @@
       "test" : {"type": "varchar", "length": "255", "from_table": "test", "keyword": "test_id", "return_column": "name", "virtual": true, "name": "Из test"}
     }
   },
+  "shop": {
+    "profile": {
+      "name": "shop",
+      "name_ru": "Магазин",
+      "ending": ""
+    },
+    "structure": {
+      "id" : { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name" : {"type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname" : {"type": "varchar", "length": "255", "name": "Системное имя"},
+      "is_current" : {"type": "tinyint", "length": "1", "name": "Текущий для загрузок", "default":0}
+    }
+  },
   "category": {
     "profile": {
       "name": "category",
@@ -524,6 +537,8 @@
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "ext_id": { "type": "bigint", "length": "20"},
       "deep": { "type": "int", "length": "10"},
       "is_active" : {"type": "tinyint", "length": "1", "name": "Активна", "default":0},
@@ -536,7 +551,8 @@
       "image": {"type": "varchar", "length": "255", "name": "Изображение"},
       "products_count": {"type": "int", "name": "Товаров"},
       "sort_no" : {"type": "bigint", "length": "20", "name": "Порядок", "default_value": 10000},
-      "site_alias": {"type": "varchar", "length": "255", "name": "Альяс"}
+      "site_alias": {"type": "varchar", "length": "255", "name": "Альяс"},
+      "excel_alias": {"type": "varchar", "length": "255", "name": "Альяс excel"}
     }
   },
   "product": {
@@ -550,6 +566,8 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "category_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "from_file_name" : {"type": "varchar", "length": "255", "name": "Excel файл"},
       "from_file_id" : {"type": "bigint", "length": "20", "name": "Excel №"},
       "is_active" : {"type": "tinyint", "length": "1", "name": "Активен", "default":0},
@@ -558,6 +576,7 @@
       "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
       "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "virtual": true, "name": "Тип количества"},
       "image": {"type": "varchar", "length": "255", "name": "Изображение"},
+      "image_excel": {"type": "varchar", "length": "255", "name": "Изображение (excel)"},
       "images_list": {"type": "text", "name": "Изображения"},
       "description" : {"type": "varchar", "length": "255", "name": "Описание"},
       "price" : {"type": "DECIMAL(15, 2)", "name": "Цена"},
@@ -574,7 +593,9 @@
       "barcode": {"type": "varchar", "length": "255", "name": "Штрихкод"},
       "control_of_fractional_amounts": {"type": "int", "name": "Контроль дробного количества"},
       "section_num": {"type": "int", "name": "Номер секции"},
-      "vendor_code": {"type": "varchar", "length": "255", "name": "Артикул"}
+      "vendor_code": {"type": "varchar", "length": "255", "name": "Артикул"},
+      "excel_alias": {"type": "varchar", "length": "255", "name": "Альяс excel"},
+      "category_alias": {"type": "varchar", "length": "255", "name": "category_alias"}
     }
   },
   "site_pages": {
@@ -601,6 +622,8 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "sid" : {"type": "varchar", "length": "255", "unique":true, "require": true},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "amount" : {"type": "DECIMAL(15, 2)", "name": "Сумма"},
       "product_count" : {"type": "int", "name": "Кол-во товаров"},
       "reserv_to_date" : {"type": "datetime", "name": "Резерв до"}
@@ -619,6 +642,8 @@
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "sid" : {"type": "varchar", "length": "255", "require": true},
       "cart_id" : {"type": "bigint", "length": "20", "require": true},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "name" : {"type": "varchar", "length": "255", "name": "Название"},
       "product_id" : {"type": "bigint", "length": "20"},
       "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
@@ -644,6 +669,8 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "cart_id" : {"type": "varchar", "length": "255"},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "order_status_id" : {"type": "bigint", "length": "20", "visible": false},
       "order_status" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "order_status_id", "return_column": "name", "virtual": true, "name": "Статус"},
       "order_status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "order_status_id", "return_column": "sysname", "virtual": true, "name": "Статус sys", "visible": false, "default_value":"CREATED"},
@@ -677,6 +704,8 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "order_id" : {"type": "bigint", "length": "20", "require": true},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "name" : {"type": "varchar", "length": "255", "name": "Название"},
       "product_id" : {"type": "bigint", "length": "20"},
       "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
@@ -816,6 +845,8 @@
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "filename": { "type": "varchar", "length": "255", "name": "Файл", "unique":true},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "status_id" : {"type": "bigint", "length": "20", "visible": false},
       "status_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys", "default":"NEW"},
       "status" : {"type": "varchar", "length": "255", "from_table": "sync_file_status", "keyword": "status_id", "return_column": "name", "virtual": true, "name": "Статус"},
@@ -839,6 +870,8 @@
     "structure": {
       "id": {"type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "sync_file_id" : {"type": "bigint", "length": "20", "visible": false, "visible": false, "require":true},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
       "filename" : {"type": "varchar", "length": "255", "from_table": "sync_file", "keyword": "sync_file_id", "return_column": "filename", "virtual": true, "name": "Файл"},
       "status_id" : {"type": "bigint", "length": "20", "visible": false},
       "status_sysname" : {"type": "varchar", "length": "255", "from_table": "sync_file_item_status", "keyword": "status_id", "return_column": "sysname", "virtual": true, "name": "status sys", "default":"NEW"},

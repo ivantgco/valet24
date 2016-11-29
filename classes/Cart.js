@@ -154,6 +154,7 @@ Model.prototype.remove_ = function (obj, cb) {
                     object:'product_in_cart',
                     params:{
                         id:product.id,
+                        sold:obj.sold, // Если продан, то не возвращаем в продажу товары
                         rollback_key:rollback_key,
                         fromClient:false,
                         froServer:true

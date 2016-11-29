@@ -157,7 +157,8 @@ Model.prototype.add_ = function (obj, cb) {
                 command:'remove',
                 object:'cart',
                 params:{
-                    id:cart_id
+                    id:cart_id,
+                    sold:true
                 }
             };
             o.params.rollback_key = rollback_key;

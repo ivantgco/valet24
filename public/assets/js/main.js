@@ -41,17 +41,17 @@ MB.loader = function(state, mes){
 
 function importValetFile(filename, cb){
     var o = {
-        command: 'importFromExcel',
+        command: 'importCurrentExcelByBarcode',
         object: 'product',
         params: {
-            filename: filename
+            excel_filename: filename
         }
     };
 
     socketQuery(o, function(res){
 
         if(typeof cb == 'function'){
-            cb();
+            cb(res);
         }
 
     });
@@ -173,19 +173,27 @@ $('#upload_valet_products_file').off('click').on('click', function(){
                 callback: function(){
                     var fname = $('#upload-file-name').val();
 
-                    if(fname.length > 0){
+                    MB.loader(true, 'Подождите, импортируем файл '+ fname + '<br/>Это может занять до нескольких минут...');
 
-                        MB.loader(true, 'Подождите, импортируем файл '+ fname + '<br/>Это может занять до нескольких минут...');
+                    importValetFile(fname, function(){
 
-                        importValetFile(fname, function(){
+                        MB.loader(false, 'Подождите, импортируем файл '+ fname);
 
-                            MB.loader(false, 'Подождите, импортируем файл '+ fname);
+                    });
 
-                        });
-
-                    }else{
-                        toastr['error']('Укажите имя файла', 'Ошибка!');
-                    }
+                    //if(fname.length > 0){
+                    //
+                    //    MB.loader(true, 'Подождите, импортируем файл '+ fname + '<br/>Это может занять до нескольких минут...');
+                    //
+                    //    importValetFile(fname, function(){
+                    //
+                    //        MB.loader(false, 'Подождите, импортируем файл '+ fname);
+                    //
+                    //    });
+                    //
+                    //}else{
+                    //    toastr['error']('Укажите имя файла', 'Ошибка!');
+                    //}
 
                 }
             },

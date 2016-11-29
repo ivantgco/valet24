@@ -254,11 +254,20 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
                 for (var i in sheet1) {
                     var row = sheet1[i];
                     row['picture'] = row['picture'] || row['picture '];
+                    row.counter = 1;
                     if (!row['picture '] || !(row['Подподподкатегория'] || row['Подподкатегория'] || row['Подкатегория'] || row['Категория'])) continue;
-                    products[row['picture']] = {
-                        image:row['picture'],
-                        category_name:row['Подподподкатегория'] || row['Подподкатегория'] || row['Подкатегория'] || row['Категория']
-                    }
+                    (function setProduct(){
+                        if (products[row['picture']]){
+                            row['picture'] = row['picture'] + ' ('+ ++row.counter +')';
+                            setProduct();
+                        }else{
+                            products[row['picture']] = {
+                                image:row['picture'],
+                                category_name:row['Подподподкатегория'] || row['Подподкатегория'] || row['Подкатегория'] || row['Категория']
+                            }
+                        }
+                    })();
+
                     //products.push(
                     //    {
                     //        image:row['picture'],
@@ -538,6 +547,10 @@ Model.prototype.importImageExcel = function (obj, cb) {
                     // Добавим нули в начале до 13 символов в штрихкоде
                     row['barcode'] = row['barcode'].length<13?row['barcode']=Array(13+1).join('0').replace(RegExp(".{"+row['barcode'].length+"}$"),row['barcode']):row['barcode'];
 
+                    if (products[row['picture']]) {
+                        continue;
+                    } // Игнорим с таким же изображением
+
                     products[row['picture']] = {
                         image:row['picture'],
                         barcode:row['barcode']
@@ -734,6 +747,314 @@ Model.prototype.importFromExcel = function (obj, cb) {
 
 };
 
+
+Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var confirm = obj.confirm;
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    //var filename = obj.filename;
+    //if (!filename) return cb(new UserError('Необходимо указать файл..',{obj:obj}));
+    var sync_dir = './citymarket/sync/';
+    var excel_filename = obj.excel_filename || 'vseisrazu_image_correct.xlsx';
+
+
+    var filelist = [];
+    var categories = {};
+    var products = {};
+    var catArr = ['subsubcategory','subcategory','category'];
+    var shop;
+    async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
+        readFromFile: function (cb) {
+            var workbook = XLSX.readFile(sync_dir + excel_filename);
+            var first_sheet_name = workbook.SheetNames[0];
+            /* Get worksheet */
+            var worksheet = workbook.Sheets[first_sheet_name];
+            var sheet1 = XLSX.utils.sheet_to_json(worksheet);
+            for (var i in sheet1) {
+                var row = sheet1[i];
+                row['barcode'] = row['barcode'] || '';
+                row['image_alias'] = row['image_alias'] || '';
+                row['excel_alias'] = row['image'] || '';
+                row['category_name'] = row['subsubcategory'] || row['subcategory'] || row['category'];
+                row['category_alias'] = row['category_alias'] || '';
+
+                if (!row['barcode']) continue;
+
+                //row['picture'] = row['picture'].replace(/\s+.*/ig,''); // только одно изображение
+                // Добавим нули в начале до 13 символов в штрихкоде
+                row['barcode'] = row['barcode'].length<13?row['barcode']=Array(13+1).join('0').replace(RegExp(".{"+row['barcode'].length+"}$"),row['barcode']):row['barcode'];
+
+
+                products[row['barcode']] = {
+                    barcode:row['barcode'],
+                    image:row['image_alias'],
+                    excel_alias:row['excel_alias'],
+                    category_name:row['category_name'],
+                    category_alias:row['category_alias']
+                }
+
+                for (var catIndex in catArr) {
+                    var cat = row[catArr[catIndex]];
+                    var parent_cat = row[catArr[+catIndex +1]];
+                    if (typeof cat =='undefined') continue
+                    if (!categories[cat]){
+                        var c = {
+                            name: cat,
+                            deep:catArr.length - catIndex
+                        }
+                        if (parent_cat) c.parent_category = parent_cat;
+                        categories[cat] = c;
+                    }
+                }
+            }
+            cb(null);
+        },
+        loadAllCategoriesAndMerge: function (cb) {
+            // Загрузить все категории из базы
+            // Смерджить категории
+            var t1 = moment();
+            var o = {
+                command:'get',
+                object:'category',
+                params:{
+                    collapseData:false,
+                    fromServer:true,
+                    fromClient:false,
+                    limit:1000000
+                }
+            }
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При получении всех категорий возникла ошибка.',{o:o, err:err}));
+                for (var i in res) {
+                    if (categories[res[i].name]) {
+                        categories[res[i].name].parent_category_id = res[i].parent_category_id;
+                        categories[res[i].name].id = res[i].id;
+                    }else{
+                        categories[res[i].name] = {
+                            id:res[i].id,
+                            name:res[i].name,
+                            parent_category_id:res[i].parent_category_id,
+                            parent_category:res[i].parent_category,
+                            deep:res[i].deep,
+                            added:true
+                        }
+                    }
+                }
+                cb(null);
+            })
+        },
+        addNewCategories: function (cb) {
+            // Добавим новые категории (по глубине вложенности)
+            var deeps = Object.keys(catArr);
+            async.eachSeries(deeps, function (deep, cb) {
+                deep++;
+                async.eachSeries(Object.keys(categories), function (catKey, cb) {
+                    var category = categories[catKey];
+                    if (category.id || category.deep!=deep /*|| category.name == 'Алкоголь'*/) return cb(null); // Либо не надо добавлять, либо не та глубина
+                    var o = {
+                        command:'add',
+                        object:'category',
+                        params:{
+                            name:category.name,
+                            deep:category.deep,
+                            is_active:true,
+                            shop_id:shop.id,
+                            rollback_key:rollback_key,
+                            fromClient:false,
+                            fromServer:true
+                        }
+                    }
+                    if (category.deep == 1) o.params.is_root = true;
+                    var parentCategory = categories[category.parent_category];
+                    if (parentCategory){
+                        if (parentCategory.id) {
+                            o.params.parent_category_id = parentCategory.id;
+                            category.parent_category_id = parentCategory.id;
+                        }
+                    }
+                    _t.api(o, function (err, res) {
+                        if (err) return cb(new MyError('При добавлении новой категории возникла ош.',{o:o, err:err}));
+                        category.id = res.id;
+                        category.added = true;
+                        cb(null);
+                    });
+
+                }, cb);
+
+            }, cb);
+        },
+        modifyCategories: function (cb) {
+            // Обновим существующие если нужно (появился родитель)
+            async.eachSeries(Object.keys(categories), function (catKey, cb) {
+                var category = categories[catKey];
+                if (!category.id || category.added || category.parent_category_id || !category.parent_category) return cb(null); // Ничего менять не надо
+                var parentCategory = categories[category.parent_category];
+                if (!parentCategory) return cb(null); // Нет такой родительской категории
+                if (!parentCategory.id) return cb(null); // Родительский элемент пока не появился
+                var o = {
+                    command:'modify',
+                    object:'category',
+                    params:{
+                        id:category.id,
+                        parent_category_id:parentCategory.id,
+                        rollback_key:rollback_key,
+                        fromClient:false,
+                        fromServer:true
+                    }
+                }
+                _t.api(o, function (err, res) {
+                    if (err) return cb(new MyError('При изменении категории возникла ош.',{o:o, err:err}));
+                    category.parent_category_id = parentCategory.id;
+                    console.log('ИЗМЕНЕНА КАТЕГОРИЯ: ', category.name);
+                    cb(null);
+                });
+
+            }, cb);
+        },
+        loadAllProductsAndMerge: function (cb) {
+            // Загрузить все товары
+            // Смерджить товары
+            var params = {
+                collapseData:false,
+                fromServer:true,
+                fromClient:false,
+                limit:1000000
+            };
+            _t.get(params, function (err, res) {
+                if (err) return cb(new MyError('При получении всех товаров возникла ошибка.',{o:o, err:err}));
+                for (var i in res) {
+
+                    var product = products[res[i].barcode];
+                    if (product){
+                        product.id = res[i].id;
+                        var product_category = categories[product.category_name];
+                        if (!res[i].category_id && product_category){
+                            if (product_category.id) {
+                                product.category_id = product_category.id;
+                                product.to_modify = true;
+                            }
+                        }
+                    }
+                }
+                cb(null);
+            });
+        },
+        addNewProduct: function (cb) {
+            async.eachSeries(Object.keys(products), function (prodKey, cb) {
+                var product = products[prodKey];
+                if (product.id) return cb(null); // Уже есть в базе
+
+
+                //products[row['barcode']] = {
+                //    barcode:row['barcode'],
+                //    image:row['image_alias'],
+                //    excel_alias:row['excel_alias'],
+                //    category_name:row['category_name'],
+                //    category_alias:row['category_alias']
+                //}
+
+                var params = {
+                    barcode:product.barcode,
+                    image:product.image,
+                    excel_alias:product.excel_alias,
+                    category_alias:product.category_alias,
+                    shop_id:shop.id,
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    fromServer:true
+                };
+
+                var productCategory = categories[product.category_name];
+                if (productCategory){
+                    if (productCategory.id) {
+                        params.category_id = productCategory.id;
+                        product.category_id = productCategory.id;
+                    }
+                }
+                _t.add(params, function (err, res) {
+                    if (err) return cb(new MyError('При добавлении товара возникла ош.',{o:o, err:err}));
+                    product.id = res.id;
+                    product.added = true;
+                    cb(null);
+                });
+
+            }, cb);
+        },
+        modifyProducts: function (cb) {
+            // Обновим существующие если нужно (появилась категория)
+            async.eachSeries(Object.keys(products), function (prodKey, cb) {
+                var product = products[prodKey];
+                if (!product.id || !product.to_modify) return cb(null); // Ничего менять не надо
+                var params = {
+                    id:product.id,
+                    barcode:product.barcode,
+                    image:product.image,
+                    excel_alias:product.excel_alias,
+                    category_alias:product.category_alias,
+                    category_id:product.category_id,
+                    rollback_key:rollback_key,
+                    fromClient:false,
+                    fromServer:true
+                };
+                _t.modify(params, function (err, res) {
+                    if (err) return cb(new MyError('При изменении товара возникла ош.',{o:o, err:err}));
+                    product.category_id = product.category_id;
+                    console.log('Продукт изменен: ', product.barcode);
+                    cb(null);
+                });
+            }, cb);
+        },
+        //createWPpage: function (cb) {
+        //    var o = {
+        //        command:'pushIntoWordpress',
+        //        object:'category',
+        //        params:{
+        //            fromClient:false,
+        //            fromServer:true,
+        //        }
+        //    }
+        //    _t.api(o, cb);
+        //}
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            if (err instanceof UserOk || err instanceof UserError){
+                //err.data.count = 0;
+                return cb(null, err)
+            }
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Ok.'));
+        }
+    });
+};
 
 
 Model.prototype.pushIntoWordpress = function (obj, cb) {
