@@ -86,7 +86,9 @@ Model.prototype.add_ = function (obj, cb) {
     if (!sid) return cb(new MyError('sid необходим для добавления в карзину'));
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var product_count = +obj.product_count || 1;
+    var product_count = (typeof obj.product_count != 'undefined')? obj.product_count : 1;
+    var is_replace = obj.is_replace;
+    var cbGlobal = cb; // Нужно для передачи управления в другую функцию - decrease;
     // Получим корзину по sid
     // Создадим корзину если ее еще нет
     // Получим продукт
@@ -113,6 +115,7 @@ Model.prototype.add_ = function (obj, cb) {
 
 
     var cart, product, cart_products, product_in_cart;
+    var product_count_currect; // Учитывает is_replace
     var this_product_count;
     var balance;
     async.series({
@@ -154,8 +157,7 @@ Model.prototype.add_ = function (obj, cb) {
                 if (err) return cb(new MyError('Не удалось получить информацию по продукту',{err:err}));
                 if (!res.length) return cb(new UserError('Продукт не найден'));
                 product = res[0];
-                balance = +product.quantity - product_count;
-                if (balance < 0) return cb(new UserError('В магазине не достаточно товара.',{product_count:product_count,quantity:+product.quantity}));
+
                 cb(null);
             });
         },
@@ -172,14 +174,42 @@ Model.prototype.add_ = function (obj, cb) {
                 cb(null);
             })
         },
+        findInCartAndSetProductCountCorrect: function (cb) {
+            // Поищем в корзине
+            for (var i in cart_products) {
+                if (cart_products[i].product_id == product_id){
+                    product_in_cart = cart_products[i];
+                    break;
+                }
+            };
+            if (!is_replace){
+                product_count_currect = product_count;
+            }else{
+                if (!product_in_cart){
+                    product_count_currect = product_count;
+                }else{
+                    product_count_currect = +product_count - +product_in_cart.product_count;
+                }
+            }
+            if (product_count_currect < 0) {
+                //Вызовем метод decrease и пропустим все последующие этапы
+                obj.product_count = Math.abs(product_count_currect);
+                _t.decrise_product_in_cart(obj, cbGlobal);
+                return;
+            }
+            balance = +product.quantity - product_count_currect;
+            if (balance < 0) return cb(new UserError('В магазине не достаточно товара.',{product_count:product_count_currect,quantity:+product.quantity}));
+            cb(null);
+        },
         decreaseInProducts: function (cb) {
+            if (product_count_currect == 0) return cb(null);
             var o = {
                 command:'modify',
                 object:'product',
                 params:{
                     id:product.id,
                     quantity:balance,
-                    in_basket_count:+product.in_basket_count + product_count,
+                    in_basket_count:+product.in_basket_count + product_count_currect,
                     rollback_key:rollback_key,
                     fromClient:false,
                     froServer:true
@@ -191,16 +221,10 @@ Model.prototype.add_ = function (obj, cb) {
             })
         },
         createOrModifyCartProduct: function (cb) {
-            // Поищем в корзине
-            for (var i in cart_products) {
-                if (cart_products[i].product_id == product_id){
-                    product_in_cart = cart_products[i];
-                    break;
-                }
-            }
+            if (product_count_currect == 0) return cb(null);
             var params;
             if (product_in_cart){ // Изменим текущий
-                this_product_count = +product_in_cart.product_count + product_count;
+                this_product_count = +product_in_cart.product_count + product_count_currect;
                 params = {
                     id:product_in_cart.id,
                     product_count:this_product_count,
@@ -217,7 +241,7 @@ Model.prototype.add_ = function (obj, cb) {
                     sid:sid,
                     cart_id:cart.id,
                     product_id:product_id,
-                    product_count:product_count,
+                    product_count:product_count_currect,
                     rollback_key:rollback_key
                 };
                 for (var i in product) {
@@ -229,20 +253,29 @@ Model.prototype.add_ = function (obj, cb) {
                     cb(null);
                 });
             }
-
-
         },
         addCartStatistic: function (cb) {
+            if (product_count_currect == 0) return cb(null);
             var amount = 0;
             var product_count_all = 0;
             for (var i in cart_products) {
                 amount += +(cart_products[i].price_site * cart_products[i].product_count);
-                product_count_all += +cart_products[i].product_count;
+                if (cart_products[i].qnt_type_sys == 'KG'){
+                    ++product_count_all;
+                }else{
+                    product_count_all += +cart_products[i].product_count;
+                }
+
             }
-            amount += +product.price_site;
+            amount += +product.price_site * product_count_currect;
             //product_count_all = (product_in_cart)? product_count : product_count_all + product_count;
             //product_count_all = (product_in_cart)? product_count_all : product_count_all + product_count;
-            product_count_all = product_count_all + product_count;
+
+            if (product.qnt_type_sys == 'KG'){
+                product_count_all = (product_in_cart)? product_count_all : ++product_count_all;
+            }else{
+                product_count_all = product_count_all + product_count_currect;
+            }
             var o = {
                 command:'modify',
                 object:'cart',
@@ -267,7 +300,7 @@ Model.prototype.add_ = function (obj, cb) {
                 return cb(err, err2);
             });
         }else{
-            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:(this_product_count || product_count)}));
+            cb(null, new UserOk('Продукт добавлен в корзину.',{product_id:product_id, product_count:(this_product_count || product_count_currect)}));
         }
     })
 };
@@ -284,7 +317,7 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
     if (!sid) return cb(new MyError('sid необходим для добавления в карзину'));
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var product_count = +obj.product_count || 1;
+    var product_count = (typeof obj.product_count != 'undefined')? obj.product_count : 1;
     // Получим корзину по sid и product_id нужную позицию в корзине
     // Уменьшаем кол-во
     // Если остается 0 или меньше, - удаляем
@@ -407,7 +440,11 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
             product_count_all = 0;
             for (var i in cart_products) {
                 amount += +(cart_products[i].price_site * cart_products[i].product_count);
-                product_count_all += +cart_products[i].product_count;
+                if (cart_products[i].qnt_type_sys == 'KG'){
+                    product_count_all++;
+                }else{
+                    product_count_all += +cart_products[i].product_count;
+                }
             }
             var o = {
                 command:'modify',

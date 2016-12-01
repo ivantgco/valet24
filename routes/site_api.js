@@ -68,38 +68,81 @@ api_functions.get_category = function (obj, cb) {
     }
     if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
-    var o = {
-        command:'get',
-        object:'category',
-        params:{
-            where:[
-                {
-                    key:'is_active',
-                    val1:true
+    var shop_sysname = obj.shop_sysname;
+
+    var shop;
+    async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
                 }
-            ]
+            };
+            if (shop_sysname){
+                o.params.param_where = {
+                    sysname:shop_sysname
+                };
+            }else{
+                o.params.param_where = {
+                    is_current:true
+                };
+            }
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
+        getCategory: function (cb) {
+            var o = {
+                command:'get',
+                object:'category',
+                params:{
+                    where:[
+                        {
+                            key:'is_active',
+                            val1:true
+                        }
+                    ]
+                }
+            };
+            if (obj.columns) o.params.columns = obj.columns.split(',');
+            if (obj.id){
+                var ids = obj.id.split(',');
+                var w1 = {
+                    key:'id',
+                    type:'in',
+                    val1:ids
+                };
+                o.params.where.push(w1);
+            }
+            if (obj.is_root){
+                var w2 = {
+                    key:'parent_category_id',
+                    type:'isNull'
+                };
+                o.params.where.push(w2);
+            }
+            var w3 = {
+                key:'shop_id',
+                val1:shop.id
+            };
+            o.params.where.push(w3);
+            o.params.limit = obj.limit;
+            o.params.page_no = obj.page_no;
+            api(o, cb);
         }
-    };
-    if (obj.columns) o.params.columns = obj.columns.split(',');
-    if (obj.id){
-        var ids = obj.id.split(',');
-        var w1 = {
-            key:'id',
-            type:'in',
-            val1:ids
-        };
-        o.params.where.push(w1);
-    }
-    if (obj.is_root){
-        var w2 = {
-            key:'parent_category_id',
-            type:'isNull'
-        };
-        o.params.where.push(w2);
-    }
-    o.params.limit = obj.limit;
-    o.params.page_no = obj.page_no;
-    api(o, cb);
+    }, function (err, res) {
+        return cb(err, res.getCategory[0]);
+    });
 };
 
 api_functions.get_product = function (obj, cb) {
@@ -111,9 +154,40 @@ api_functions.get_product = function (obj, cb) {
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
+    var shop_sysname = obj.shop_sysname;
 
     var products = [];
+    var shop;
     async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
+            if (shop_sysname){
+                o.params.param_where = {
+                    sysname:shop_sysname
+                };
+            }else{
+                o.params.param_where = {
+                    is_current:true
+                };
+            }
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
         getProducts: function (cb) {
             var w, ids;
             var o = {
@@ -134,9 +208,15 @@ api_functions.get_product = function (obj, cb) {
                             key:'price_site',
                             type:'>',
                             val1:0
+                        },
+                        {
+                            key:'shop_id',
+                            val1:shop.id
                         }
                     ],
-                    collapseData:false
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
                 }
             };
             if (obj.columns) o.params.columns = obj.columns.split(',');
@@ -182,7 +262,8 @@ api_functions.get_product = function (obj, cb) {
                 if (err) return cb(err);
                 products = funcs.cloneObj(res);
                 for (var i in products) {
-                    products[i].image = '/images/products/' + products[i].image + '.jpg';
+                    products[i].image = '/images_new/' + products[i].image + '.jpg';
+                    products[i].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
                 }
                 cb(null, err);
             });
@@ -203,7 +284,7 @@ api_functions.get_product = function (obj, cb) {
                 for (var i in res) {
                     var product_id = res[i].product_id;
                     for (var j in products) {
-                        products[j].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
+
                         if (products[j].id == product_id){
                             products[j].in_basket_count = res[i].product_count;
                         }
@@ -274,7 +355,7 @@ api_functions.get_cart = function (obj, cb) {
                 if (err) return cb(new MyError('Не удалось получить товары в корзине', {err:err}));
                 cart.products = res;
                 for (var i in cart.products) {
-                    cart.products[i].image = '/images/products/' + cart.products[i].image + '.jpg';
+                    cart.products[i].image = '/images_new/' + cart.products[i].image + '.jpg';
                 }
                 cb(null);
             });
@@ -294,10 +375,11 @@ api_functions.add_product_in_cart = function (obj, cb) {
     if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var product_id = obj.product_id;
+    var is_replace = obj.is_replace;
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
     if (!product_id) return cb(new MyError('Не передан product_id'));
-    var product_count = +obj.product_count || 1;
+    var product_count = (typeof obj.product_count != 'undefined')? obj.product_count : 1;
 
     async.series({
         add: function (cb) {
@@ -308,6 +390,8 @@ api_functions.add_product_in_cart = function (obj, cb) {
                     product_id:product_id,
                     sid:sid,
                     product_count:product_count,
+                    is_replace:is_replace,
+                    fromClient:false,
                     fromServer:true
                 }
             };
@@ -334,7 +418,7 @@ api_functions.remove_product_from_cart = function (obj, cb) {
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
     if (!product_id) return cb(new MyError('Не передан product_id'));
-    var product_count = obj.product_count || 1;
+    var product_count = (typeof obj.product_count != 'undefined')? obj.product_count : 1;
 
 
     async.series({

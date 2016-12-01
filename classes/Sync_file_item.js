@@ -9,6 +9,7 @@ var util = require('util');
 var async = require('async');
 var rollback = require('../modules/rollback');
 var funcs = require('../libs/functions');
+var moment = require('moment');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -937,13 +938,14 @@ Model.prototype.apply_product = function (obj, cb) {
     var _t = this;
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var limitSyncProducts = obj.limitSyncProducts || 1000;
+    var limitSyncProducts = obj.limitSyncProducts || 500;
 
     var syncProducts, products;
     var syncProduct_barcodes = [];
     var using_categories = [];
     var categories = {};
     var lastApplicableFile;
+    var t1 = moment();
     async.series({
         getSyncProducts: function (cb) {
             // Загрузить все продукты которые еще не были применены limit limitSyncProducts
@@ -952,7 +954,7 @@ Model.prototype.apply_product = function (obj, cb) {
                     is_product:true,
                     status_sysname:'NEW'
                 },
-                sort:'created',
+                sort:'filename,created',
                 collapseData:false,
                 limit:limitSyncProducts,
                 fromClient:false,
@@ -1114,6 +1116,7 @@ Model.prototype.apply_product = function (obj, cb) {
                             object:'product',
                             params:{
                                 id:sync_prod.prod_id,
+                                qnt_type_sys:(+sync_prod.control_of_fractional_amounts)? 'KG' : 'UNIT',
                                 //category_id:sync_prod.category_id,
                                 //is_active:true,
                                 //name:sync_prod.name,
@@ -1185,18 +1188,18 @@ Model.prototype.apply_product = function (obj, cb) {
                 }
             },cb);
         },
-        inWordpress: function (cb) {
-            var o = {
-                command:'pushIntoWordpress',
-                object:'Product',
-                params:{
-                    fromClient:false,
-                    fromServer:true,
-                }
-            };
-
-            _t.api(o, cb);
-        },
+        //inWordpress: function (cb) {
+        //    var o = {
+        //        command:'pushIntoWordpress',
+        //        object:'Product',
+        //        params:{
+        //            fromClient:false,
+        //            fromServer:true,
+        //        }
+        //    };
+        //
+        //    _t.api(o, cb);
+        //},
         updateSitePrice: function (cb) {
             var o = {
                 command:'updateSitePrice',
@@ -1209,6 +1212,7 @@ Model.prototype.apply_product = function (obj, cb) {
             _t.api(o, cb);
         }
     }, function (err) {
+        _t.user.socket.emit('OnePortionApplied',{time:moment(t1 - moment()).format('hh:mm:ss')});
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
             if (err instanceof UserOk || err instanceof UserError){

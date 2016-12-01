@@ -768,6 +768,8 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
     var products = {};
     var catArr = ['subsubcategory','subcategory','category'];
     var shop;
+    var product_count = 0;
+    var product_counter = 0;
     async.series({
         getShop: function (cb) {
             var o = {
@@ -961,6 +963,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                         }
                     }
                 }
+                product_count = Object.keys(products).length;
                 cb(null);
             });
         },
@@ -1000,6 +1003,9 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     if (err) return cb(new MyError('При добавлении товара возникла ош.',{o:o, err:err}));
                     product.id = res.id;
                     product.added = true;
+                    product_counter++;
+                    var percent = Math.ceil(product_counter * 100 / product_count);
+                    _t.user.socket.emit('addProduct',{percent:percent});
                     cb(null);
                 });
 
@@ -1025,6 +1031,9 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     if (err) return cb(new MyError('При изменении товара возникла ош.',{o:o, err:err}));
                     product.category_id = product.category_id;
                     console.log('Продукт изменен: ', product.barcode);
+                    product_counter++;
+                    var percent = Math.ceil(product_counter * 100 / product_count);
+                    _t.user.socket.emit('addProduct',{percent:percent});
                     cb(null);
                 });
             }, cb);

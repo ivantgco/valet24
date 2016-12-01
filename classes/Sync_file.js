@@ -101,13 +101,36 @@ Model.prototype.sync_with_system = function (obj, cb) {
 
     var filelist = [];
     var filesInDB = [];
-
+    var shop;
     async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
         get_file_list: function (cb) {
             // Считать список файлов из директории
             fs.readdir(_t.sync_dir, function (err, files) {
                 if (err) return cb(new MyError('Не удалось считать файлы из директории синхронизации.',{err:err}));
-                 filelist = files;
+                for (var i in files) {
+                    if (path.extname(files[i]) == '.spr') filelist.push(files[i]);
+                }
+                 //filelist = files;
                 cb(null);
             });
         },
@@ -185,6 +208,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                                 var params = {
                                     filename:portion_filename,
                                     sync_file_type_sysname:newFileType,
+                                    shop_id:shop.id,
                                     fromClient:false,
                                     fromServer:true
                                 }
@@ -202,6 +226,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                                 filename:filename,
                                 sync_file_type_sysname:'SPLITED',
                                 status_sysname:'SPLITED',
+                                shop_id:shop.id,
                                 fromClient:false,
                                 fromServer:true
                             }
@@ -222,6 +247,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                     var params = {
                         filename:filename,
                         sync_file_type_sysname:filetype,
+                        shop_id:shop.id,
                         fromClient:false,
                         fromServer:true
                     }
@@ -274,7 +300,28 @@ Model.prototype.upload_file = function (obj, cb) {
     // Сменить статус файла
 
     var filesToUpload;
+    var shop;
     async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
         getSyncFiles: function (cb) {
             // Загрузить данные о файлах (проверить статус)
             var params = {
@@ -361,7 +408,8 @@ Model.prototype.upload_file = function (obj, cb) {
                             not_used_3:one_item[14],
                             parent_category:one_item[15],
                             is_product:one_item[16],
-                            grapp_list:one_item[17]
+                            grapp_list:one_item[17],
+                            shop_id:shop.id
                         });
                     }
                     async.eachSeries(items, function (one_elem, cb) {
