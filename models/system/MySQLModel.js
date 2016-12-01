@@ -1063,7 +1063,7 @@ MySQLModel.prototype.get = function (params, cb) {
                     columns.push(resultColumns[column]);
                 }
             }
-            if (!columns.length) return cb(new MyError('Нет доступных колонок.'));
+            if (!columns.length) return cb(new MyError('Нет доступных колонок.',{params:params}));
             var sqlStart = '';
             //var sqlStart = "SELECT " + columns.join(', ') + " FROM " + _t.name;
             var sql = "";
@@ -1294,7 +1294,7 @@ MySQLModel.prototype.get = function (params, cb) {
             }
 
             var realSQL = sqlStart + sql;
-            //console.log(realSQL);
+            console.log(realSQL);
 
             var count_all;
 
@@ -2253,14 +2253,21 @@ MySQLModel.prototype.getForFilterSelect = function (obj, cb) {
     var client_object = obj.client_object;
     if (!column_name) return cb(new MyError('Не передан параметр column_name'));
     var page_no = obj.page_no || 1;
+
+
+    /// ЭТОТ БЛОК БЫЛ ЗАКОМЕНТИРОВАН /////////////////////////////////
     //select_search_columns
-    //var colProfile = _t.class_fields_profile[column_name];
-    //if (!colProfile) return cb(new MyError('Нет профайла для данного столбца'));
-    //var select_class = colProfile.select_class;// || _t.name;
+    var colProfile = _t.class_fields_profile[column_name];
+    if (!colProfile) return cb(new MyError('Нет профайла для данного столбца'));
+    var select_class = colProfile.select_class;// || _t.name;
     //var select_search_columns = colProfile.select_search_columns || 'name';
     //if (typeof select_search_columns=='string') select_search_columns = select_search_columns.replace(/\s+/ig,'').split(',');
     //var return_id = colProfile.return_id || 'id';
     //var return_name = colProfile.return_name || 'name';
+    /// ЭТОТ БЛОК БЫЛ ЗАКОМЕНТИРОВАН /////////////////////////////////
+
+
+
 
     // select id, distinct column_name from class where column_name like '%%'
     var params = {
@@ -2278,9 +2285,21 @@ MySQLModel.prototype.getForFilterSelect = function (obj, cb) {
         comparisonType: 'OR'
     });
 
+    //if (!select_class) { // Если не указан класс у колонки в который стучаться
+    //    //_t.get(params, cb);
+    //    var res = funcs.collapseData([{id: 0, name: 'Необходимо указать поле select_class'}], {count: 1, count_all: 1});
+    //    cb(null, res);
+    //} else { // есть класс, запросим его get
+    //    var o = {
+    //        command: 'get',
+    //        object: select_class,
+    //        params: params
+    //    };
+    //    _t.api(o, cb);
+    //}
     var o = {
         command: 'get',
-        object: _t.name,
+        object: colProfile.join_table || _t.name,
         params: params
     };
     _t.api(o, cb);
