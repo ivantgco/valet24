@@ -183,10 +183,10 @@ Model.prototype.add_ = function (obj, cb) {
                 }
             };
             if (!is_replace){
-                product_count_currect = product_count;
+                product_count_currect = +product_count;
             }else{
                 if (!product_in_cart){
-                    product_count_currect = product_count;
+                    product_count_currect = +product_count;
                 }else{
                     product_count_currect = +product_count - +product_in_cart.product_count;
                 }
@@ -197,8 +197,8 @@ Model.prototype.add_ = function (obj, cb) {
                 _t.decrise_product_in_cart(obj, cbGlobal);
                 return;
             }
-            balance = +product.quantity - product_count_currect;
-            if (balance < 0) return cb(new UserError('В магазине не достаточно товара.',{product_count:product_count_currect,quantity:+product.quantity}));
+            balance = +product.quantity - +product_count_currect;
+            if (balance < 0) return cb(new UserOk('В магазине недостаточно товара.',{code: 5001,type:'error',data:{product_count:product_count_currect,quantity:+product.quantity}}));
             cb(null);
         },
         decreaseInProducts: function (cb) {
@@ -209,7 +209,7 @@ Model.prototype.add_ = function (obj, cb) {
                 params:{
                     id:product.id,
                     quantity:balance,
-                    in_basket_count:+product.in_basket_count + product_count_currect,
+                    in_basket_count:+product.in_basket_count + +product_count_currect,
                     rollback_key:rollback_key,
                     fromClient:false,
                     froServer:true
@@ -389,7 +389,7 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                 params:{
                     id:product.id,
                     quantity:balance,
-                    in_basket_count:+product.in_basket_count - product_count,
+                    in_basket_count:+product.in_basket_count - +product_count,
                     rollback_key:rollback_key,
                     fromClient:false,
                     froServer:true
@@ -529,7 +529,7 @@ Model.prototype.remove_ = function (obj, cb) {
                 params:{
                     id:product.id,
                     quantity:+product.quantity + +product_in_cart.product_count,
-                    in_basket_count:+product.in_basket_count - product_in_cart.product_count,
+                    in_basket_count:+product.in_basket_count - +product_in_cart.product_count,
                     rollback_key:rollback_key,
                     fromClient:false,
                     froServer:true

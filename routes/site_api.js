@@ -262,7 +262,8 @@ api_functions.get_product = function (obj, cb) {
                 if (err) return cb(err);
                 products = funcs.cloneObj(res);
                 for (var i in products) {
-                    products[i].image = '/images_new/' + products[i].image + '.jpg';
+                    var img_name = (products[i].image.match(/\.[a-zA-Z]{2,4}$/))? products[i].image : products[i].image + '.jpg';
+                    products[i].image = '/images_new/' + img_name;
                     products[i].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
                 }
                 cb(null, err);
@@ -286,7 +287,7 @@ api_functions.get_product = function (obj, cb) {
                     for (var j in products) {
 
                         if (products[j].id == product_id){
-                            products[j].in_basket_count = res[i].product_count;
+                            products[j].in_basket_count = +res[i].product_count;
                         }
                     }
                 }
@@ -355,7 +356,8 @@ api_functions.get_cart = function (obj, cb) {
                 if (err) return cb(new MyError('Не удалось получить товары в корзине', {err:err}));
                 cart.products = res;
                 for (var i in cart.products) {
-                    cart.products[i].image = '/images_new/' + cart.products[i].image + '.jpg';
+                    var img_name = (cart.products[i].image.match(/\.[a-zA-Z]{2,4}$/))? cart.products[i].image : cart.products[i].image + '.jpg';
+                    cart.products[i].image = '/images_new/' + img_name;
                 }
                 cb(null);
             });

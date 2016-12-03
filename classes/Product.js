@@ -13,6 +13,7 @@ var XLSX = require('xlsx');
 var request = require('request');
 var fs = require('fs');
 var moment = require('moment');
+var Guid = require('guid');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -760,12 +761,13 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
     //var filename = obj.filename;
     //if (!filename) return cb(new UserError('Необходимо указать файл..',{obj:obj}));
     var sync_dir = './citymarket/sync/';
-    var excel_filename = obj.excel_filename || 'vseisrazu_image_correct.xlsx';
+    var excel_filename = obj.excel_filename || 'no_barcode_with_images_names_and_categories.xls';
 
 
     var filelist = [];
     var categories = {};
     var products = {};
+    var products_by_image = {};
     var catArr = ['subsubcategory','subcategory','category'];
     var shop;
     var product_count = 0;
@@ -805,19 +807,37 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                 row['category_name'] = row['subsubcategory'] || row['subcategory'] || row['category'];
                 row['category_alias'] = row['category_alias'] || '';
 
-                if (!row['barcode']) continue;
+                if (!row['barcode']) {
+                    row['barcode'] = Guid.create().value;
+                    row.no_barcode = true;
+                }else{
+                    // Добавим нули в начале до 13 символов в штрихкоде
+                    row['barcode'] = row['barcode'].length<13?row['barcode']=Array(13+1).join('0').replace(RegExp(".{"+row['barcode'].length+"}$"),row['barcode']):row['barcode'];
+                }
 
                 //row['picture'] = row['picture'].replace(/\s+.*/ig,''); // только одно изображение
-                // Добавим нули в начале до 13 символов в штрихкоде
-                row['barcode'] = row['barcode'].length<13?row['barcode']=Array(13+1).join('0').replace(RegExp(".{"+row['barcode'].length+"}$"),row['barcode']):row['barcode'];
 
 
                 products[row['barcode']] = {
                     barcode:row['barcode'],
+                    name:row['name'],
                     image:row['image_alias'],
                     excel_alias:row['excel_alias'],
                     category_name:row['category_name'],
-                    category_alias:row['category_alias']
+                    category_alias:row['category_alias'],
+                    no_barcode:row.no_barcode
+                }
+
+                if (row.no_barcode){
+                    products_by_image[row['image_alias']] = {
+                        barcode:row['barcode'],
+                        name:row['name'],
+                        image:row['image_alias'],
+                        excel_alias:row['excel_alias'],
+                        category_name:row['category_name'],
+                        category_alias:row['category_alias'],
+                        no_barcode:row['no_barcode']
+                    }
                 }
 
                 for (var catIndex in catArr) {
@@ -952,6 +972,9 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                 for (var i in res) {
 
                     var product = products[res[i].barcode];
+                    if (!product && products_by_image[res[i].image]){
+                        product = products[products_by_image[res[i].image].barcode];
+                    }
                     if (product){
                         product.id = res[i].id;
                         var product_category = categories[product.category_name];
@@ -961,9 +984,12 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                                 product.to_modify = true;
                             }
                         }
+                        if (!res[i].name && product.name){
+                                product.to_modify = true;
+                        }
                     }
                 }
-                product_count = Object.keys(products).length;
+                product_count = Object.keys(products).length + Object.keys(products_by_image).length;
                 cb(null);
             });
         },
@@ -982,7 +1008,8 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                 //}
 
                 var params = {
-                    barcode:product.barcode,
+                    name:product.name || '',
+                    barcode:(!product.no_barcode)?product.barcode : '',
                     image:product.image,
                     excel_alias:product.excel_alias,
                     category_alias:product.category_alias,
@@ -1000,7 +1027,9 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     }
                 }
                 _t.add(params, function (err, res) {
-                    if (err) return cb(new MyError('При добавлении товара возникла ош.',{o:o, err:err}));
+                    if (err) {
+                        return cb(new MyError('При добавлении товара возникла ош.',{params:params, err:err}));
+                    }
                     product.id = res.id;
                     product.added = true;
                     product_counter++;
@@ -1018,7 +1047,8 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                 if (!product.id || !product.to_modify) return cb(null); // Ничего менять не надо
                 var params = {
                     id:product.id,
-                    barcode:product.barcode,
+                    name:product.name || '',
+                    barcode:(!product.no_barcode)?product.barcode : '',
                     image:product.image,
                     excel_alias:product.excel_alias,
                     category_alias:product.category_alias,
@@ -1030,7 +1060,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                 _t.modify(params, function (err, res) {
                     if (err) return cb(new MyError('При изменении товара возникла ош.',{o:o, err:err}));
                     product.category_id = product.category_id;
-                    console.log('Продукт изменен: ', product.barcode);
+                    console.log('Продукт изменен: ', product.id ,product.name, product.barcode);
                     product_counter++;
                     var percent = Math.ceil(product_counter * 100 / product_count);
                     _t.user.socket.emit('addProduct',{percent:percent});
