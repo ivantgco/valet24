@@ -262,6 +262,7 @@ api_functions.get_product = function (obj, cb) {
                 if (err) return cb(err);
                 products = funcs.cloneObj(res);
                 for (var i in products) {
+                    if (!products[i].image) products[i].image = 'nopicture.jpg';
                     var img_name = (products[i].image.match(/\.[a-zA-Z]{2,4}$/))? products[i].image : products[i].image + '.jpg';
                     products[i].image = '/images_new/' + img_name;
                     products[i].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
@@ -356,6 +357,7 @@ api_functions.get_cart = function (obj, cb) {
                 if (err) return cb(new MyError('Не удалось получить товары в корзине', {err:err}));
                 cart.products = res;
                 for (var i in cart.products) {
+                    if (!cart.products[i].image) cart.products[i].image = 'nopicture.jpg';
                     var img_name = (cart.products[i].image.match(/\.[a-zA-Z]{2,4}$/))? cart.products[i].image : cart.products[i].image + '.jpg';
                     cart.products[i].image = '/images_new/' + img_name;
                 }

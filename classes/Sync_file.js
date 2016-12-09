@@ -98,6 +98,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
     // получить из таблицы все файлы in (считанные)
     // Найти те, которых нету
     // Добавить в систему.
+    var sync_dir = _t.sync_dir;
 
     var filelist = [];
     var filesInDB = [];
@@ -118,14 +119,15 @@ Model.prototype.sync_with_system = function (obj, cb) {
             };
             _t.api(o, function (err, res) {
                 if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
-                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите текущий магазин.'));
                 shop = res[0];
                 cb(null);
             })
         },
         get_file_list: function (cb) {
             // Считать список файлов из директории
-            fs.readdir(_t.sync_dir, function (err, files) {
+            sync_dir = sync_dir + '/' + shop.sysname;
+            fs.readdir(sync_dir, function (err, files) {
                 if (err) return cb(new MyError('Не удалось считать файлы из директории синхронизации.',{err:err}));
                 for (var i in files) {
                     if (path.extname(files[i]) == '.spr') filelist.push(files[i]);
@@ -142,6 +144,10 @@ Model.prototype.sync_with_system = function (obj, cb) {
                         key:'filename',
                         type:'in',
                         val1:filelist.join(',')
+                    },
+                    {
+                        key:'shop_id',
+                        val1:shop.id
                     }
                 ],
                 columns:['filename'],
@@ -173,7 +179,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                 var newFileCounter = 0;
                 var filetype;
                 var str = '';
-                var stream = fs.createReadStream(_t.sync_dir + '/' + filename);
+                var stream = fs.createReadStream(sync_dir + '/' + filename);
                 stream.on('readable', function() {
                     var buf;
                     var brk = false;
@@ -203,7 +209,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                             var data = iconvlite.encode('##@@&&$$$' + one_content, 'cp1251');
                             var portion_filename = filenameParsed.name + '_' + ++newFileCounter + filenameParsed.ext;
                             var newFileType = one_content.substr(0,3);
-                            fs.writeFile(_t.sync_dir + '/' + portion_filename, data, function (err) {
+                            fs.writeFile(sync_dir + '/' + portion_filename, data, function (err) {
                                 if (err) return cb(new MyError('При попытке записать файл возникла ош.',{filename:portion_filename}));
                                 var params = {
                                     filename:portion_filename,
@@ -299,6 +305,8 @@ Model.prototype.upload_file = function (obj, cb) {
     // Добавить записи в sync_file_item (с правильным типом)
     // Сменить статус файла
 
+    var sync_dir = _t.sync_dir;
+
     var filesToUpload;
     var shop;
     async.series({
@@ -336,6 +344,10 @@ Model.prototype.upload_file = function (obj, cb) {
                         type:'in',
                         //val1:'NEW,ERR'
                         val1:'NEW'
+                    },
+                    {
+                        key:'shop_id',
+                        val1:shop.id
                     }
                 ],
                 collapseData:false
@@ -351,8 +363,10 @@ Model.prototype.upload_file = function (obj, cb) {
             if (!filesToUpload) return cb(null); // Нет файлов для загрузки
             async.eachSeries(Object.keys(filesToUpload), function (key, cb) {
                 var fileitem = filesToUpload[key];
+                sync_dir = sync_dir + '/' + shop.sysname;
                 var params = {
-                    filename: fileitem.filename
+                    filename: fileitem.filename,
+                    sync_dir:sync_dir
                 }
                 _t.readFile(params, function (err, str) {
                     if (err) {
@@ -466,7 +480,28 @@ Model.prototype.upload_all_files = function (obj, cb) {
     // Применить по очереди
 
     var filesToUpload;
+    var shop;
     async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
         getSyncFiles: function (cb) {
             // Загрузить данные о файлах (проверить статус)
             var params = {
@@ -476,6 +511,10 @@ Model.prototype.upload_all_files = function (obj, cb) {
                         type:'in',
                         //val1:'NEW,ERR'
                         val1:'NEW'
+                    },
+                    {
+                        key:'shop_id',
+                        val1:shop.id
                     }
                 ],
                 sort:'filename',

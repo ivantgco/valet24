@@ -761,13 +761,14 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
     //var filename = obj.filename;
     //if (!filename) return cb(new UserError('Необходимо указать файл..',{obj:obj}));
     var sync_dir = './citymarket/sync/';
-    var excel_filename = obj.excel_filename || 'no_barcode_with_images_names_and_categories.xls';
+    var excel_filename = obj.excel_filename || 'PRODUCTS_REARY_TO_IMPORT_08122016_0147.xls';
 
 
     var filelist = [];
     var categories = {};
     var products = {};
     var products_by_image = {};
+    var products_by_name = {};
     var catArr = ['subsubcategory','subcategory','category'];
     var shop;
     var product_count = 0;
@@ -801,8 +802,9 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
             var sheet1 = XLSX.utils.sheet_to_json(worksheet);
             for (var i in sheet1) {
                 var row = sheet1[i];
+                row['name'] = (typeof row['name'] == 'string')? row['name'].trim() : '';
                 row['barcode'] = row['barcode'] || '';
-                row['image_alias'] = row['image_alias'] || '';
+                row['image_alias'] = row['image_alias'] || row['image'] || '';
                 row['excel_alias'] = row['image'] || '';
                 row['category_name'] = row['subsubcategory'] || row['subcategory'] || row['category'];
                 row['category_alias'] = row['category_alias'] || '';
@@ -838,6 +840,15 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                         category_alias:row['category_alias'],
                         no_barcode:row['no_barcode']
                     }
+                    products_by_name[row['name']] = {
+                        barcode:row['barcode'],
+                        name:row['name'],
+                        image:row['image_alias'],
+                        excel_alias:row['excel_alias'],
+                        category_name:row['category_name'],
+                        category_alias:row['category_alias'],
+                        no_barcode:row['no_barcode']
+                    }
                 }
 
                 for (var catIndex in catArr) {
@@ -864,6 +875,9 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                 command:'get',
                 object:'category',
                 params:{
+                    param_where:{
+                        shop_id:shop.id
+                    },
                     collapseData:false,
                     fromServer:true,
                     fromClient:false,
@@ -962,6 +976,9 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
             // Загрузить все товары
             // Смерджить товары
             var params = {
+                param_where:{
+                    shop_id:shop.id
+                },
                 collapseData:false,
                 fromServer:true,
                 fromClient:false,
@@ -975,17 +992,24 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     if (!product && products_by_image[res[i].image]){
                         product = products[products_by_image[res[i].image].barcode];
                     }
+                    if (!product && products_by_name[res[i].name]){
+                        product = products[products_by_name[res[i].name].barcode];
+                    }
                     if (product){
                         product.id = res[i].id;
+                        product.to_modify = [];
                         var product_category = categories[product.category_name];
                         if (!res[i].category_id && product_category){
                             if (product_category.id) {
                                 product.category_id = product_category.id;
-                                product.to_modify = true;
+                                product.to_modify.push('category_id');
                             }
                         }
                         if (!res[i].name && product.name){
-                                product.to_modify = true;
+                                product.to_modify.push('name');
+                        }
+                        if (!res[i].image && product.image){
+                            product.to_modify.push('image');
                         }
                     }
                 }
@@ -1045,18 +1069,22 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
             async.eachSeries(Object.keys(products), function (prodKey, cb) {
                 var product = products[prodKey];
                 if (!product.id || !product.to_modify) return cb(null); // Ничего менять не надо
+                if (!product.to_modify.length) return cb(null);
                 var params = {
                     id:product.id,
-                    name:product.name || '',
-                    barcode:(!product.no_barcode)?product.barcode : '',
-                    image:product.image,
-                    excel_alias:product.excel_alias,
-                    category_alias:product.category_alias,
-                    category_id:product.category_id,
+                    //name:product.name || '',
+                    //barcode:(!product.no_barcode)?product.barcode : '',
+                    //image:product.image,
+                    //excel_alias:product.excel_alias,
+                    //category_alias:product.category_alias,
+                    //category_id:product.category_id,
                     rollback_key:rollback_key,
                     fromClient:false,
                     fromServer:true
                 };
+                for (var i in product.to_modify) {
+                    params[product.to_modify[i]] = product[product.to_modify[i]];
+                }
                 _t.modify(params, function (err, res) {
                     if (err) return cb(new MyError('При изменении товара возникла ош.',{o:o, err:err}));
                     product.category_id = product.category_id;

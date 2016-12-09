@@ -183,3 +183,8 @@ module.exports = app;
 
 //mysql -u deptezf2upj -p deptezf2upj --host=173.194.241.167
 // http://104.236.248.75:<app-port>
+
+
+
+//forever start bin\www on1_35.json
+//forever stop bin\www
