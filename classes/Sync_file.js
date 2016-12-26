@@ -10,12 +10,14 @@ var async = require('async');
 var rollback = require('../modules/rollback');
 var fs = require('fs-extra');
 var iconvlite = require('iconv-lite');
-var path = require('path')
+var path = require('path');
+var FtpClient = require('ftp');
+var config = require('../config/index');
 
 var Model = function(obj){
     this.name = obj.name;
     this.tableName = obj.name.toLowerCase();
-    this.sync_dir = './citymarket/sync/update';
+    this.sync_dir = './citymarket/sync';
 
     var basicclass = BasicClass.call(this, obj);
     if (basicclass instanceof MyError) return basicclass;
@@ -83,6 +85,122 @@ Model.prototype.readFile = function (obj, cb) {
         return cb(new MyError('Не удалось прочитать файл',{err:err}));
     });
 };
+
+
+//var o = {
+//    command:'getFromFTP',
+//    object:'Sync_file'
+//};
+//socketQuery(o, function (err, res) {
+//    console.log(err, res);
+//});
+
+Model.prototype.getFromFTP = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    //var id = obj.id;
+    //if (!id) return cb(new MyError('id обязателен для метода'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Считать список файлов из удаленной директории
+    var sync_dir = _t.sync_dir;
+
+    var filelist = [];
+    var filesFromServer = [];
+    var toUploadFiles = [];
+    var shop;
+    var ftpClient1;
+    async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите текущий магазин.'));
+                shop = res[0];
+                sync_dir = sync_dir + '/' + shop.sysname;
+                cb(null);
+            })
+        },
+        get_file_list_local: function (cb) {
+            // Считать список файлов из директории
+
+            fs.readdir(sync_dir, function (err, files) {
+                if (err) return cb(new MyError('Не удалось считать файлы из директории синхронизации.',{err:err}));
+                for (var i in files) {
+                    if (path.extname(files[i]) == '.spr') filelist.push(files[i]);
+                }
+                //filelist = files;
+                cb(null);
+            });
+        },
+        get_files_from_remote: function (cb) {
+            // Считать список файлов из директории на сервере и скачать
+            ftpClient1 = new FtpClient();
+            ftpClient1.on('ready', function() {
+                ftpClient1.list(shop.sysname,function(err, list) {
+                    if (err) return cb(new MyError('Не удалось считать список файлов на удаленном сервере.',{err:err}));
+                    for (var i in list) {
+                        var file = list[i];
+                        if (file.type != '-') continue;
+                        //file.name_only = path.parse(file.name).name;
+                        filesFromServer.push(file);
+                        if (filelist.indexOf(file.name) == -1  && toUploadFiles.indexOf(file.name) == -1) {
+                            toUploadFiles.push(file.name);
+                        }
+                    }
+                    return cb(null);
+                });
+            });
+            ftpClient1.on('error', function (err) {
+                console.log(err);
+                ftpClient1.end();
+                return cb(new MyError('FTP client выдал ошибку.',{err:err}));
+            });
+            ftpClient1.connect(config.get('ftpSync'));
+        },
+        uploadFiles: function (cb) {
+            async.eachSeries(toUploadFiles, function (filename, cb) {
+                ftpClient1.get(shop.sysname + '/' + filename, function(err, stream) {
+                    if (err) return cb(new MyError('Не удалось загрузить файл с удаленного сервера.',{err:err,filename:filename}));
+                    stream.once('close', function() {
+                        console.log('Файл получен', filename);
+                        cb(null);
+
+                    });
+                    stream.pipe(fs.createWriteStream(sync_dir + '/' + filename));
+                });
+            }, function (err) {
+                if (err) return cb(err);
+                ftpClient1.end();
+                cb(null);
+            });
+        }
+    }, function (err) {
+        if (err) {
+            if (ftpClient1) ftpClient1.destroy();
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Ок.'));
+        }
+    });
+}
 
 Model.prototype.sync_with_system = function (obj, cb) {
     if (arguments.length == 1) {
@@ -549,6 +667,79 @@ Model.prototype.upload_all_files = function (obj, cb) {
         }
     })
 
+}
+
+Model.prototype.fullSync = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    //var id = obj.id;
+    //if (!id) return cb(new MyError('id обязателен для метода'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Загрузить Новые файлы по FTP
+    // Загрузить их в систему
+    // Распарсить файлы
+    // Применить записи файлов
+
+    async.series({
+        getFromFTP: function (cb) {
+            _t.getFromFTP(function (err) {
+                if (err) {
+                    console.log('getFromFTP' ,err);
+                }
+                console.log('==> getFromFTP SUCCESS');
+                cb(null);
+            });
+        },
+        sync_with_system: function (cb) {
+            _t.sync_with_system(function (err) {
+                if (err) {
+                    console.log('sync_with_system', err);
+                }
+                console.log('==> sync_with_system SUCCESS');
+                cb(null);
+            });
+        },
+        upload_all_files: function (cb) {
+            _t.upload_all_files(function (err) {
+                if (err) {
+                    console.log('upload_all_files', err);
+                }
+                console.log('==> upload_all_files SUCCESS');
+                cb(null);
+            });
+        },
+        apply_product_all: function (cb) {
+            var o = {
+                command:'apply_product_all',
+                object:'Sync_file_item',
+                params:{
+                    fromServer:true,
+                    fromClient:false
+                }
+            }
+            _t.api(o, function (err) {
+                if (err) {
+                    console.log('apply_product_all', err);
+                }
+                console.log('==> apply_product_all SUCCESS');
+                cb(null);
+            });
+        }
+
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Ок.'));
+        }
+    });
 }
 
 

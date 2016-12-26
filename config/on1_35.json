@@ -37,10 +37,10 @@
   },
   "feedbackEmail":"pswwgr@mail.ru",
   "ftpSync": {
-    "host": "vh12.timeweb.ru",
+    "host": "bitrix280.timeweb.ru",
+    "port": 21,
+    "secure": false,
     "user": "cw53236_citi",
-    "pass": "JukIIop7820sM",
-    "local": "./citymarket/sync/update",
-    "remote": "update"
+    "password": "JukIIop7820sM"
   }
 }

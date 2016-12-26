@@ -19,6 +19,7 @@
     "express-mysql-session": "^0.4.4",
     "express-session": "^1.13.0",
     "fs-extra": "^0.26.5",
+    "ftp": "^0.3.10",
     "ftpsync": "^0.1.10",
     "guid": "0.0.12",
     "iconv-lite": "^0.4.13",

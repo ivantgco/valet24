@@ -73,8 +73,44 @@
         '<i class="fa fa-upload"></i>' +
         '<div class="btnDoubleInner">Загрузить все</div>' +
         '</div>';
+    btn1Html += '<div class="nb btn btnDouble blue toRight " id="sync_full" style="opacity: 1;">' +
+    '<i class="fa fa-upload"></i>' +
+    '<div class="btnDoubleInner">Sync</div>' +
+    '</div>';
 
     $('.ct-environment-buttons ul').append(btn1Html);
+
+    $('#sync_full').off('click').on('click', function(){
+
+
+        bootbox.dialog({
+            title: 'Весь цикл синхронизации',
+            message: 'Данная операция скачает новые файлы, загрузит их в систему, распарсит и применит записи. Может затянуться.',
+            buttons: {
+                success: {
+                    label: 'Огонь',
+                    callback: function(){
+
+                        var o = {
+                            command: 'fullSync',
+                            object: 'Sync_file',
+                            params: {}
+                        };
+                        socketQuery(o, function(res){
+                            console.log(res);
+                        });
+                    }
+                },
+                error: {
+                    label: 'Отмена',
+                    callback: function(){
+
+                    }
+                }
+            }
+        })
+
+    });
 
     $('#sync_with_system').off('click').on('click', function(){
 
