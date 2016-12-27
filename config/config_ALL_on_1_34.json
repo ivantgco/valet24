@@ -35,5 +35,12 @@
     "notificationEmail": "ivantgco@gmail.com,alextgco@gmail.com"
 
   },
-  "feedbackEmail":"pswwgr@mail.ru"
+  "feedbackEmail":"pswwgr@mail.ru",
+  "ftpSync": {
+    "host": "bitrix280.timeweb.ru",
+    "port": 21,
+    "secure": false,
+    "user": "cw53236_citi",
+    "password": "JukIIop7820sM"
+  }
 }

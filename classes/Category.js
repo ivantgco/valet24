@@ -77,7 +77,15 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
                 where:[
                     {
                         key:'site_alias',
-                        type:'isNull'
+                        type:'isNull',
+                        group:'1',
+                        comparisonType:'OR'
+                    },
+                    {
+                        key:'site_alias',
+                        val1:'',
+                        group:'1',
+                        comparisonType:'OR'
                     }
                 ],
                 limit:100000,

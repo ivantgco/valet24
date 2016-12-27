@@ -509,7 +509,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
     //if (!Array.isArray(ids)) ids = [ids];
     var rollback_key = obj.rollback_key || rollback.create();
 
-    var limitSyncProducts = obj.limitSyncProducts || 5000;
+    var limitSyncProducts = obj.limitSyncProducts || 20000;
     // Загрузить все категории которые еще не были применены limit limitSyncProducts
     // Загрузить из основной таблицы категорий по ext_id
     // Применить к категориям sync_category

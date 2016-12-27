@@ -188,3 +188,5 @@ module.exports = app;
 
 //forever start bin\www on1_35.json
 //forever stop bin\www
+
+//forever start bin\www config_ALL_on_1_34.json
