@@ -144,6 +144,7 @@ setTimeout(function () {
                     command: 'fullSync',
                     object: 'Sync_file',
                     params: {
+                        client_object:'sys',
                         fromServer:true,
                         fromClient:false
                     }
@@ -154,7 +155,7 @@ setTimeout(function () {
                     console.log('res', res);
                 },sys_user);
             //}, config.get('syncInterval') || 1200000);
-            }, 6000);
+            }, 60000);
         }
     }, function (err, res) {
         console.log(err, res);
