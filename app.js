@@ -154,15 +154,14 @@ setTimeout(function () {
                     console.log('err', err);
                     console.log('res', res);
                 },sys_user);
-            //}, config.get('syncInterval') || 1200000);
-            }, 60000);
+            }, config.get('syncInterval') || 1200000);
         }
     }, function (err, res) {
         console.log(err, res);
     });
 
 
-},6000);
+},60000);
 module.exports = app;
 
 

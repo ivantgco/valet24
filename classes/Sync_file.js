@@ -736,13 +736,14 @@ Model.prototype.fullSync = function (obj, cb) {
         }
 
     }, function (err) {
-        _t.in_sync = false;
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
             rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                _t.in_sync = false;
                 return cb(err, err2);
             });
         }else{
+            _t.in_sync = false;
             cb(null, new UserOk('Ок.'));
         }
     });
