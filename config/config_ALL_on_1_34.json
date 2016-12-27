@@ -42,5 +42,6 @@
     "secure": false,
     "user": "cw53236_citi",
     "password": "JukIIop7820sM"
-  }
+  },
+  "syncInterval":1200000
 }

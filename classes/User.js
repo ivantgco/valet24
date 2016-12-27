@@ -58,6 +58,23 @@ Model.prototype.load = function (sid, cb) {
         cb(null);
     });
 };
+Model.prototype.loadSysUser = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var _t = this;
+    if (obj.fromClient) return cb(new MyError('Системный пользователь не может быть загружен с клиента.'));
+    _t.authorized = true;
+    _t.is_sys = true;
+    _t.user_data = {
+        sid:'sysuserSID',
+        id:0
+    }
+    return cb(null);
+};
 /**
  * Авторизирует и загружает пользователя типа SITE по параметрe site
  * @param obj

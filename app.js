@@ -127,6 +127,35 @@ app.use(function(err, req, res, next) {
 
 console.log('-------------------------------------------------');
 console.log('SERVER STARTED');
+setTimeout(function () {
+    var api = require('./libs/api');
+    var User = require('./classes/User');
+    var sys_user = new User();
+    async.series({
+        loadSysUser: function (cb) {
+            sys_user.loadSysUser(cb);
+        },
+        startBJ: function (cb) {
+            setInterval(function () {
+                var o = {
+                    command: 'fullSync',
+                    object: 'Sync_file',
+                    params: {
+                        fromServer:true,
+                        fromClient:false
+                    }
+                };
+                api(o, function (err, res) {
+                    console.log('FULLSYNC BACKGROUNDJOB ====>');
+                    console.log('err', err);
+                    console.log('res', res);
+                },sys_user);
+            }, config.get('syncInterval') || 1200000);
+        }
+    },cb);
+
+
+},60000);
 module.exports = app;
 
 
