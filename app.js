@@ -130,7 +130,10 @@ console.log('SERVER STARTED');
 setTimeout(function () {
     var api = require('./libs/api');
     var User = require('./classes/User');
-    var sys_user = new User();
+    var async = require('async');
+    var sys_user = new User({
+        name:'user'
+    });
     async.series({
         loadSysUser: function (cb) {
             sys_user.loadSysUser(cb);
@@ -150,12 +153,15 @@ setTimeout(function () {
                     console.log('err', err);
                     console.log('res', res);
                 },sys_user);
-            }, config.get('syncInterval') || 1200000);
+            //}, config.get('syncInterval') || 1200000);
+            }, 6000);
         }
-    },cb);
+    }, function (err, res) {
+        console.log(err, res);
+    });
 
 
-},60000);
+},6000);
 module.exports = app;
 
 

@@ -675,6 +675,11 @@ Model.prototype.fullSync = function (obj, cb) {
         obj = {};
     }
     var _t = this;
+    if (_t.in_sync) {
+        console.log('Цикл синхронизации еще идет...');
+        return cb(null);
+    }
+    _t.in_sync = true;
     //var id = obj.id;
     //if (!id) return cb(new MyError('id обязателен для метода'));
     var rollback_key = obj.rollback_key || rollback.create();
@@ -731,6 +736,7 @@ Model.prototype.fullSync = function (obj, cb) {
         }
 
     }, function (err) {
+        _t.in_sync = false;
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
             rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {

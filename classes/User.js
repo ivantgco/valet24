@@ -72,7 +72,12 @@ Model.prototype.loadSysUser = function (obj, cb) {
     _t.user_data = {
         sid:'sysuserSID',
         id:0
-    }
+    };
+    _t.socket = {
+        emit: function (name, params) {
+            console.log('Sys_user emit',name, params);
+        }
+    };
     return cb(null);
 };
 /**
