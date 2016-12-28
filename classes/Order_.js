@@ -78,7 +78,28 @@ Model.prototype.add_ = function (obj, cb) {
 
 
     var cart, products_in_cart, crm_user, order_id;
+    var shop;
     async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false,
+                    fromClient:false,
+                    fromServer:true
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
         getCart: function (cb) {
             var o = {
                 command:'get',
@@ -145,6 +166,7 @@ Model.prototype.add_ = function (obj, cb) {
             if(crm_user) obj.name = obj.name || crm_user.name || '';
             obj.cart_id = obj.cart_id || cart_id;
             obj.amount = cart.amount;
+            obj.shop_id = shop.id;
             obj.rollback_key = rollback_key;
             _t.addPrototype(obj, function (err, res) {
                 if (err) return cb(err);
