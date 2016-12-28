@@ -1101,12 +1101,14 @@ Model.prototype.apply_product = function (obj, cb) {
                                 switch (sync_product.sync_file_type_sysname) {
                                     case 'ADD':
                                         sync_product.quantity = +product.quantity + sync_product.quantity;
+                                        product.quantity = sync_product.quantity;
                                         if (!sync_product.to_modify) sync_product.to_modify = [];
                                         sync_product.to_modify.push('quantity');
                                         break;
                                     case 'RPL':
                                         var newQuantity = +sync_product.quantity - (product.in_basket_count || 0);
                                         if (+product.quantity != newQuantity) {
+                                            product.quantity = newQuantity;
                                             sync_product.quantity = newQuantity;
                                             if (!sync_product.to_modify) sync_product.to_modify = [];
                                             sync_product.to_modify.push('quantity');
