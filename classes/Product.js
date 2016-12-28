@@ -768,6 +768,8 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
     var categories = {};
     var products = {};
     var products_by_image = {};
+
+
     var products_by_name = {};
     var catArr = ['subsubcategory','subcategory','category'];
     var shop;
@@ -1017,7 +1019,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                 cb(null);
             });
         },
-        addNewProduct: function (cb) {
+        addNewProductAndSkipSyncStatus: function (cb) {
             async.eachSeries(Object.keys(products), function (prodKey, cb) {
                 var product = products[prodKey];
                 if (product.id) return cb(null); // Уже есть в базе
@@ -1050,17 +1052,90 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                         product.category_id = productCategory.id;
                     }
                 }
-                _t.add(params, function (err, res) {
-                    if (err) {
-                        return cb(new MyError('При добавлении товара возникла ош.',{params:params, err:err}));
+                async.series({
+                    add: function (cb) {
+                        _t.add(params, function (err, res) {
+                            if (err) {
+                                return cb(new MyError('При добавлении товара возникла ош.',{params:params, err:err}));
+                            }
+                            product.id = res.id;
+                            product.added = true;
+                            product_counter++;
+                            var percent = Math.ceil(product_counter * 100 / product_count);
+                            _t.user.socket.emit('addProduct',{percent:percent});
+                            cb(null);
+                        });
+                    },
+                    skipSyncStatus: function (cb) {
+                        var sync_file_item_ids = [];
+                        async.series({
+                            getId: function (cb) {
+                                var o = {
+                                    command:'get',
+                                    object:'sync_file_item',
+                                    params:{
+                                        where:[
+                                            {
+                                                key:'status_sysname',
+                                                type:'<>',
+                                                val1:'NEW'
+                                            }
+                                        ],
+                                        collapseData:false,
+                                        rollback_key:rollback_key,
+                                        fromServer:true,
+                                        fromClient:true
+                                    }
+                                }
+                                if (!product.no_barcode){
+                                    o.params.where.push({
+                                        key:'barcode',
+                                        val1:product.barcode
+                                    })
+                                }else{
+                                    o.params.where.push({
+                                        key:'name',
+                                        val1:product.name
+                                    })
+                                }
+                                _t.api(o, function (err, res) {
+                                    if (err) return cb(new MyError('Ошибка при получении sync_file_item по ключевому полю',{err:err,o:o}));
+                                    if (!res.length) {
+                                        return cb(null);
+                                    }
+                                    for (var i in res) {
+                                        sync_file_item_ids.push(res[i].id);
+                                    }
+                                    cb(null);
+                                })
+                            },
+                            skipStatus: function (cb) {
+                                if (!sync_file_item_ids.length) return cb(null);
+                                async.each(sync_file_item_ids, function (id, cb) {
+                                    var o = {
+                                        command:'modify',
+                                        object:'sync_file_item',
+                                        params:{
+                                            id:id,
+                                            status_sysname:'NEW',
+                                            rollback_key:rollback_key,
+                                            fromServer:true,
+                                            fromClient:true
+                                        }
+                                    }
+                                    _t.api(o, function (err, res) {
+                                        if (err) return cb(new MyError('Не удалось обнулить статус для sync_file_item',{err:err, o:o, prodKey:prodKey}));
+                                        cb(null);
+                                    })
+                                }, cb);
+
+                            }
+                        },cb);
+
+
                     }
-                    product.id = res.id;
-                    product.added = true;
-                    product_counter++;
-                    var percent = Math.ceil(product_counter * 100 / product_count);
-                    _t.user.socket.emit('addProduct',{percent:percent});
-                    cb(null);
-                });
+                },cb);
+
 
             }, cb);
         },
