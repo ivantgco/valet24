@@ -760,7 +760,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
 
     //var filename = obj.filename;
     //if (!filename) return cb(new UserError('Необходимо указать файл..',{obj:obj}));
-    var sync_dir = './citymarket/sync/';
+    var sync_dir = './citymarket/sync/excel/';
     var excel_filename = obj.excel_filename || 'PRODUCTS_REARY_TO_IMPORT_08122016_0147.xls';
 
 
