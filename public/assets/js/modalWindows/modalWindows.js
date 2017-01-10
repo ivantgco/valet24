@@ -217,7 +217,7 @@ var modalWindow = function(){
                                 '<div class="mw-notification-wrapper"></div>' +
                                 '<div class="mw-insertIntoHeader"></div>'  +
                                 isSaveBtn +
-                                '<div class="mw-actionBtns"><div class="mw-collapse">_</div>'+isFullscreenBtn+'<div class="mw-close"><i class="fa fa-times"></i></div></div>' +
+                                '<div class="mw-actionBtns"><div class="mw-reload-from"><i class="fa fa-refresh"></i></div><div class="mw-collapse">_</div>'+isFullscreenBtn+'<div class="mw-close"><i class="fa fa-times"></i></div></div>' +
                             '</div>' +
                             '<div class="mw-topButtons">{topButtons}</div>' +
                             '<div class="mw-content"><div class="mw-content-inner">{content}</div></div>' +
@@ -430,6 +430,10 @@ var modalWindow = function(){
             _t.setActive();
         });
 
+
+        _t.wrapper.find('.mw-reload-form').off('click').on('click', function(){
+            console.log('MODAL - ', _t);
+        });
 
         blocks.header.find('.modal_tab_switcher').off('click').on('click', function(){
 
