@@ -804,6 +804,11 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
             var sheet1 = XLSX.utils.sheet_to_json(worksheet);
             for (var i in sheet1) {
                 var row = sheet1[i];
+                if (typeof row['category'] == 'string') row['category'] = row['category'].trim();
+                if (typeof row['subcategory'] == 'string') row['subcategory'] = row['subcategory'].trim();
+                if (typeof row['subsubcategory'] == 'string') row['subsubcategory'] = row['subsubcategory'].trim();
+
+
                 row['name'] = (typeof row['name'] == 'string')? row['name'].trim() : '';
                 row['barcode'] = row['barcode'] || '';
                 row['image_alias'] = row['image_alias'] || row['image'] || '';

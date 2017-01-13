@@ -669,6 +669,15 @@ Model.prototype.upload_all_files = function (obj, cb) {
 
 }
 
+Model.prototype.fullSyncBJTrigger = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    global.fullSyncBJ = !global.fullSyncBJ;
+    cb(null, new UserOk('Переключили',{fullSyncBJ:global.fullSyncBJ}));
+};
 Model.prototype.fullSync = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
