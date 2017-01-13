@@ -142,5 +142,80 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
     });
 };
 
+Model.prototype.moveToCategory = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var _t = this;
+    var id = obj.id;
+    var target_category_id = obj.target_category_id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    if (isNaN(+target_category_id)) return cb(new MyError('Не передан target_category_id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Получить товары из категории
+    // Для каждого изменить категори
+    // rollback.save
+
+    var products = [];
+    async.series({
+        getProducts: function (cb) {
+            var o = {
+                command:'get',
+                object:'product',
+                params:{
+                    param_where:{
+                        category_id:id
+                    },
+                    collapseData:false,
+                    fromServer:true
+                }
+            }
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить продукты возникла ош.',{err:err, o:o}));
+                for (var i in res) {
+                    products.push(res[i]);
+                }
+                cb(null);
+            });
+        },
+        changeCategory: function (cb) {
+            var p_count = products.length;
+            var counter = 0;
+            async.each(products, function (product, cb) {
+                var o = {
+                    command:'modify',
+                    object:'product',
+                    params:{
+                        id:product.id,
+                        category_id:target_category_id,
+                        rollback_key:rollback_key,
+                        fromServer:true
+                    }
+                }
+                _t.api(o, function (err) {
+                    if (err) return cb(new MyError('Не удалось переместить продукт',{err:err, o:o}));
+                    counter++;
+                    var percent = Math.ceil(counter * 100 / p_count);
+                    _t.user.socket.emit('moveToCategory',{percent:percent});
+                });
+            })
+        }
+    }, function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'moveToCategory', params:obj});
+            cb(null, new UserOk('Продукты перемещены в другую категорию.', obj));
+        }
+    });
+};
+
 
 module.exports = Model;

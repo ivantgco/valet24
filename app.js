@@ -127,6 +127,8 @@ app.use(function(err, req, res, next) {
 
 console.log('-------------------------------------------------');
 console.log('SERVER STARTED');
+global.fullSyncBJ = false;
+
 setTimeout(function () {
     var api = require('./libs/api');
     var User = require('./classes/User');
@@ -140,6 +142,7 @@ setTimeout(function () {
         },
         startBJ: function (cb) {
             setInterval(function () {
+                if (!global.fullSyncBJ) return;
                 var o = {
                     command: 'fullSync',
                     object: 'Sync_file',
