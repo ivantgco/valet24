@@ -7,7 +7,7 @@
     tableInstance.ct_instance.ctxMenuData = [
         {
             name: 'option1',
-            title: 'Открыть в форме',
+            title: 'Переместить в категорию',
             disabled: function () {
                 return false;
             },
