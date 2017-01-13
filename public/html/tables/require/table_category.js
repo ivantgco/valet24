@@ -29,7 +29,7 @@
                                         object: 'Category',
                                         params: {
                                             id:cat_id,
-                                            target_category_id: $('#new_cat_id')
+                                            target_category_id: $('#new_cat_id').val()
                                         }
                                     };
 
