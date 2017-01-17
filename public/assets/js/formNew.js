@@ -256,16 +256,40 @@
 					case 'text':
 						break;
                     case 'wysiwyg':
-//                        wysiwygWrapper.elrte({
-//                            lang         : 'ru',
-//                            styleWithCSS : false,
-//                            height       : 400,
-//                            toolbar      : 'maxi'
-//                        });
-                        var ed = CKEDITOR.replace(wysiwygWrapper[0]);
-                        ed.type = type;
-                        ed.column_name = columnName;
-                        _t.ckEditors.push(ed);
+
+                        tinymce.init({
+                            selector: '.wysiwyg-wrapper',
+                            init_instance_callback: function (editor) {
+                                editor.on('KeyUp', function (e) {
+
+                                    var block = $(editor.editorContainer).parents('.fn-field').eq(0);
+                                    var columnName = block.attr('data-column');
+                                    var type = block.attr('data-type');
+                                    var dataValue = "";
+                                    var value = editor.getContent();
+
+                                    var chO = {
+                                        column_name: columnName,
+                                        type: type,
+                                        value: {
+                                            value: value,
+                                            selValue: ''
+                                        }
+                                    };
+
+                                    if (_t.data != "new") dataValue = _t.data.data[0][columnName];
+
+                                    if (value != dataValue) {
+                                        _t.addChange(chO);
+                                    }
+                                    else {
+                                        _t.removeChange(chO);
+                                    }
+
+
+                                });
+                            }
+                        });
 
                         break;
 					case 'select2':
@@ -1111,7 +1135,8 @@
 				minWidth: 1300,
 				activeHeaderElem: undefined,
 				footerButton: undefined,
-				contentHeight: 0
+				contentHeight: 0,
+                formInstance: _t
 			}).render(function () {
 				_t.modalInstance = modalWindow;
 			});

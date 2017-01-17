@@ -142,6 +142,7 @@ var modalWindow = function(){
         this.containType =      params.containType || undefined;
         this.eternal  =         params.eternal || undefined;
         this.params =           params.params || {};
+        this.formInstance =     params.formInstance || {};
     };
 
     mWConstructor.prototype.addItem = function(item){
@@ -429,6 +430,14 @@ var modalWindow = function(){
         _t.wrapper.off('click').on('click', function(){
             _t.setActive();
         });
+
+        _t.wrapper.find('.mw-reload-from').off('click').on('click', function(){
+
+            _t.formInstance.reload();
+
+        });
+
+
 
 
         _t.wrapper.find('.mw-reload-form').off('click').on('click', function(){
