@@ -468,6 +468,7 @@ Model.prototype.upload_file = function (obj, cb) {
                         val1:shop.id
                     }
                 ],
+                sort: 'created,filename',
                 collapseData:false
             }
             _t.get(params, function (err, res) {
@@ -635,7 +636,7 @@ Model.prototype.upload_all_files = function (obj, cb) {
                         val1:shop.id
                     }
                 ],
-                sort:'filename',
+                sort: 'created,filename',
                 collapseData:false
             }
             _t.get(params, function (err, res) {

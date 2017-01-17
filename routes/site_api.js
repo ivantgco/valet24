@@ -249,8 +249,18 @@ api_functions.get_product = function (obj, cb) {
                 }
                 if (obj.name){
                     w = {
+                        group:'siteFastSearch',
+                        comparisonType:'OR',
                         key:'name',
                         type:'like',
+                        val1:obj.name
+                    };
+                    o.params.where.push(w);
+                    w = {
+                        group:'siteFastSearch',
+                        comparisonType:'OR',
+                        key:'barcode',
+                        type:'=',
                         val1:obj.name
                     };
                     o.params.where.push(w);
@@ -512,6 +522,8 @@ api_functions.create_order = function (obj, cb) {
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
 
+    console.log('CREATE_ORDER +++>',obj);
+
     var o = {
         command:'add',
         object:'order_',
@@ -521,7 +533,7 @@ api_functions.create_order = function (obj, cb) {
             name:obj.name,
             address:obj.address,
             gate:obj.gate,
-            getecode:obj.getecode,
+            gatecode:obj.gatecode,
             level:obj.level,
             flat:obj.flat,
             fromServer:true

@@ -589,6 +589,7 @@
       "site_alias": {"type": "varchar", "length": "255", "name": "Альяс"},
       "in_basket_count": {"type": "DECIMAL(17, 3)", "name": "Товаров в корзине", "visible":true},
       "quantity": {"type": "DECIMAL(17, 3)", "name": "Остаток товара"},
+      "ignore_quantity" : {"type": "tinyint", "length": "1", "name": "Не учитывать кол-во", "default":0},
       "ext_id": {"type": "varchar", "length": "255", "name": "Код"},
       "barcode": {"type": "varchar", "length": "255", "name": "Штрихкод"},
       "control_of_fractional_amounts": {"type": "int", "name": "Контроль дробного количества"},
@@ -686,7 +687,7 @@
       "email": { "type": "varchar", "length": "255", "name": "Email"},
       "address": { "type": "text", "length": "255", "name": "Адрес"},
       "gate": { "type": "varchar", "length": "255", "name": "Подъезд"},
-      "getecode": { "type": "varchar", "length": "255", "name": "Код домофона"},
+      "gatecode": { "type": "varchar", "length": "255", "name": "Код домофона"},
       "level": { "type": "varchar", "length": "255", "name": "Этаж"},
       "flat": { "type": "varchar", "length": "255", "name": "Кв."},
       "comment": {"type": "text", "name": "Комментарий"}
@@ -759,7 +760,7 @@
       "email": { "type": "varchar", "length": "255", "name": "Email"},
       "address": { "type": "text", "length": "255", "name": "Адрес"},
       "gate": { "type": "varchar", "length": "255", "name": "Подъезд"},
-      "getecode": { "type": "varchar", "length": "255", "name": "Код домофона"},
+      "gatecode": { "type": "varchar", "length": "255", "name": "Код домофона"},
       "level": { "type": "varchar", "length": "255", "name": "Этаж"},
       "flat": { "type": "varchar", "length": "255", "name": "Кв."}
     }

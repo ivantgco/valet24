@@ -201,8 +201,9 @@ Model.prototype.moveToCategory = function (obj, cb) {
                     counter++;
                     var percent = Math.ceil(counter * 100 / p_count);
                     _t.user.socket.emit('moveToCategory',{percent:percent});
+                    cb(null);
                 });
-            })
+            }, cb);
         }
     }, function (err, res) {
         if (err) {

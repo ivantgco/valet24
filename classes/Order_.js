@@ -156,14 +156,23 @@ Model.prototype.add_ = function (obj, cb) {
             });
         },
         createOrder: function (cb) {
-            if (!obj.address && crm_user){
-                obj.address = crm_user.address;
-                obj.gate = crm_user.gate;
-                obj.getecode = crm_user.getecode;
-                obj.level = crm_user.level;
-                obj.flat = crm_user.flat;
-            }
-            if(crm_user) obj.name = obj.name || crm_user.name || '';
+            var crm_user_tmp = crm_user || {};
+            //if (!obj.address && crm_user){
+            //    obj.address = crm_user.address;
+            //    obj.gate = crm_user.gate;
+            //    obj.gatecode = crm_user.gatecode;
+            //    obj.level = crm_user.level;
+            //    obj.flat = crm_user.flat;
+            //}
+            //if(crm_user) obj.name = obj.name || crm_user.name || '';
+
+            obj.name = obj.name || crm_user_tmp.name || '';
+            obj.address = obj.address || crm_user_tmp.address || '';
+            obj.gate = obj.gate || crm_user_tmp.gate || '';
+            obj.gatecode = obj.gatecode || crm_user_tmp.gatecode || '';
+            obj.level = obj.level || crm_user_tmp.level || '';
+            obj.flat = obj.flat || crm_user_tmp.flat || '';
+
             obj.cart_id = obj.cart_id || cart_id;
             obj.amount = cart.amount;
             obj.shop_id = shop.id;
@@ -201,7 +210,7 @@ Model.prototype.add_ = function (obj, cb) {
                     name:obj.name || '',
                     address:obj.address || '',
                     gate:obj.gate || '',
-                    getecode:obj.getecode || '',
+                    gatecode:obj.gatecode || '',
                     level:obj.level || '',
                     flat:obj.flat || ''
                 }
@@ -553,6 +562,76 @@ Model.prototype.valet_delivery_note = function (obj, cb) {
     });
 
 
+};
+
+Model.prototype.setStatistic = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+
+
+    var products_in_order;
+    async.series({
+        getOrderProduct: function (cb) {
+            var o = {
+                command:'get',
+                object:'product_in_order',
+                params:{
+                    param_where:{
+                        order_id:id
+                    },
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товаы из корзины',{err:err}));
+                products_in_order = res;
+                cb(null);
+            });
+        },
+        setStatistic: function (cb) {
+            if (!products_in_order.length) return cb(null);
+            var total_count = 0;
+            var total_amount = 0;
+            for (var i in products_in_order) {
+                var product = products_in_order[i];
+                total_count += +product.product_count;
+                total_amount += +product.price * +product.product_count;
+            }
+            var params = {
+                id:id,
+                product_count:total_count,
+                amount:total_amount,
+                rollback_key:rollback_key,
+                fromServer:true
+            }
+            console.log('MODIFY',params);
+            _t.modify(params, function (err) {
+                if (err) {
+                    if (err.message != 'notModified') {
+                        return cb(new MyError('Не удалось установить статистическу информацию для заказа.', {params: params, err: err}));
+                    }
+                    return cb(null);
+                }
+                return cb(null);
+            });
+        }
+    }, function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Статистика подсчитана.'));
+        }
+    });
 };
 
 

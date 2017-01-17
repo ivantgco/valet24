@@ -202,7 +202,7 @@ Model.prototype.add_ = function (obj, cb) {
             cb(null);
         },
         decreaseInProducts: function (cb) {
-            if (product_count_currect == 0) return cb(null);
+            if (product_count_currect == 0 || product.ignore_quantity) return cb(null);
             var o = {
                 command:'modify',
                 object:'product',
@@ -383,6 +383,7 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
             });
         },
         increaseInProducts: function (cb) {
+            if (product.ignore_quantity) return cb(null);
             var o = {
                 command:'modify',
                 object:'product',
@@ -522,7 +523,7 @@ Model.prototype.remove_ = function (obj, cb) {
         },
 
         increaseInProducts: function (cb) {
-            if (!product || obj.sold) return cb(null);
+            if (!product || obj.sold || product.ignore_quantity) return cb(null);
             var o = {
                 command:'modify',
                 object:'product',

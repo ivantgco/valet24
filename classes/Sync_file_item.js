@@ -1098,6 +1098,7 @@ Model.prototype.apply_product = function (obj, cb) {
                                 continue;
                             }
                             if (k == 'quantity') {
+                                if (product.ignore_quantity) continue;
                                 switch (sync_product.sync_file_type_sysname) {
                                     case 'ADD':
                                         sync_product.quantity = +product.quantity + sync_product.quantity;
