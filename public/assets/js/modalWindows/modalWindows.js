@@ -435,6 +435,8 @@ var modalWindow = function(){
 
             _t.formInstance.reload();
 
+
+
         });
 
 
