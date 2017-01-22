@@ -259,6 +259,14 @@ api_functions.get_product = function (obj, cb) {
                     w = {
                         group:'siteFastSearch',
                         comparisonType:'OR',
+                        key:'search_string',
+                        type:'like',
+                        val1:obj.name
+                    };
+                    o.params.where.push(w);
+                    w = {
+                        group:'siteFastSearch',
+                        comparisonType:'OR',
                         key:'barcode',
                         type:'=',
                         val1:obj.name

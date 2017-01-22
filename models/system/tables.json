@@ -596,7 +596,8 @@
       "section_num": {"type": "int", "name": "Номер секции"},
       "vendor_code": {"type": "varchar", "length": "255", "name": "Артикул"},
       "excel_alias": {"type": "varchar", "length": "255", "name": "Альяс excel"},
-      "category_alias": {"type": "varchar", "length": "255", "name": "category_alias"}
+      "category_alias": {"type": "varchar", "length": "255", "name": "category_alias"},
+      "search_string" : {"type": "text", "name": "Поисковая строка","hint":"Напишите доп. слова для поиска разделяя вертикальной чертой \"|\". В конце \"|\" обязательна! Например: Snikers|батончик|"}
     }
   },
   "site_pages": {
