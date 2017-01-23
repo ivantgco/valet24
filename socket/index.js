@@ -68,7 +68,7 @@ module.exports = function (server) {
 
     io.use(function (socket, next) {
 
-        var handshake = socket.handshake;
+        var handshake = socket.handshake || {};
         //return callback(null);
         console.log('authorization');
         async.waterfall([
@@ -77,6 +77,7 @@ module.exports = function (server) {
                 handshake.cookies = cookie.parse(handshake.headers.cookie || '');
                 var sidCookie = handshake.cookies[config.get('session:key')];
                 //var sid = connect.utils.parseSignedCookie(sidCookie, config.get('session:secret'));
+                if (!sidCookie) return callback(new HttpError(401, "Сессия не найдена"));
                 var sid = cookieParser.signedCookie(sidCookie, config.get('session:secret'));
                 loadSession(sid, callback);
             },
