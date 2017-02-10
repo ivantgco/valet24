@@ -1,0 +1,47 @@
+{
+  "isDeveloper":true,
+  "port":81,
+  "host":"192.168.1.38",
+  "session":{
+    "secret":"secret123",
+    "key":"mysid",
+    "cookie":{
+      "path":"/",
+      "httpOnly":true,
+      "maxAge":null
+    }
+  },
+  "mysqlConnection":{
+    "connectionLimit":100,
+    "port": "3306",
+    "host": "localhost",
+    "user": "root",
+    "password": "aambfi5y",
+    "database": "valet24",
+    "dateStrings":"TIMESTAMP"
+  },
+  "mail":{
+    "mailTransport":{
+      "host": "smtp.mail.ru",
+      "port": 465,
+      "debug":true,
+      "secure":true,
+      "auth": {
+        "user": "iig@list.ru",
+        "pass": "johnjohn"
+      }
+    },
+    "from":"iig@list.ru",
+    "notificationEmail": "ivantgco@gmail.com,alextgco@gmail.com"
+
+  },
+  "feedbackEmail":"pswwgr@mail.ru",
+  "ftpSync": {
+    "host": "bitrix280.timeweb.ru",
+    "port": 21,
+    "secure": false,
+    "user": "cw53236_citi",
+    "password": "JukIIop7820sM"
+  },
+  "syncInterval":1200000
+}

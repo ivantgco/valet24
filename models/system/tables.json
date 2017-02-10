@@ -904,5 +904,31 @@
       "is_product": {"type": "tinyint", "length": "1", "name": "Товар/группа"},
       "grapp_list": {"type": "varchar", "length": "255", "name": "Список грапп"}
     }
+  },
+  "user_favorite": {
+    "profile": {
+      "name": "user_favorite",
+      "name_ru": "Избранное пользователя",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "crm_user_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "virtual": true, "name": "Магазин"},
+      "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "product_id" : {"type": "bigint", "length": "20"},
+      "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
+      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
+      "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "virtual": true, "name": "Тип количества"},
+      "image": {"type": "varchar", "length": "255", "name": "Изображение"},
+      "images_list": {"type": "text", "name": "Изображения"},
+      "description" : {"type": "varchar", "length": "255", "name": "Описание"},
+      "price" : {"type": "DECIMAL(15, 2)", "name": "Цена"},
+      "category_id" : {"type": "bigint", "length": "20", "visible": false},
+      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "virtual": true, "name": "Подкатегория"},
+      "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "virtual": true},
+      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "virtual": true, "name": "Категория"}
+    }
   }
 }
