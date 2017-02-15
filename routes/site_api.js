@@ -540,3 +540,56 @@ api_functions.create_order = function (obj, cb) {
         cb(err, res); // Если ставить "cb" то получается лажа
     });
 };
+
+api_functions.get_user = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    console.log('====> get_user ',obj);
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    // load by sid
+    var user;
+    async.series({
+        get: function (cb) {
+            var o = {
+                command: 'getBySid',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                user = res;
+                cb(null);
+            });
+        }
+    }, function (err) {
+        if (err) return cb(err);
+        return cb(null, user);
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
