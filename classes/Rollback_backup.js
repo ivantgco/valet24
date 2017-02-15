@@ -65,6 +65,9 @@ Model.prototype.rollback = function (obj, cb) {
     // Загружаем стек из базы
     // Выполняем стек
 
+    if (obj.confirm != 'ПОДТВЕРЖДАЮ'){
+        return cb(new UserError('needConfirm', {message: '',title:'Данная операция необратима! Для подтверждения введите "ПОДТВЕРЖДАЮ".',key:1, confirmType:'dialog',responseType:'text'}));
+    }
     //global.rollbacks[rollback_key]
     var data;
     var rollback_data;

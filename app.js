@@ -147,9 +147,7 @@ setTimeout(function () {
                     command: 'fullSync',
                     object: 'Sync_file',
                     params: {
-                        client_object:'sys',
-                        fromServer:true,
-                        fromClient:false
+                        client_object:'sys'
                     }
                 };
                 api(o, function (err, res) {

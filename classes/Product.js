@@ -64,7 +64,7 @@ Model.prototype.add = function (obj, cb) {
  * Если есть categoryS - массив ['Категория','СубКатегория','СубСубКатегория',..]
  * Ищем с первой, если нет создаем, и так далее
  *
- * Если есть уже такой товар и fromServer (import from excel) - изменяем остальные поля.
+ * Если есть уже такой товар и fromServe (import from excel) - изменяем остальные поля.
  * Modify пишет history
  * @param obj
  * @param cb
@@ -109,7 +109,6 @@ Model.prototype.add_OLD = function (obj, cb) {
         },
         ifProductMergeAndModify: function (cb) {
             if (!product) return cb(null); // Продукт не обнаружен, добавляем.
-            if (!obj.fromServer) return cb(new UserError('Такой товар уже имеется',{product:product}));
             // Если обнаружен, мердж и модифай
             var toModify = {};
             for (var i in product) {
@@ -191,7 +190,7 @@ Model.prototype.add_OLD = function (obj, cb) {
                 return cb(err, err2);
             });
         }else{
-            var m = (obj.fromServer)? 'Продукт добавлен или изменен' : 'Продукт добавлен';
+            var m = (!obj.fromClient)? 'Продукт добавлен или изменен' : 'Продукт добавлен';
             cb(null, new UserOk(m,{data:err}));
         }
     })
@@ -302,8 +301,6 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
                 object:'category',
                 params:{
                     collapseData:false,
-                    fromServer:true,
-                    fromClient:false,
                     limit:1000000
                 }
             }
@@ -342,9 +339,7 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
                             name:category.name,
                             deep:category.deep,
                             is_active:true,
-                            rollback_key:rollback_key,
-                            fromClient:false,
-                            fromServer:true
+                            rollback_key:rollback_key
                         }
                     }
                     if (category.deep == 1) o.params.is_root = true;
@@ -380,9 +375,7 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
                     params:{
                         id:category.id,
                         parent_category_id:parentCategory.id,
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                 }
                 _t.api(o, function (err, res) {
@@ -399,8 +392,6 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
             // Смерджить товары
             var params = {
                 collapseData:false,
-                fromServer:true,
-                fromClient:false,
                 limit:1000000
             };
             _t.get(params, function (err, res) {
@@ -429,9 +420,7 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
 
                 var params = {
                     image:product.image,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    fromServer:true
+                    rollback_key:rollback_key
                 };
 
                 var productCategory = categories[product.category_name];
@@ -458,9 +447,7 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
                 var params = {
                     id:product.id,
                     category_id:product.category_id,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    fromServer:true
+                    rollback_key:rollback_key
                 };
                 _t.modify(params, function (err, res) {
                     if (err) return cb(new MyError('При изменении товара возникла ош.',{o:o, err:err}));
@@ -475,8 +462,6 @@ Model.prototype.importCategoryExcel = function (obj, cb) {
                 command:'pushIntoWordpress',
                 object:'category',
                 params:{
-                    fromClient:false,
-                    fromServer:true,
                 }
             }
             _t.api(o, cb);
@@ -565,8 +550,6 @@ Model.prototype.importImageExcel = function (obj, cb) {
             // Смерджить товары
             var params = {
                 collapseData:false,
-                fromServer:true,
-                fromClient:false,
                 limit:1000000
             };
             _t.get(params, function (err, res) {
@@ -592,9 +575,7 @@ Model.prototype.importImageExcel = function (obj, cb) {
                 var params = {
                     image:product.image,
                     barcode:product.barcode,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    fromServer:true
+                    rollback_key:rollback_key
                 };
                 _t.add(params, function (err, res) {
                     if (err) return cb(new MyError('При добавлении товара возникла ош.',{o:o, err:err}));
@@ -613,9 +594,7 @@ Model.prototype.importImageExcel = function (obj, cb) {
                 var params = {
                     id:product.id,
                     barcode:product.barcode,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    fromServer:true
+                    rollback_key:rollback_key
                 };
                 _t.modify(params, function (err, res) {
                     if (err) return cb(new MyError('При изменении товара возникла ош.',{o:o, err:err}));
@@ -693,8 +672,7 @@ Model.prototype.importFromExcel = function (obj, cb) {
     //console.log(products);
     async.eachSeries(products, function (product, cb) {
         var params = {
-            rollback_key:rollback_key,
-            fromServer:true
+            rollback_key:rollback_key
         };
         for (var i in product) {
             params[i] = product[i];
@@ -784,9 +762,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -886,8 +862,6 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                         shop_id:shop.id
                     },
                     collapseData:false,
-                    fromServer:true,
-                    fromClient:false,
                     limit:1000000
                 }
             }
@@ -927,9 +901,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                             deep:category.deep,
                             is_active:true,
                             shop_id:shop.id,
-                            rollback_key:rollback_key,
-                            fromClient:false,
-                            fromServer:true
+                            rollback_key:rollback_key
                         }
                     }
                     if (category.deep == 1) o.params.is_root = true;
@@ -965,9 +937,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     params:{
                         id:category.id,
                         parent_category_id:parentCategory.id,
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                 }
                 _t.api(o, function (err, res) {
@@ -987,8 +957,6 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     shop_id:shop.id
                 },
                 collapseData:false,
-                fromServer:true,
-                fromClient:false,
                 limit:1000000
             };
             _t.get(params, function (err, res) {
@@ -1045,9 +1013,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     excel_alias:product.excel_alias,
                     category_alias:product.category_alias,
                     shop_id:shop.id,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    fromServer:true
+                    rollback_key:rollback_key
                 };
 
                 var productCategory = categories[product.category_name];
@@ -1087,9 +1053,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                                             }
                                         ],
                                         collapseData:false,
-                                        rollback_key:rollback_key,
-                                        fromServer:true,
-                                        fromClient:true
+                                        rollback_key:rollback_key
                                     }
                                 }
                                 if (!product.no_barcode){
@@ -1123,9 +1087,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                                         params:{
                                             id:id,
                                             status_sysname:'NEW',
-                                            rollback_key:rollback_key,
-                                            fromServer:true,
-                                            fromClient:true
+                                            rollback_key:rollback_key
                                         }
                                     }
                                     _t.api(o, function (err, res) {
@@ -1158,9 +1120,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     //excel_alias:product.excel_alias,
                     //category_alias:product.category_alias,
                     //category_id:product.category_id,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    fromServer:true
+                    rollback_key:rollback_key
                 };
                 for (var i in product.to_modify) {
                     params[product.to_modify[i]] = product[product.to_modify[i]];
@@ -1181,8 +1141,6 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
         //        command:'pushIntoWordpress',
         //        object:'category',
         //        params:{
-        //            fromClient:false,
-        //            fromServer:true,
         //        }
         //    }
         //    _t.api(o, cb);
@@ -1298,9 +1256,7 @@ Model.prototype.updateSitePrice = function (obj, cb) {
     }
     var _t = this;
     var params = {
-        procedureName:'update_product_sale_price',
-        fromClient:false,
-        fromServer:true
+        procedureName:'update_product_sale_price'
     }
     _t.execProcedure(params, cb);
 };

@@ -170,8 +170,7 @@ Model.prototype.moveToCategory = function (obj, cb) {
                     param_where:{
                         category_id:id
                     },
-                    collapseData:false,
-                    fromServer:true
+                    collapseData:false
                 }
             }
             _t.api(o, function (err, res) {
@@ -192,8 +191,7 @@ Model.prototype.moveToCategory = function (obj, cb) {
                     params:{
                         id:product.id,
                         category_id:target_category_id,
-                        rollback_key:rollback_key,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                 }
                 _t.api(o, function (err) {

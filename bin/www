@@ -96,3 +96,4 @@ function onListening() {
     debug('Listening on ' + bind);
 }
 
+// node-inspector --web-port=5000 --web-host=ccs.valet24.ru

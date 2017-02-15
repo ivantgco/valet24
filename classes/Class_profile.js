@@ -18,8 +18,9 @@ var Model = function(obj){
     if (basicclass instanceof MyError) return basicclass;
 };
 util.inherits(Model, BasicClass);
-Model.prototype.removeCascade = Model.prototype.remove;
+
 Model.prototype.removePrototype = Model.prototype.remove;
+
 Model.prototype.modifyPrototype = Model.prototype.modify;
 
 Model.prototype.init = function (obj, cb) {
@@ -80,6 +81,8 @@ Model.prototype.remove = function (obj, cb) {
     //o.params.name = _t.name;
     //_t.api(o, cb);
 };
+Model.prototype.removeCascade = Model.prototype.remove;
+
 Model.prototype.modify = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];

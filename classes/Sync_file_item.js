@@ -88,9 +88,7 @@ Model.prototype.apply_category = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -223,9 +221,7 @@ Model.prototype.apply_category = function (obj, cb) {
                             name:sync_cat.name,
                             shop_id:shop.id,
                             is_active:true,
-                            rollback_key:rollback_key,
-                            fromClient:false,
-                            fromServer:true
+                            rollback_key:rollback_key
                         }
                     }
                     if (sync_cat.parent_category_cod == 0) o.params.is_root = true;
@@ -263,9 +259,7 @@ Model.prototype.apply_category = function (obj, cb) {
                                         params:{
                                             id: sync_cat.cat_id,
                                             parent_category_id:parent_cat.id,
-                                            rollback_key:rollback_key,
-                                            fromClient:false,
-                                            fromServer:true
+                                            rollback_key:rollback_key
                                         }
                                     };
                                     _t.api(o, function (err, res) {
@@ -300,9 +294,7 @@ Model.prototype.apply_category = function (obj, cb) {
                                             params:{
                                                 id: child_cat.id,
                                                 parent_category_id:sync_cat.cat_id,
-                                                rollback_key:rollback_key,
-                                                fromClient:false,
-                                                fromServer:true
+                                                rollback_key:rollback_key
                                             }
                                         };
                                         _t.api(o, function (err, res) {
@@ -318,9 +310,7 @@ Model.prototype.apply_category = function (obj, cb) {
                                 var params = {
                                     id:sync_cat.id,
                                     status_sysname:'APPLIED',
-                                    rollback_key:rollback_key,
-                                    fromClient:false,
-                                    fromServer:true
+                                    rollback_key:rollback_key
                                 }
                                 _t.modify(params, function (err) {
                                     if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -342,9 +332,7 @@ Model.prototype.apply_category = function (obj, cb) {
                     var params = {
                         id:sync_cat.id,
                         status_sysname:'APPLIED',
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                     _t.modify(params, function (err) {
                         if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -365,9 +353,7 @@ Model.prototype.apply_category = function (obj, cb) {
                         //is_active:true,
                         //ext_id:sync_cat.ext_id,
                         //is_root:sync_cat.is_root,
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                 };
                 for (var i in sync_cat.to_modify) {
@@ -401,9 +387,7 @@ Model.prototype.apply_category = function (obj, cb) {
                                     params:{
                                         id: sync_cat.cat_id,
                                         parent_category_id:parent_cat.id,
-                                        rollback_key:rollback_key,
-                                        fromClient:false,
-                                        fromServer:true
+                                        rollback_key:rollback_key
                                     }
                                 };
                                 _t.api(o, function (err, res) {
@@ -438,9 +422,7 @@ Model.prototype.apply_category = function (obj, cb) {
                                         params:{
                                             id: child_cat.id,
                                             parent_category_id:sync_cat.cat_id,
-                                            rollback_key:rollback_key,
-                                            fromClient:false,
-                                            fromServer:true
+                                            rollback_key:rollback_key
                                         }
                                     };
                                     _t.api(o, function (err, res) {
@@ -454,9 +436,7 @@ Model.prototype.apply_category = function (obj, cb) {
                             var params = {
                                 id:sync_cat.id,
                                 status_sysname:'APPLIED',
-                                rollback_key:rollback_key,
-                                fromClient:false,
-                                fromServer:true
+                                rollback_key:rollback_key
                             }
                             _t.modify(params, function (err) {
                                 if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -680,9 +660,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                         var params = {
                             id:sync_prod.id,
                             status_sysname:'NO_CATEGORY',
-                            rollback_key:rollback_key,
-                            fromClient:false,
-                            fromServer:true
+                            rollback_key:rollback_key
                         }
                         _t.modify(params, function (err) {
                             if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -705,9 +683,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                             control_of_fractional_amounts:sync_prod.control_of_fractional_amounts,
                             section_num:sync_prod.section_num,
                             vendor_code:sync_prod.vendor_code,
-                            rollback_key:rollback_key,
-                            fromClient:false,
-                            fromServer:true
+                            rollback_key:rollback_key
                         }
                     }
                     _t.api(o, function (err, res) {
@@ -717,9 +693,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                         var params = {
                             id:sync_prod.id,
                             status_sysname:'APPLIED',
-                            rollback_key:rollback_key,
-                            fromClient:false,
-                            fromServer:true
+                            rollback_key:rollback_key
                         }
                         _t.modify(params, function (err) {
                             if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -776,9 +750,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                     //            var params = {
                     //                id:sync_prod.id,
                     //                status_sysname:'APPLIED',
-                    //                rollback_key:rollback_key,
-                    //                fromClient:false,
-                    //                fromServer:true
+                    //                rollback_key:rollback_key
                     //            }
                     //            _t.modify(params, function (err) {
                     //                if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -801,9 +773,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                     var params = {
                         id:sync_prod.id,
                         status_sysname:'APPLIED',
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                     _t.modify(params, function (err) {
                         if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -818,9 +788,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                     var params = {
                         id:sync_prod.id,
                         status_sysname:'NO_CATEGORY',
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                     _t.modify(params, function (err) {
                         if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -845,9 +813,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                         //control_of_fractional_amounts:sync_prod.control_of_fractional_amounts,
                         //section_num:sync_prod.section_num,
                         //vendor_code:sync_prod.vendor_code,
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                 }
                 for (var i in sync_prod.to_modify) {
@@ -860,9 +826,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                     var params = {
                         id:sync_prod.id,
                         status_sysname:'APPLIED',
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        fromServer:true
+                        rollback_key:rollback_key
                     }
                     _t.modify(params, function (err) {
                         if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -910,9 +874,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                 //                control_of_fractional_amounts:sync_prod.control_of_fractional_amounts,
                 //                section_num:sync_prod.section_num,
                 //                vendor_code:sync_prod.vendor_code,
-                //                rollback_key:rollback_key,
-                //                fromClient:false,
-                //                fromServer:true
+                //                rollback_key:rollback_key
                 //            }
                 //        }
                 //        _t.api(o, function (err, res) {
@@ -922,9 +884,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                 //            var params = {
                 //                id:sync_prod.id,
                 //                status_sysname:'APPLIED',
-                //                rollback_key:rollback_key,
-                //                fromClient:false,
-                //                fromServer:true
+                //                rollback_key:rollback_key
                 //            }
                 //            _t.modify(params, function (err) {
                 //                if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -989,9 +949,7 @@ Model.prototype.apply_product = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -1011,9 +969,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 },
                 sort: 'created,filename',
                 collapseData: false,
-                limit: limitSyncProducts,
-                fromClient: false,
-                fromServer: true
+                limit: limitSyncProducts
             };
             _t.get(params, function (err, res) {
                 if (err) return cb(new MyError('Не удалось получить список продуктов для загрузки.', {err: err}));
@@ -1045,9 +1001,7 @@ Model.prototype.apply_product = function (obj, cb) {
                             val1:shop.id
                         }
                     ],
-                    collapseData: false,
-                    fromClient: false,
-                    fromServer: true
+                    collapseData: false
                 }
             }
             if (syncProduct_barcodes.length) {
@@ -1144,8 +1098,6 @@ Model.prototype.apply_product = function (obj, cb) {
                         id: sync_prod.id,
                         status_sysname: 'DOES_NOT_EXIST',
                         rollback_key: rollback_key,
-                        fromClient: false,
-                        fromServer: true,
                         doNotClearCache: true
                     }
                     _t.modify(params, function (err) {
@@ -1164,9 +1116,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 //        id:sync_prod.id,
                 //        status_sysname:'NO_BARCODE',
                 //        rollback_key:rollback_key,
-                //        fromClient:false,
-                //        fromServer:true,
-                //        doNotClearCache:true
+                //        fromClient:false
                 //    }
                 //    _t.modify(params, function (err) {
                 //        if (err) return cb(new MyError('При изменении статуса записи sync_item возникла ош.', {params:params, err:err}));
@@ -1180,8 +1130,6 @@ Model.prototype.apply_product = function (obj, cb) {
                         id: sync_prod.id,
                         status_sysname: 'APPLIED',
                         rollback_key: rollback_key,
-                        fromClient: false,
-                        fromServer: true,
                         doNotClearCache: true
                     }
                     _t.modify(params, function (err) {
@@ -1222,8 +1170,6 @@ Model.prototype.apply_product = function (obj, cb) {
                                 //section_num:sync_prod.section_num,
                                 //vendor_code:sync_prod.vendor_code,
                                 rollback_key: rollback_key,
-                                fromClient: false,
-                                fromServer: true,
                                 doNotClearCache: true
                             }
                         }
@@ -1249,8 +1195,6 @@ Model.prototype.apply_product = function (obj, cb) {
                                 id: sync_prod.id,
                                 status_sysname: 'APPLIED',
                                 rollback_key: rollback_key,
-                                fromClient: false,
-                                fromServer: true,
                                 doNotClearCache: true
                             }
                             _t.modify(params, function (err) {
@@ -1287,8 +1231,6 @@ Model.prototype.apply_product = function (obj, cb) {
         //        command:'pushIntoWordpress',
         //        object:'Product',
         //        params:{
-        //            fromClient:false,
-        //            fromServer:true,
         //        }
         //    };
         //
@@ -1299,8 +1241,6 @@ Model.prototype.apply_product = function (obj, cb) {
                 command: 'updateSitePrice',
                 object: 'product',
                 params: {
-                    fromClient: false,
-                    fromServer: true
                 }
             };
             _t.api(o, cb);
@@ -1333,8 +1273,6 @@ Model.prototype.apply_product_all = function (obj, cb) {
 
     var fire = function () {
         _t.apply_product({
-            fromClient:false,
-            fromServer:true
         }, function (err, res) {
             if (err) return cb(err);
             if (typeof res!='object') return cb(new MyError('В ответ на apply_product вернулся не корректный результат',{err:err,res:res}));

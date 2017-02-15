@@ -116,7 +116,7 @@ Model.prototype.modify_ = function (obj, cb) {
         },
         modify: function (cb) {
             obj.rollback_key = rollback_key;
-            obj.fromServer = true;
+            obj.fromClient = false;
             _t.modifyPrototype(obj, cb);
         },
         setOrderStatistic: function (cb) {
@@ -125,8 +125,6 @@ Model.prototype.modify_ = function (obj, cb) {
                 object:'Order_',
                 params:{
                     id:product.order_id,
-                    fromServer:true,
-                    fromClient:false,
                     rollback_key:rollback_key
                 }
             }
@@ -198,8 +196,6 @@ Model.prototype.add_ = function (obj, cb) {
                 object:'Order_',
                 params:{
                     id:obj.order_id,
-                    fromServer:true,
-                    fromClient:false,
                     rollback_key:rollback_key
                 }
             }
@@ -237,7 +233,7 @@ Model.prototype.remove_ = function (obj, cb) {
         },
         remove: function (cb) {
             obj.rollback_key = rollback_key;
-            obj.fromServer = true;
+            obj.fromClient = false;
             _t.removePrototype(obj, cb);
         },
         setOrderStatistic: function (cb) {
@@ -246,8 +242,6 @@ Model.prototype.remove_ = function (obj, cb) {
                 object:'Order_',
                 params:{
                     id:product.order_id,
-                    fromServer:true,
-                    fromClient:false,
                     rollback_key:rollback_key
                 }
             }

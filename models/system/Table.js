@@ -89,14 +89,14 @@ Table.prototype.loadStructure = function (cb) {
                 _t.structure.deleted = {type: "datetime", name: 'Удален' + _t.profile.ending, sort_no:10003};
                 _t.structure.published = {type: "datetime", name: 'Опубликован' + _t.profile.ending, sort_no:10004};
                 _t.structure.created_by_user_id = {type: "bigint", length: 20, name: 'Создан' + _t.profile.ending + ' пользователем id', visible:false, sort_no:10005};
-                _t.structure.created_by_user = {type: "varchar", length: 255, name: 'Создан' + _t.profile.ending + ' пользователем', virtual:true, from_table:'user', keyword:'created_by_user_id', return_column:'firstname', visible:false, sort_no:10006};
+                _t.structure.created_by_user = {type: "varchar", length: 255, name: 'Создан' + _t.profile.ending + ' пользователем', is_virtual:true, from_table:'user', keyword:'created_by_user_id', return_column:'firstname', visible:false, sort_no:10006};
                 _t.structure.deleted_by_user_id = {type: "bigint", length: 20, name: 'Удален' + _t.profile.ending + ' пользователем', visible:false, sort_no:10007};
-                _t.structure.deleted_by_user = {type: "varchar", length: 255, name: 'Удален' + _t.profile.ending + ' пользователем', virtual:true, from_table:'user', keyword:'deleted_by_user_id', return_column:'firstname', visible:false, sort_no:10008};
+                _t.structure.deleted_by_user = {type: "varchar", length: 255, name: 'Удален' + _t.profile.ending + ' пользователем', is_virtual:true, from_table:'user', keyword:'deleted_by_user_id', return_column:'firstname', visible:false, sort_no:10008};
                 _t.structure.remove_comment = {type: "text", name: 'Комментарий при удалении', visible:false, sort_no:10009};
                 _t.structure.self_company_id = {type: "bigint", length: 20, name: 'Своя компания id', visible:false, sort_no:10010};
-                _t.structure.self_company = {type: "varchar", length: 255, name: 'Своя компания', virtual:true, from_table:'company_sys', keyword:'self_company_id', return_column:'name', visible:false, sort_no:10011};
+                _t.structure.self_company = {type: "varchar", length: 255, name: 'Своя компания', is_virtual:true, from_table:'company_sys', keyword:'self_company_id', return_column:'name', visible:false, sort_no:10011};
                 _t.structure.ext_company_id = {type: "bigint", length: 20, name: 'Создано компанией id', visible:false, sort_no:10012};
-                _t.structure.ext_company = {type: "varchar", length: 255, name: 'Создано компанией', virtual:true, from_table:'company_sys', keyword:'ext_company_id', return_column:'name', visible:false, sort_no:10013};
+                _t.structure.ext_company = {type: "varchar", length: 255, name: 'Создано компанией', is_virtual:true, from_table:'company_sys', keyword:'ext_company_id', return_column:'name', visible:false, sort_no:10013};
 
                 _t.MySQLUnique = table.MySQLUnique;
                 cb(null);
@@ -133,7 +133,7 @@ Table.prototype.getLinkedTables = function (params, cb) {
                 //if (i=='merchant_payment') debugger;
                 for (var j in tbl) {
                     var col = tbl[j];
-                    if (!col.virtual) continue;
+                    if (!col.is_virtual) continue;
                     if (!col.from_table) continue;
                     if (col.from_table == _t.name && additionalTables.indexOf(i) === -1) additionalTables.push(i);
                 }
@@ -199,7 +199,7 @@ Table.prototype.create = function (params, cb) {
 
                     for (var i in _t.structure) {
                         var field = _t.structure[i];
-                        if (field.virtual) continue;
+                        if (field.is_virtual) continue;
                         sql += '`' + i + '` ' + field.type;
                         sql += (field.length) ? '(' + field.length + ')' : '';
                         sql += (field.notNull) ? ' NOT NULL' : '';
@@ -275,7 +275,7 @@ Table.prototype.create = function (params, cb) {
                                 var l = Object.keys(fields).length;
                                 async.eachSeries(Object.keys(_t.structure), function (key, cb) {
                                     var fieldFromFile = _t.structure[key];
-                                    if (fieldFromFile.virtual) return cb(null);
+                                    if (fieldFromFile.is_virtual) return cb(null);
                                     var keyBase = fieldFromFile.old_key || key;
                                     var field = fields[keyBase];
                                     if (!field) {
@@ -596,14 +596,14 @@ Table.prototype.createClass = function (params, cb) {
                                                         o[class_field] = dict[i].id;
                                                     }
                                                     break;
-                                                case "virtual":
-                                                    if (item['virtual'] && !item['concat_fields']) {
+                                                case "is_virtual":
+                                                    if (item['is_virtual'] && !item['concat_fields']) {
                                                         finded_dict_val = true;
                                                         o[class_field] = dict[i].id;
                                                     }
                                                     break;
                                                 default :
-                                                    if (defaultForDataType.indexOf(item['type']) >= 0 && !(item['virtual'] && !item['concat_fields']) && !(item['type'] == 'tinyint' && item['length'] == 1)) {
+                                                    if (defaultForDataType.indexOf(item['type']) >= 0 && !(item['is_virtual'] && !item['concat_fields']) && !(item['type'] == 'tinyint' && item['length'] == 1)) {
                                                         finded_dict_val = true;
                                                         o[class_field] = dict[i].id;
                                                         break;
@@ -750,6 +750,84 @@ Table.prototype.createClass = function (params, cb) {
                     return cb(null);
                 });
             });
+        },
+        function (cb) {
+            // Создать пункт меню
+            // Получить id меню temp
+            var menu;
+            var item_exist = false;
+            async.series({
+                checkExist: function (cb) {
+                    var o = {
+                        command:'get',
+                        object:'menu',
+                        params:{
+                            param_where:{
+                                menu_item:_t.profile.name
+                            },
+                            fromClient:false,
+                            collapseData:false
+                        }
+                    }
+                    _t.api(o, function (err, res) {
+                        if (err){
+                            console.log('Не удалось создать пункт меню. Ошибка при получении menu menu_item=' + _t.profile.name,err);
+                            return cb(null);
+                        }
+                        item_exist = !!res.length;
+                        return cb(null);
+                    });
+                },
+                getMenuID: function (cb) {
+                    if (item_exist) return cb(null);
+                    var o = {
+                        command:'get',
+                        object:'menu',
+                        params:{
+                            param_where:{
+                                menu_item:'temp'
+                            },
+                            fromClient:false,
+                            collapseData:false
+                        }
+                    }
+                    _t.api(o, function (err, res) {
+                        if (err){
+                            console.log('Не удалось создать пункт меню. Ошибка при получении menu menu_item=temp',err);
+                            return cb(null);
+                        }
+                        if (!res.length){
+                            console.log('Не удалось создать пункт меню. В системе не заведено родительское меню menu_item=temp');
+                            return cb(null);
+                        }
+                        menu = res[0];
+                        return cb(null);
+                    });
+                },
+                addElement: function (cb) {
+                    if (item_exist) return cb(null);
+                    if (!menu) return cb(null);
+                    var o = {
+                        command:'add',
+                        object:'menu',
+                        params:{
+                            class_id:_t.class_id,
+                            menu_item:_t.profile.name,
+                            name:_t.profile.name_ru,
+                            parent_id:menu.id,
+                            menu_type:'item',
+                            is_visible:true
+                        }
+                    };
+                    _t.api(o, function (err, res) {
+                        if (err) {
+                            console.log('Не удалось создать пункт меню. Ошибка при добавлении.',err);
+                            return cb(null);
+                        }
+                        cb(null);
+                    })
+                }
+            },cb);
         }
     ], cb)
 };

@@ -88,9 +88,7 @@ Model.prototype.add_ = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -608,8 +606,7 @@ Model.prototype.setStatistic = function (obj, cb) {
                 id:id,
                 product_count:total_count,
                 amount:total_amount,
-                rollback_key:rollback_key,
-                fromServer:true
+                rollback_key:rollback_key
             }
             console.log('MODIFY',params);
             _t.modify(params, function (err) {

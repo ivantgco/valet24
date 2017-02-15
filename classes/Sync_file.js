@@ -122,9 +122,7 @@ Model.prototype.getFromFTP = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -230,9 +228,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -332,9 +328,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                                 var params = {
                                     filename:portion_filename,
                                     sync_file_type_sysname:newFileType,
-                                    shop_id:shop.id,
-                                    fromClient:false,
-                                    fromServer:true
+                                    shop_id:shop.id
                                 }
                                 _t.add(params, function (err) {
                                     if (err){
@@ -350,9 +344,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                                 filename:filename,
                                 sync_file_type_sysname:'SPLITED',
                                 status_sysname:'SPLITED',
-                                shop_id:shop.id,
-                                fromClient:false,
-                                fromServer:true
+                                shop_id:shop.id
                             }
                             _t.add(params, function (err) {
                                 if (err){
@@ -371,9 +363,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                     var params = {
                         filename:filename,
                         sync_file_type_sysname:filetype,
-                        shop_id:shop.id,
-                        fromClient:false,
-                        fromServer:true
+                        shop_id:shop.id
                     }
                     if (a.length>1) params.status_sysname = 'ERR';
                     _t.add(params, function (err) {
@@ -436,9 +426,7 @@ Model.prototype.upload_file = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -609,9 +597,7 @@ Model.prototype.upload_all_files = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             _t.api(o, function (err, res) {
@@ -732,8 +718,6 @@ Model.prototype.fullSync = function (obj, cb) {
                 command:'apply_product_all',
                 object:'Sync_file_item',
                 params:{
-                    fromServer:true,
-                    fromClient:false
                 }
             }
             _t.api(o, function (err) {

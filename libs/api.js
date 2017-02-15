@@ -156,7 +156,8 @@ module.exports = function (obj, cb, user) {
             // Проверить на ошибки
             if (debug) var request_time = moment().diff(t1);
             if (err) {
-                if (err instanceof UserError && !obj.params.fromServer) {
+                //if (err instanceof UserError && !obj.params.fromServer) {
+                if (err instanceof UserError && !!obj.params.fromClient) {
                     return cb(null, getCode(err.message, err.data), request_time);
                 } else {
                     //console.log(err.stack);

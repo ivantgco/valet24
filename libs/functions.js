@@ -82,6 +82,11 @@ var funcs = {
         if (isNaN(+val)) return val;
         return val.toFixed(2);
     },
+    formatPercent: function(val){
+        if (!val) val = 0;
+        if (isNaN(+val)) return val;
+        return val.toFixed(2);
+    },
     nullToString: function(val){
         return (val === null)? '' : val;
     },

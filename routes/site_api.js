@@ -80,9 +80,7 @@ api_functions.get_category = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             if (shop_sysname){
@@ -167,9 +165,7 @@ api_functions.get_product = function (obj, cb) {
                     param_where:{
                         is_current:true
                     },
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             if (shop_sysname){
@@ -214,9 +210,7 @@ api_functions.get_product = function (obj, cb) {
                             val1:shop.id
                         }
                     ],
-                    collapseData:false,
-                    fromClient:false,
-                    fromServer:true
+                    collapseData:false
                 }
             };
             if (obj.columns) o.params.columns = obj.columns.split(',');
@@ -412,9 +406,7 @@ api_functions.add_product_in_cart = function (obj, cb) {
                     product_id:product_id,
                     sid:sid,
                     product_count:product_count,
-                    is_replace:is_replace,
-                    fromClient:false,
-                    fromServer:true
+                    is_replace:is_replace
                 }
             };
             api(o, cb);
@@ -451,8 +443,7 @@ api_functions.remove_product_from_cart = function (obj, cb) {
                 params:{
                     product_id:product_id,
                     sid:sid,
-                    product_count:product_count,
-                    fromServer:true
+                    product_count:product_count
                 }
             };
             api(o, cb);
@@ -506,8 +497,7 @@ api_functions.clear_cart = function (obj, cb) {
                 command:'remove',
                 object:'cart',
                 params:{
-                    id:cart.id,
-                    fromServer:true
+                    id:cart.id
                 }
             };
             api(o, function (err, res) {
@@ -543,8 +533,7 @@ api_functions.create_order = function (obj, cb) {
             gate:obj.gate,
             gatecode:obj.gatecode,
             level:obj.level,
-            flat:obj.flat,
-            fromServer:true
+            flat:obj.flat
         }
     };
     api(o, function (err, res) {
