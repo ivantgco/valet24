@@ -2,6 +2,8 @@
   "isDeveloper":true,
   "port":81,
   "host":"192.168.1.35",
+  "site_host_protocol":"http",
+  "site_host":"valet24.ru",
   "session":{
     "secret":"secret123",
     "key":"mysid",

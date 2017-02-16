@@ -11,6 +11,10 @@ var rollback = require('../modules/rollback');
 var crypto = require('crypto');
 var funcs = require('../libs/functions');
 var Guid = require('guid');
+var fs = require('fs');
+var sendMail = require('../libs/sendMail');
+var config = require('./config');
+var mustache = require('mustache');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -102,6 +106,7 @@ Model.prototype.registration = function (obj, cb) {
 
     var crm_user;
     var confirmKey = Guid.create().value;
+    var tpl;
     async.series({
         getUser: function (cb) {
             var params = {
@@ -156,9 +161,43 @@ Model.prototype.registration = function (obj, cb) {
             });
         },
         sendConfirmEmail: function (cb) {
+            if (!crm_user.needSendConfirm) return cb(null);
+            var tpl_name, link_confirm;
+            if (obj.obj.fromCreateOrder){
+                tpl_name = 'confirm_auto_registration.html';
+                link_confirm = config.get('site_host_protocol') + '://' + config.get('site_host') + '/finish_registration_order/?key='+crm_user.confirm_key;
+            }else{
+                tpl_name = 'confirm_registration.html';
+                link_confirm = config.get('site_host_protocol') + '://' + config.get('site_host') + '/finish_registration/?key='+crm_user.confirm_key;
+            }
+            async.series({
+                prepareTemplate: function (cb) {
+                    fs.readFile('./templates/' + tpl_name, function (err, data) {
+                        if (err) return cb(new MyError('Не удалось считать файл шаблона.', err));
+                        tpl = data.toString();
+                        cb(null);
+                    });
+                },
+                sendNotify: function (cb) {
+                    var m_obj = {
+                        name: 'Здравствуте ' + crm_user.name + '!' || 'Здравствуте!',
+                        link_confirm: link_confirm
+                    };
+                    tpl = mustache.to_html(tpl, m_obj);
+                    sendMail({email: email, subject: 'Завершение регистрации на сайте ' + config.get('site_host'), html: tpl}, function (err, info) {
+                        if (err) {
+                            console.log('Не удалось отправить письмо с подтверждением регистрации.', err, info);
+                        }
+                        cb(null);
+                    });
 
+                }
+            },cb);
         }
-    }, cb);
+    }, function (err) {
+        if (err) return cb(err);
+        cb(null, {crm_user: crm_user});
+    });
 
 };
 
