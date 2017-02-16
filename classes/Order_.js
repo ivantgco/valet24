@@ -10,6 +10,7 @@ var async = require('async');
 var rollback = require('../modules/rollback');
 var XlsxTemplate = require('xlsx-template');
 var fs = require('fs');
+var funcs = require('../libs/functions');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -75,6 +76,9 @@ Model.prototype.add_ = function (obj, cb) {
     var phone = obj.phone;
     if (!phone) return cb(new UserError('Необходимо указать номер телефона для создания заказа',{obj:obj}));
     if (!cart_id && !sid) return cb(new MyError('В метод должен быть передан sid или cart_id'));
+    var email = obj.email;
+    if (!funcs.validation.email(email)) return cb(new UserError('Не корректно указан Email'));
+
 
 
     var cart, products_in_cart, crm_user, order_id;
@@ -142,7 +146,7 @@ Model.prototype.add_ = function (obj, cb) {
                 object:'crm_user',
                 params:{
                     param_where:{
-                        phone:phone
+                        email:email
                     },
                     collapseData:false
                 }
@@ -152,6 +156,54 @@ Model.prototype.add_ = function (obj, cb) {
                 crm_user = res[0];
                 cb(null);
             });
+        },
+        createCRMUserAndGet: function (cb) {
+            if (crm_user){
+                // TODO Дописать обновление покупателя
+                return cb(null);
+            }
+            // registration
+            var o = {
+                command: 'registration',
+                object: 'crm_user',
+                params: obj
+            };
+            o.params.rollback_key = rollback_key;
+            o.params.fromCreateOrder = true;
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось зарегистрировать покупателя', {o: o, err: err}));
+                crm_user = res.crm_user;
+                cb(null);
+            });
+            //var o = {
+            //    command:'add',
+            //    object:'crm_user',
+            //    params:{
+            //        name:obj.name || '',
+            //        address:obj.address || '',
+            //        gate:obj.gate || '',
+            //        gatecode:obj.gatecode || '',
+            //        level:obj.level || '',
+            //        flat:obj.flat || ''
+            //    }
+            //};
+            //o.params.rollback_key = rollback_key;
+            //_t.api(o, function (err, res) {
+            //    if (err) return cb(err);
+            //    var o = {
+            //        command: 'getById',
+            //        object: 'crm_user',
+            //        params: {
+            //            id: res.id,
+            //            collapseData: false
+            //        }
+            //    };
+            //    _t.api(o, function (err, res2) {
+            //        if (err) return cb(new MyError('Не удалось получить покупателя, хотя только что его добавили.', {id: res.id, err: err}));
+            //        crm_user = res2[0];
+            //        cb(null);
+            //    });
+            //});
         },
         createOrder: function (cb) {
             var crm_user_tmp = crm_user || {};
@@ -163,7 +215,7 @@ Model.prototype.add_ = function (obj, cb) {
             //    obj.flat = crm_user.flat;
             //}
             //if(crm_user) obj.name = obj.name || crm_user.name || '';
-
+            obj.crm_user_id = crm_user_tmp.id;
             obj.name = obj.name || crm_user_tmp.name || '';
             obj.address = obj.address || crm_user_tmp.address || '';
             obj.gate = obj.gate || crm_user_tmp.gate || '';
@@ -196,26 +248,7 @@ Model.prototype.add_ = function (obj, cb) {
                 cb(null);
             });
         },
-        createCRMUser: function (cb) {
-            if (crm_user){
-                // TODO Дописать обновление покупателя
-                return cb(null);
-            }
-            var o = {
-                command:'add',
-                object:'crm_user',
-                params:{
-                    name:obj.name || '',
-                    address:obj.address || '',
-                    gate:obj.gate || '',
-                    gatecode:obj.gatecode || '',
-                    level:obj.level || '',
-                    flat:obj.flat || ''
-                }
-            };
-            o.params.rollback_key = rollback_key;
-            _t.api(o, cb);
-        },
+
         addProductsInOrder: function (cb) {
             async.eachSeries(products_in_cart, function (one_product, cb) {
                 var o = {
@@ -232,6 +265,7 @@ Model.prototype.add_ = function (obj, cb) {
         }
     }, function (err, res) {
         if (err) {
+            console.log('CREATE_ORDER ERROR', err.message, JSON.stringify(err.data));
             if (err.message == 'needConfirm') return cb(err);
             rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);

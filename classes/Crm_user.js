@@ -8,6 +8,9 @@ var BasicClass = require('./system/BasicClass');
 var util = require('util');
 var async = require('async');
 var rollback = require('../modules/rollback');
+var crypto = require('crypto');
+var funcs = require('../libs/functions');
+var Guid = require('guid');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -52,7 +55,114 @@ Model.prototype.add = function (obj, cb) {
     }
 };
 
-Model.prototype.getBySid = function (obj, cb) {
+Model.prototype.encryptPassword = function(password){
+    var salt = Math.random() + '';
+    return {
+        hashedPassword:crypto.createHmac('sha1',salt).update(password).digest('hex'),
+        salt:salt
+    };
+};
+Model.prototype.checkPassword = function(salt, password, hashedPassword){
+    if (!salt || !password || !hashedPassword) throw new MyError('Не переданы необходимые параметры');
+    var pass = crypto.createHmac('sha1',salt).update(password).digest('hex');
+    return pass === hashedPassword;
+};
+
+Model.prototype.registration = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы параметры'));
+    var _t = this;
+    var password = obj.password;
+    if (!password){
+        return cb(new UserError('Не указан пароль.'));
+    }
+    var email = obj.email;
+    if (!funcs.validation.email(email)) return cb(new UserError('Некорректно передан email'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    var passObj = _t.encryptPassword(password);
+    var hashedPassword = passObj.hashedPassword;
+    var salt = passObj.salt;
+    delete  obj.password;
+    delete  obj.status;
+    delete  obj.status_id;
+    delete  obj.status_sysname;
+
+    // Поищем пользователя с таким email
+    // Если нашли и пользователь еще не подтвержден, заменяем данные пользователя. Отправляем подтверждение
+    // Если нашли уже подтвержденного ->
+        // Если из заказа -> ничего не делаем
+        // Если с сайта -> Отказ
+    // Если не нашли - создаем высылаем подтверждение
+    // Вернуть crm_user
+
+    var crm_user;
+    var confirmKey = Guid.create().value;
+    async.series({
+        getUser: function (cb) {
+            var params = {
+                param_where: {
+                    email:email
+                },
+                collapseData: false
+            }
+            _t.get(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось покупателя', {params: params, err: err}));
+                if (!res.length) return cb(null);
+                crm_user = res[0];
+                cb(null);
+            });
+        },
+        checkAlreadyReg: function (cb) {
+            if (!crm_user) return cb(null);
+            if (crm_user.status_sysname == 'ACTIVE' && !obj.fromCreateOrder) return cb(new UserError('Такой пользователь уже зарегестрирован в системе.'));
+            cb(null);
+        },
+        check: function (cb) {
+            if (!crm_user) return cb(null);
+            if (crm_user.status_sysname == 'BLOCKED') return cb(new UserError('Пользователь заблокирован, обратитесь в службу поддержки.'));
+            if (crm_user.status_sysname == 'CREATED' && !obj.fromCreateOrder) crm_user.needSendConfirm = true;
+            cb(null);
+        },
+        createCrm: function (cb) {
+            if (crm_user) return cb(null);
+            // Проставим needSendConfirm
+            var params = {
+                email:email,
+                hashedPassword:hashedPassword,
+                salt:salt,
+                phone:obj.phone || '',
+                name:obj.name || '',
+                address:obj.address || '',
+                gate:obj.gate || '',
+                gatecode:obj.gatecode || '',
+                level:obj.level || '',
+                flat:obj.flat || '',
+                confirm_key:confirmKey,
+                rollback_key: rollback_key
+            }
+            _t.add(params, function (err, res0) {
+                if (err) return cb(new MyError('Не удалось создать покупателя ', {params: params, err: err}));
+                _t.getById({id: res0.id}, function (err, res) {
+                    if (err) return cb(new MyError('Не удалось получить покупателя.', {id: id, err: err}));
+                    crm_user = res[0];
+                    crm_user.needSendConfirm = true;
+                    cb(null);
+                });
+            });
+        },
+        sendConfirmEmail: function (cb) {
+
+        }
+    }, cb);
+
+};
+
+Model.prototype.getBySidActive = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
         obj = {};
@@ -67,7 +177,8 @@ Model.prototype.getBySid = function (obj, cb) {
         get: function (cb) {
             var params = {
                 param_where:{
-                    sid:sid
+                    sid:sid,
+                    status_sysname:'ACTIVE'
                 },
                 columns:obj.columns,
                 collapseData:false
@@ -77,7 +188,7 @@ Model.prototype.getBySid = function (obj, cb) {
                 if (!res.length) return cb(new UserError('Пользователь не найден.'));
                 if (res.length > 1) {
                     // clear user (logout)
-                    return cb(new UserError('В разработке (111)'));
+                    return cb(new UserError('Требуется повторная авторизация'));
                 }
                 user = res[0];
                 cb(null);
@@ -98,7 +209,7 @@ Model.prototype.getBySid = function (obj, cb) {
     });
 }
 
-Model.prototype.example = function (obj, cb) {
+Model.prototype.registration = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
         obj = {};

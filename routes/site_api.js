@@ -557,7 +557,7 @@ api_functions.get_user = function (obj, cb) {
     async.series({
         get: function (cb) {
             var o = {
-                command: 'getBySid',
+                command: 'getBySidActive',
                 object: 'crm_user',
                 params: {
                     sid: sid
