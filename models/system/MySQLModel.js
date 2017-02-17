@@ -1086,6 +1086,7 @@ MySQLModel.prototype.get = function (params, cb) {
             var from_table_counter = {};
             var from_table_counter2 = {};
             var sortColumnsReady = [];
+            var colProfile_aliases = {};
             if (columns.indexOf(distinct) == -1) distinct = false;
             var tableName = _t.tableName;
             for (var i in columns) {
@@ -1099,8 +1100,17 @@ MySQLModel.prototype.get = function (params, cb) {
                     continue;
                 }
                 if (!colProfile.concat_fields) {
-                    if (!from_table_counter[colProfile.from_table]) from_table_counter[colProfile.from_table] = 1;
-                    colProfile.from_table_alias = colProfile.from_table + from_table_counter[colProfile.from_table]++;
+
+                    var colProfile_alias = colProfile.from_table + colProfile.join_table + colProfile.keyword;
+                    if (colProfile_aliases[colProfile_alias]){
+                        ready_columns.push(colProfile_aliases[colProfile_alias].column_table + '.' + colProfile.return_column + ' as ' + col);
+                        _t.class_fields_profile[col].from_table_alias = colProfile_aliases[colProfile_alias].from_table_alias;
+                        continue;
+                    }
+
+                    if (!from_table_counter[colProfile.from_table]) from_table_counter[colProfile.from_table] = 0;
+                    from_table_counter[colProfile.from_table]++;
+                    colProfile.from_table_alias = colProfile.from_table + from_table_counter[colProfile.from_table];
                     //var table_name = (colProfile.join_table)? colProfile.join_table + ((from_table_counter[colProfile.from_table] - 1) || '1') : tableName;
                     //var table_name = (colProfile.join_table)? colProfile.join_table + ((colProfile.join_table == tableName)? '' : ((from_table_counter[colProfile.from_table] - 1) || '1')) : tableName;
                     //var table_name = (colProfile.join_table)? colProfile.join_table + ((colProfile.join_table == tableName)? '' : ((from_table_counter[colProfile.from_table] - 1) || '1')) : tableName;
@@ -1109,16 +1119,21 @@ MySQLModel.prototype.get = function (params, cb) {
                         if (colProfile.join_table == tableName){
                             table_name = colProfile.join_table;
                         }else{
-                            if (!from_table_counter2[colProfile.from_table]) from_table_counter2[colProfile.from_table] = 1;
-                            table_name = colProfile.join_table + from_table_counter2[colProfile.from_table]
+                            if (!from_table_counter2[colProfile.from_table]) from_table_counter2[colProfile.from_table] = 0;
                             from_table_counter2[colProfile.from_table]++;
+                            table_name = colProfile.join_table + from_table_counter2[colProfile.from_table]
                         }
                     }else{
                         table_name = tableName;
                     }
                     join_tables.push(' LEFT JOIN ' + colProfile.from_table + ' as ' + colProfile.from_table_alias + ' ON ' + table_name + '.' + colProfile.keyword + ' = ' + colProfile.from_table_alias + '.id');
+
                     ready_columns.push((colProfile.from_table_alias || colProfile.from_table) + '.' + colProfile.return_column + ' as ' + col);
                     _t.class_fields_profile[col].from_table_alias = colProfile.from_table_alias;
+                    colProfile_aliases[colProfile_alias] = {
+                        column_table:(colProfile.from_table_alias || colProfile.from_table),
+                        from_table_alias:colProfile.from_table_alias
+                    };
                 } else if (colProfile.concat_fields) {
                     var concat_array = colProfile.concat_array;
                     var s = '';
