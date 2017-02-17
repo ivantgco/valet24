@@ -24,7 +24,7 @@ var moment = require('moment');
  * @constructor
  */
 var MySQLModel = function (obj) {
-    console.log('creating new MySQLModel ....');
+    console.log('creating new MySQLModel ....', obj.name);
     var _t = this;
     if (typeof obj !== 'object') {
         throw new MyError('Не верно вызвана функция конструктор в MySQLModel.js');
@@ -1084,6 +1084,7 @@ MySQLModel.prototype.get = function (params, cb) {
             var join_tables = [];
             var join_tables_list = [];
             var from_table_counter = {};
+            var from_table_counter2 = {};
             var sortColumnsReady = [];
             if (columns.indexOf(distinct) == -1) distinct = false;
             var tableName = _t.tableName;
@@ -1101,7 +1102,20 @@ MySQLModel.prototype.get = function (params, cb) {
                     if (!from_table_counter[colProfile.from_table]) from_table_counter[colProfile.from_table] = 1;
                     colProfile.from_table_alias = colProfile.from_table + from_table_counter[colProfile.from_table]++;
                     //var table_name = (colProfile.join_table)? colProfile.join_table + ((from_table_counter[colProfile.from_table] - 1) || '1') : tableName;
-                    var table_name = (colProfile.join_table)? colProfile.join_table + ((colProfile.join_table == tableName)? '' : ((from_table_counter[colProfile.from_table] - 1) || '1')) : tableName;
+                    //var table_name = (colProfile.join_table)? colProfile.join_table + ((colProfile.join_table == tableName)? '' : ((from_table_counter[colProfile.from_table] - 1) || '1')) : tableName;
+                    //var table_name = (colProfile.join_table)? colProfile.join_table + ((colProfile.join_table == tableName)? '' : ((from_table_counter[colProfile.from_table] - 1) || '1')) : tableName;
+                    var table_name;
+                    if (colProfile.join_table){
+                        if (colProfile.join_table == tableName){
+                            table_name = colProfile.join_table;
+                        }else{
+                            if (!from_table_counter2[colProfile.from_table]) from_table_counter2[colProfile.from_table] = 1;
+                            table_name = colProfile.join_table + from_table_counter2[colProfile.from_table]
+                            from_table_counter2[colProfile.from_table]++;
+                        }
+                    }else{
+                        table_name = tableName;
+                    }
                     join_tables.push(' LEFT JOIN ' + colProfile.from_table + ' as ' + colProfile.from_table_alias + ' ON ' + table_name + '.' + colProfile.keyword + ' = ' + colProfile.from_table_alias + '.id');
                     ready_columns.push((colProfile.from_table_alias || colProfile.from_table) + '.' + colProfile.return_column + ' as ' + col);
                     _t.class_fields_profile[col].from_table_alias = colProfile.from_table_alias;
