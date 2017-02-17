@@ -608,7 +608,7 @@ Model.prototype.restore_account = function (obj, cb) {
         },
         setRestorKey: function (cb) {
             var params = {
-                id: id,
+                id: crm_user.id,
                 restore_key: restoreKey,
                 rollback_key: rollback_key
             }
@@ -660,5 +660,68 @@ Model.prototype.restore_account = function (obj, cb) {
     });
 }
 
+Model.prototype.confirm_restore_account = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы параметры'));
+    var _t = this;
+    var password = obj.password;
+    if (!password) return cb(new UserError('Необходимо указать пароль'));
+
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    var restore_key = obj.restore_key;
+    if (!restore_key) return cb(new MyError('Не передан ключ для восстановления.'));
+
+    var passObj = _t.encryptPassword(password);
+    var hashedPassword = passObj.hashedPassword;
+    var salt = passObj.salt;
+
+
+
+    var crm_user;
+    var tpl;
+    async.series({
+        getUser: function (cb) {
+            var params = {
+                param_where: {
+                    restore_key:restore_key
+                },
+                collapseData: false
+            }
+            _t.get(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить покупателя', {params: params, err: err}));
+                if (!res.length) return cb(new UserError('Ссылка не действительна.'));
+                crm_user = res[0];
+                cb(null);
+            });
+        },
+        check: function (cb) {
+            // Если уже активен, то "Этот пользователь уже был подтвержден"
+            if (crm_user.status_sysname != 'ACTIVE') return cb(new UserError('Восстановить пароль можно только для зарегестрированного пользователя.'));
+            cb(null);
+        },
+        modifyPassword: function (cb) {
+            var params = {
+                id: crm_user.id,
+                restore_key: null,
+                hashedPassword:hashedPassword,
+                salt:salt,
+                rollback_key: rollback_key
+            }
+            _t.modify(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось изменить покупателя', {params: params, err: err}));
+                cb(null);
+            });
+        }
+    }, function (err) {
+        if (err) return cb(err);
+        cb(null, new UserOk('Ок'));
+    });
+
+};
 
 module.exports = Model;

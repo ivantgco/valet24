@@ -686,8 +686,47 @@ api_functions.modify_account = function (obj, cb) {
 }
 
 
+api_functions.restore_account = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
 
+    console.log('IN MODIFY');
 
+    var o = {
+        command: 'restore_account',
+        object: 'crm_user',
+        params: obj
+    };
+    api(o, function (err, res) {
+        cb(err, res); // Если ставить "cb" то получается лажа
+    });
+}
+
+api_functions.confirm_restore_account = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+
+    console.log('IN confirm_restore_account');
+
+    var o = {
+        command: 'confirm_restore_account',
+        object: 'crm_user',
+        params: obj
+    };
+    api(o, function (err, res) {
+        cb(err, res); // Если ставить "cb" то получается лажа
+    });
+}
 
 
 
