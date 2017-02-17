@@ -767,6 +767,7 @@
       "salt": {"type": "varchar","length": "255", "server_editable":false, "visible": false},
       "password": {"type": "varchar","length": "255", "concat_fields": "*", "name": "Пароль",  "is_virtual": true},
       "confirm_key": { "type": "varchar", "length": "255"},
+      "restore_key": { "type": "varchar", "length": "255"},
       "address": { "type": "text", "length": "255", "name": "Адрес"},
       "gate": { "type": "varchar", "length": "255", "name": "Подъезд"},
       "gatecode": { "type": "varchar", "length": "255", "name": "Код домофона"},

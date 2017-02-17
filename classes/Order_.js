@@ -77,8 +77,7 @@ Model.prototype.add_ = function (obj, cb) {
     if (!phone) return cb(new UserError('Необходимо указать номер телефона для создания заказа',{obj:obj}));
     if (!cart_id && !sid) return cb(new MyError('В метод должен быть передан sid или cart_id'));
     var email = obj.email;
-    if (!funcs.validation.email(email)) return cb(new UserError('Не корректно указан Email'));
-
+    if (!funcs.validation.email(email)) return cb(new UserError('Не корректно указан Email: ' + email));
 
 
     var cart, products_in_cart, crm_user, order_id;
@@ -158,10 +157,8 @@ Model.prototype.add_ = function (obj, cb) {
             });
         },
         createCRMUserAndGet: function (cb) {
-            if (crm_user){
-                // TODO Дописать обновление покупателя
-                return cb(null);
-            }
+            console.log('createCRMUserAndGet');
+            if (crm_user)return cb(null);
             // registration
             var o = {
                 command: 'registration',
@@ -175,35 +172,35 @@ Model.prototype.add_ = function (obj, cb) {
                 crm_user = res.crm_user;
                 cb(null);
             });
-            //var o = {
-            //    command:'add',
-            //    object:'crm_user',
-            //    params:{
-            //        name:obj.name || '',
-            //        address:obj.address || '',
-            //        gate:obj.gate || '',
-            //        gatecode:obj.gatecode || '',
-            //        level:obj.level || '',
-            //        flat:obj.flat || ''
-            //    }
-            //};
-            //o.params.rollback_key = rollback_key;
-            //_t.api(o, function (err, res) {
-            //    if (err) return cb(err);
-            //    var o = {
-            //        command: 'getById',
-            //        object: 'crm_user',
-            //        params: {
-            //            id: res.id,
-            //            collapseData: false
-            //        }
-            //    };
-            //    _t.api(o, function (err, res2) {
-            //        if (err) return cb(new MyError('Не удалось получить покупателя, хотя только что его добавили.', {id: res.id, err: err}));
-            //        crm_user = res2[0];
-            //        cb(null);
-            //    });
-            //});
+        },
+        updateUserFields: function (cb) {
+            var updateble_fields = ['phone','name','address','gate','gatecode','level','flat'];
+            var toModify;
+            for (var i in  updateble_fields) {
+                var field = updateble_fields[i]
+                if (typeof obj[field] != 'undefined' && crm_user[field] != obj[field] && crm_user[field]==''){
+                    if (!toModify) toModify = {};
+                    toModify[field] = obj[field];
+                }
+            }
+            if (!toModify) return cb(null);
+            var o = {
+                command: 'modify',
+                object: 'crm_user',
+                params: {
+                    id: crm_user.id,
+                    rollback_key: rollback_key
+                }
+            };
+            for (var i in toModify) {
+                o.params[i] = toModify[i];
+            }
+            _t.api(o, function (err, res) {
+                if (err) {
+                    console.log('Не удалось обновить поля покупателя', o, err);
+                }
+                cb(null);
+            });
         },
         createOrder: function (cb) {
             var crm_user_tmp = crm_user || {};
@@ -272,6 +269,7 @@ Model.prototype.add_ = function (obj, cb) {
             });
         }else{
             //cb(null, new UserOk('Заказ успешно создан.',{order_id:order_id}));
+            console.log('CREATE ORDER SUCCESS');
             cb(null, res.createOrder);
         }
     });

@@ -155,9 +155,7 @@ Model.prototype.remove_ = function (obj, cb) {
                     params:{
                         id:product.id,
                         sold:obj.sold, // Если продан, то не возвращаем в продажу товары
-                        rollback_key:rollback_key,
-                        fromClient:false,
-                        froServer:true
+                        rollback_key:rollback_key
                     }
                 };
                 _t.api(o, cb);
@@ -165,8 +163,6 @@ Model.prototype.remove_ = function (obj, cb) {
         },
         removeCart: function (cb) {
             obj.rollback_key = rollback_key;
-            obj.fromClient = false;
-            obj.froServer = true;
             _t.removePrototype(obj,cb);
         }
     }, function (err) {

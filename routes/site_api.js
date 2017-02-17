@@ -31,8 +31,10 @@ exports.site_api = function(req, response, next){
     o.params.sid = obj.sid;
     api_functions[command](o.params || {}, function (err, res) {
         if (err) {
-            if (err instanceof UserError) return response.status(200).json(getCode(err.message, err.data));
-            return response.status(200).json(getCode('sysError', err));
+            if (err instanceof UserError || err instanceof UserOk) return response.status(200).json(getCode(err.message, err.data));
+            console.log('Системная ошибка при запросе с сайта.',err);
+            //return response.status(200).json(getCode('sysError', err));
+            return response.status(200).json(getCode('sysErrorSite',{err:err}));
         }
         if (typeof res.code!=='undefined') return response.status(200).json(res);
         //var s_json = JSON.stringify
@@ -525,18 +527,10 @@ api_functions.create_order = function (obj, cb) {
     var o = {
         command:'add',
         object:'order_',
-        params:{
-            sid:sid,
-            phone:obj.phone,
-            name:obj.name,
-            address:obj.address,
-            gate:obj.gate,
-            gatecode:obj.gatecode,
-            level:obj.level,
-            flat:obj.flat
-        }
+        params:obj
     };
     api(o, function (err, res) {
+        console.log('CREATE_ORDER cb', err, res);
         cb(err, res); // Если ставить "cb" то получается лажа
     });
 };
@@ -551,6 +545,7 @@ api_functions.get_user = function (obj, cb) {
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
+
 
     // load by sid
     var user;
@@ -576,12 +571,119 @@ api_functions.get_user = function (obj, cb) {
     });
 }
 
+api_functions.registration = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    console.log('IN REGISTRATION');
+    // load by sid
+    var o = {
+        command: 'registration',
+        object: 'crm_user',
+        params: obj
+    };
+    api(o, function (err, res) {
+        if (err){
+            if (err instanceof UserError){
+                return cb(err);
+            }
+            console.log('registration ==>',err);
+            return cb(new UserError('alertDeveloper',{msg:'Во время регистрации произошла ошибка.'}));
+        }
+        cb(null, new UserOk('Вам на почту отправлено письмо. Для завершения регистрации перейдите по ссылке из письма.'));
+    });
+}
+
+api_functions.confirm_registration = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+
+    console.log('IN CONFIRM_REGISTRATION');
 
 
+    var o = {
+        command: 'confirm_registration',
+        object: 'crm_user',
+        params: obj
+    };
+    api(o, function (err, res) {
+        cb(err, res); // Если ставить "cb" то получается лажа
+    });
+}
+
+api_functions.login = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    var o = {
+        command: 'login',
+        object: 'crm_user',
+        params: obj
+    };
+    api(o, function (err, res) {
+        cb(err, res); // Если ставить "cb" то получается лажа
+    });
+}
+
+api_functions.logout = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    console.log('IN LOGOUT');
+
+    var o = {
+        command: 'logout',
+        object: 'crm_user',
+        params: obj
+    };
+    api(o, function (err, res) {
+        cb(err, res); // Если ставить "cb" то получается лажа
+    });
+}
 
 
+api_functions.modify_account = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
 
+    console.log('IN MODIFY');
 
+    var o = {
+        command: 'modify_from_site',
+        object: 'crm_user',
+        params: obj
+    };
+    api(o, function (err, res) {
+        cb(err, res); // Если ставить "cb" то получается лажа
+    });
+}
 
 
 

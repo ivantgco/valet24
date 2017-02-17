@@ -210,9 +210,7 @@ Model.prototype.add_ = function (obj, cb) {
                     id:product.id,
                     quantity:balance,
                     in_basket_count:+product.in_basket_count + +product_count_currect,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 }
             };
             _t.api(o, function (err, res) {
@@ -228,9 +226,7 @@ Model.prototype.add_ = function (obj, cb) {
                 params = {
                     id:product_in_cart.id,
                     product_count:this_product_count,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 };
                 _t.modify(params, function (err, res) {
                     if (err) return cb(new MyError('Не удалось добавить продукт',{err:err}));
@@ -283,9 +279,7 @@ Model.prototype.add_ = function (obj, cb) {
                     id:cart.id,
                     amount:amount,
                     product_count:product_count_all,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 }
             };
             _t.api(o, function (err, res) {
@@ -391,9 +385,7 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                     id:product.id,
                     quantity:balance,
                     in_basket_count:+product.in_basket_count - +product_count,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 }
             };
             _t.api(o, function (err, res) {
@@ -407,18 +399,14 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
             if (cart_product.product_count<=0){ // удалим элемент
                 params = {
                     id:cart_product.id,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 };
                 _t.removePrototype(params, cb);
             }else{ // изменим количество
                 params = {
                     id:cart_product.id,
                     product_count:cart_product.product_count,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 };
                 _t.modify(params, cb);
             }
@@ -454,9 +442,7 @@ Model.prototype.decrise_product_in_cart = function (obj, cb) {
                     id:cart.id,
                     amount:amount,
                     product_count:product_count_all,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 }
             };
             _t.api(o, function (err, res) {
@@ -531,9 +517,7 @@ Model.prototype.remove_ = function (obj, cb) {
                     id:product.id,
                     quantity:+product.quantity + +product_in_cart.product_count,
                     in_basket_count:+product.in_basket_count - +product_in_cart.product_count,
-                    rollback_key:rollback_key,
-                    fromClient:false,
-                    froServer:true
+                    rollback_key:rollback_key
                 }
             };
             _t.api(o, function (err, res) {
