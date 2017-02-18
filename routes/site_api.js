@@ -283,6 +283,7 @@ api_functions.get_product = function (obj, cb) {
                     var img_name = (products[i].image.match(/\.[a-zA-Z]{2,4}$/))? products[i].image : products[i].image + '.jpg';
                     products[i].image = '/images_new/' + img_name;
                     products[i].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
+                    products[i].is_favorite = false; //
                 }
                 cb(null, err);
             });
