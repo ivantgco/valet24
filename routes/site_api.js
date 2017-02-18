@@ -842,7 +842,7 @@ api_functions.add_product_to_favorite = function (obj, cb) {
 
 }
 
-api_functions.remove_product_to_favorite = function (obj, cb) {
+api_functions.remove_product_from_favorite = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
         obj = {};
