@@ -928,7 +928,7 @@ api_functions.get_favorite = function (obj, cb) {
                         crm_user_id:crm_user.id,
                         is_active:true
                     },
-                    columns:['id','crm_user_id','product_id','product_name','product_image','product_price_site','product_is_active','is_active']
+                    columns:['id','crm_user_id','product_id','product_name','product_image','product_price_site','product_is_active','is_active','product_qnt_type_sys','product_qnt_type','product_in_basket_count']
                 }
             };
             api(o, function (err, res) {
