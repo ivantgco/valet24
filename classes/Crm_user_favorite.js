@@ -168,6 +168,7 @@ Model.prototype.add_product_to_favorite = function (obj, cb) {
         },
         modify: function (cb) {
             if (!favorite) return cb(null);
+            if (favorite.is_active) return cb(null);
             var params = {
                 id: favorite.id,
                 is_active:true,
@@ -229,6 +230,7 @@ Model.prototype.remove_product_to_favorite = function (obj, cb) {
         },
         modify: function (cb) {
             if (!favorite) return cb(null);
+            if (!favorite.is_active) return cb(null);
             var params = {
                 id: favorite.id,
                 is_active:false,
