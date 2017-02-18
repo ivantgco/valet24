@@ -24,7 +24,7 @@ var moment = require('moment');
  * @constructor
  */
 var MySQLModel = function (obj) {
-    console.log('creating new MySQLModel ....', obj.name);
+    console.log('creating new MySQLModel ....', obj.name, obj.client_object);
     var _t = this;
     if (typeof obj !== 'object') {
         throw new MyError('Не верно вызвана функция конструктор в MySQLModel.js');

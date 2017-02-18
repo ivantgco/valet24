@@ -318,7 +318,7 @@ Model.prototype.getBySidActive = function (obj, cb) {
             };
             _t.get(params, function (err, res) {
                 if (err) return cb(new MyError('Не удалось получить пользователя.',{err:err}));
-                if (!res.length) return cb(new UserError('Пользователь не найден.'));
+                if (!res.length) return cb(new UserError('Вы не авторизированы.'));
                 if (res.length > 1) {
                     // clear user (logout)
                     return cb(new UserError('Требуется повторная авторизация'));
@@ -723,5 +723,38 @@ Model.prototype.confirm_restore_account = function (obj, cb) {
     });
 
 };
+
+
+
+
+Model.prototype.example = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid',{obj:obj}));
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    async.series({
+
+    },function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key: rollback_key, user: _t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        } else {
+            //if (!obj.doNotSaveRollback){
+            //    rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'METHOD_NAME', params:obj});
+            //}
+            cb(null, new UserOk('Ок'));
+        }
+    });
+}
+
 
 module.exports = Model;

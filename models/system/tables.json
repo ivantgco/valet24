@@ -707,6 +707,7 @@
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "order_id" : {"type": "bigint", "length": "20", "require": true},
       "shop_id" : {"type": "bigint", "length": "20", "visible": false},
+      "crm_user_id" : {"type": "number", "from_table": "order_", "keyword": "order_id", "return_column": "crm_user_id", "is_virtual": true},
       "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "is_virtual": true, "name": "Магазин"},
       "name" : {"type": "varchar", "length": "255", "name": "Название"},
       "product_id" : {"type": "bigint", "length": "20"},
@@ -926,30 +927,21 @@
       "grapp_list": {"type": "varchar", "length": "255", "name": "Список грапп"}
     }
   },
-  "user_favorite": {
+  "crm_user_favorite": {
     "profile": {
-      "name": "user_favorite",
-      "name_ru": "Избранное пользователя",
+      "name": "crm_user_favorite",
+      "name_ru": "Избранное Покупателя",
       "ending": ""
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "crm_user_id" : {"type": "bigint", "length": "20", "visible": false},
-      "shop_id" : {"type": "bigint", "length": "20", "visible": false},
-      "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "is_virtual": true, "name": "Магазин"},
-      "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "crm_user_id" : {"type": "bigint", "length": "20"},
       "product_id" : {"type": "bigint", "length": "20"},
-      "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
-      "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "is_virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
-      "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "is_virtual": true, "name": "Тип количества"},
-      "image": {"type": "varchar", "length": "255", "name": "Изображение"},
-      "images_list": {"type": "text", "name": "Изображения"},
-      "description" : {"type": "varchar", "length": "255", "name": "Описание"},
-      "price" : {"type": "DECIMAL(15, 2)", "name": "Цена"},
-      "category_id" : {"type": "bigint", "length": "20", "visible": false},
-      "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "is_virtual": true, "name": "Подкатегория"},
-      "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "is_virtual": true},
-      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "is_virtual": true, "name": "Категория"}
+      "is_active" : {"type": "tinyint", "length": "1", "name": "Активна", "default":1},
+      "product_name" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "name", "is_virtual": true},
+      "product_image" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "image", "is_virtual": true},
+      "product_price_site" : {"type": "DECIMAL(15, 2)", "from_table": "product", "keyword": "product_id", "return_column": "price_site", "is_virtual": true},
+      "product_is_active" : {"type": "tinyint", "length": "1", "from_table": "product", "keyword": "product_id", "return_column": "is_active", "is_virtual": true}
     }
   }
 }

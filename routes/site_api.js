@@ -6,6 +6,7 @@ var UserOk = require('../error').UserOk;
 var getCode = require('../libs/getCode');
 var funcs = require('../libs/functions');
 var async = require('async');
+var moment = require('moment');
 
 
 exports.site_api = function(req, response, next){
@@ -32,7 +33,7 @@ exports.site_api = function(req, response, next){
     api_functions[command](o.params || {}, function (err, res) {
         if (err) {
             if (err instanceof UserError || err instanceof UserOk) return response.status(200).json(getCode(err.message, err.data));
-            console.log('Системная ошибка при запросе с сайта.',err);
+            console.log('Системная ошибка при запросе с сайта.', err);
             //return response.status(200).json(getCode('sysError', err));
             return response.status(200).json(getCode('sysErrorSite',{err:err}));
         }
@@ -158,6 +159,7 @@ api_functions.get_product = function (obj, cb) {
 
     var products = [];
     var shop;
+    var crm_user;
     async.series({
         getShop: function (cb) {
             var o = {
@@ -187,6 +189,7 @@ api_functions.get_product = function (obj, cb) {
             })
         },
         getProducts: function (cb) {
+            var t1 = moment();
             var w, ids;
             var o = {
                 command:'get',
@@ -285,6 +288,7 @@ api_functions.get_product = function (obj, cb) {
             });
         },
         getProductFromCart: function (cb) {
+
             var o = {
                 command:'get',
                 object:'product_in_cart',
@@ -303,12 +307,62 @@ api_functions.get_product = function (obj, cb) {
 
                         if (products[j].id == product_id){
                             products[j].in_basket_count = +res[i].product_count;
+                            break;
                         }
                     }
                 }
-                products = funcs.collapseData(products);
+                //products = funcs.collapseData(products);
+
                 cb(null);
             });
+        },
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        getFavorite: function (cb) {
+            if (!crm_user) return cb(null);
+            var o = {
+                command:'get',
+                object:'crm_user_favorite',
+                params:{
+                    param_where:{
+                        crm_user_id:crm_user.id,
+                        is_active:true
+                    },
+                    collapseData:false
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товары в избранном', {err:err}));
+                for (var i in res) {
+                    var product_id = res[i].product_id;
+                    for (var j in products) {
+
+                        if (products[j].id == product_id){
+                            products[j].in_favorite = true;
+                            break;
+                        }
+                    }
+                }
+                //products = funcs.collapseData(products);
+                cb(null);
+            });
+        },
+        collapseData: function (cb) {
+            products = funcs.collapseData(products);
+            cb(null);
         }
     }, function (err) {
         if (err) return cb(err);
@@ -555,8 +609,8 @@ api_functions.get_user = function (obj, cb) {
                 command: 'getBySidActive',
                 object: 'crm_user',
                 params: {
-                    sid: sid
-                    //columns:['name','phone']
+                    sid: sid,
+                    columns:['id','name','phone','email','address','gate','gatecode','level','flat','status_sysname'] // status_sysname - обязательно для условия
                 }
             };
             api(o, function (err, res) {
@@ -728,8 +782,270 @@ api_functions.confirm_restore_account = function (obj, cb) {
     });
 }
 
+//var o = {
+//    command: 'add_product_to_favorite',
+//    params: {
+//        sid: 'ba52542fc24e616ee776ac0e3e069cf5',
+//        product_id:59780
+//    }
+//};
+//socketQuery_site(o, function (res) {
+//    console.log(res);
+//})
+api_functions.add_product_to_favorite = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var product_id = obj.product_id;
+    if (isNaN(+product_id)) return cb(new MyError('Не передан product_id'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
 
+    var crm_user;
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        addToFavorite: function (cb) {
+            var o = {
+                command: 'add_product_to_favorite',
+                object: 'crm_user_favorite',
+                client_object:'crm_user_favorite_FAST',
+                params: {
+                    crm_user_id:crm_user.id,
+                    product_id:product_id
+                }
+            };
+            api(o, function (err, res) {
+                cb(err, res);
+            });
+        }
+    }, function (err, res) {
+        return cb(err, res.addToFavorite);
+    });
 
+}
+
+api_functions.remove_product_to_favorite = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var product_id = obj.product_id;
+    if (isNaN(+product_id)) return cb(new MyError('Не передан product_id'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    var crm_user;
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        removeToFavorite: function (cb) {
+            var o = {
+                command: 'remove_product_to_favorite',
+                object: 'crm_user_favorite',
+                client_object:'crm_user_favorite_FAST',
+                params: {
+                    crm_user_id:crm_user.id,
+                    product_id:product_id
+                }
+            };
+            api(o, function (err, res) {
+                cb(err, res);
+            });
+        }
+    }, function (err, res) {
+        return cb(err, res.removeToFavorite);
+    });
+
+}
+
+api_functions.get_favorite = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    var crm_user;
+    var favorits;
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        get: function (cb) {
+            var o = {
+                command: 'get',
+                object: 'crm_user_favorite',
+                params: {
+                    param_where:{
+                        crm_user_id:crm_user.id,
+                        is_active:true
+                    },
+                    columns:['id','crm_user_id','product_id','product_name','product_image','product_price_site','product_is_active','is_active']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                favorits = res;
+                cb(err, res);
+            });
+        }
+    }, function (err, res) {
+        return cb(err, favorits);
+    });
+
+}
+
+api_functions.get_orders = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    var crm_user;
+    var orders;
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        get: function (cb) {
+            var o = {
+                command: 'get',
+                object: 'order_',
+                params: {
+                    param_where:{
+                        crm_user_id:crm_user.id
+                    },
+                    columns:['id','order_status','amount','product_count','comment']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                orders = res;
+                cb(err, res);
+            });
+        }
+    }, function (err, res) {
+        return cb(err, orders);
+    });
+
+}
+
+api_functions.get_order_products = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+     var order_id = obj.order_id;
+    if (isNaN(+order_id)) return cb(new MyError('Не передан order_id'));
+
+    var crm_user;
+    var products;
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        get: function (cb) {
+            var o = {
+                command: 'get',
+                object: 'product_in_order',
+                params: {
+                    param_where:{
+                        crm_user_id:crm_user.id,
+                        order_id:order_id
+                    },
+                    columns:['id','order_id','crm_user_id','product_id','name','image','price','product_count','qnt_type']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                products = res;
+                cb(err, res);
+            });
+        }
+    }, function (err, res) {
+        return cb(err, products);
+    });
+
+}
 
 
 
