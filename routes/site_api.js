@@ -7,6 +7,7 @@ var getCode = require('../libs/getCode');
 var funcs = require('../libs/functions');
 var async = require('async');
 var moment = require('moment');
+moment.locale('ru');
 
 
 exports.site_api = function(req, response, next){
@@ -327,7 +328,7 @@ api_functions.get_product = function (obj, cb) {
                 }
             };
             api(o, function (err, res) {
-                if (err) return cb(err);
+                if (err) return cb(null);
                 crm_user = res.user;
                 cb(null);
             });
@@ -362,6 +363,7 @@ api_functions.get_product = function (obj, cb) {
             });
         },
         collapseData: function (cb) {
+            if(obj.doNotCollapseData) return cb(null);
             products = funcs.collapseData(products);
             cb(null);
         }
@@ -928,14 +930,25 @@ api_functions.get_favorite = function (obj, cb) {
                         crm_user_id:crm_user.id,
                         is_active:true
                     },
-                    columns:['id','crm_user_id','product_id','product_name','product_image','product_price_site','product_is_active','is_active','product_qnt_type_sys','product_qnt_type','product_in_basket_count']
+                    columns:['id','crm_user_id','product_id','product_name','product_image','product_price_site','product_is_active','is_active','product_qnt_type_sys','product_qnt_type','product_in_basket_count'],
+                    collapseData:false
                 }
             };
             api(o, function (err, res) {
                 if (err) return cb(err);
-                favorits = res;
+                //favorits = res;
+                favorits = funcs.cloneObj(res);
+                for (var i in favorits) {
+                    if (!favorits[i].product_image) favorits[i].product_image = 'nopicture.jpg';
+                    var img_name = (favorits[i].product_image.match(/\.[a-zA-Z]{2,4}$/))? favorits[i].product_image : favorits[i].product_image + '.jpg';
+                    favorits[i].product_image = '/images_new/' + img_name;
+                }
                 cb(err, res);
             });
+        },
+        collapseData: function (cb) {
+            favorits = funcs.collapseData(favorits);
+            cb(null);
         }
     }, function (err, res) {
         return cb(err, favorits);
@@ -979,14 +992,26 @@ api_functions.get_orders = function (obj, cb) {
                     param_where:{
                         crm_user_id:crm_user.id
                     },
-                    columns:['id','order_status','amount','product_count','comment']
+                    limit:obj.limit,
+                    columns:['id','order_status','amount','product_count','comment','created'],
+                    collapseData:false,
                 }
             };
+
             api(o, function (err, res) {
                 if (err) return cb(err);
+                for (var i in res) {
+                    var created = res[i].created;
+                    if (!funcs.validation.isDate(created, 'DD.MM.YYYY HH:mm:ss')) continue;
+                    res[i].created = moment(created,'DD.MM.YYYY HH:mm:ss').format('DD MMMM, HH:mm');
+                }
                 orders = res;
                 cb(err, res);
             });
+        },
+        collapseData: function (cb) {
+            orders = funcs.collapseData(orders);
+            cb(null);
         }
     }, function (err, res) {
         return cb(err, orders);
@@ -1007,7 +1032,8 @@ api_functions.get_order_products = function (obj, cb) {
     if (isNaN(+order_id)) return cb(new MyError('Не передан order_id'));
 
     var crm_user;
-    var products;
+    var order_products;
+    var ids = [];
     async.series({
         getActiveUser: function (cb) {
             var o = {
@@ -1033,17 +1059,57 @@ api_functions.get_order_products = function (obj, cb) {
                         crm_user_id:crm_user.id,
                         order_id:order_id
                     },
-                    columns:['id','order_id','crm_user_id','product_id','name','image','price','product_count','qnt_type']
+                    columns:['id','order_id','crm_user_id','product_id','name','price','product_count','qnt_type','qnt_type_sys','image'],
+                    collapseData:false
                 }
             };
             api(o, function (err, res) {
                 if (err) return cb(err);
-                products = res;
+                //order_products = res;
+                order_products = funcs.cloneObj(res);
+
+                for (var i in order_products) {
+                    if (!order_products[i].image) order_products[i].image = 'nopicture.jpg';
+                    var img_name = (order_products[i].image.match(/\.[a-zA-Z]{2,4}$/))? order_products[i].image : order_products[i].image + '.jpg';
+                    order_products[i].image = '/images_new/' + img_name;
+                    order_products[i].is_active = false;
+                    ids.push(order_products[i].product_id);
+                }
                 cb(err, res);
             });
+        },
+        getProducts: function (cb) {
+            var params = {
+                sid:sid,
+                id:ids.join(','),
+                doNotCollapseData:true
+            }
+            api_functions.get_product(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить продукты',{params:params,err:err}));
+                for (var i in res) {
+                    var product = res[i];
+                    for (var j in order_products) {
+                        var order_product = order_products[j];
+                        if (order_product.product_id = product.id){
+                            for (var k in product) {
+                                if (typeof order_product[k] == 'undefined') order_product[k] = product[k];
+                            }
+                            order_product.is_active = product.is_active;
+                            break;
+                        }
+                    }
+                }
+                cb(null);
+
+            })
+        },
+        collapseData: function (cb) {
+            order_products = funcs.collapseData(order_products);
+            cb(null);
         }
     }, function (err, res) {
-        return cb(err, products);
+        console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
+        return cb(err, order_products);
     });
 
 }
