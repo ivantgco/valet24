@@ -942,8 +942,9 @@
       "product_image" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "image", "is_virtual": true},
       "product_price_site" : {"type": "DECIMAL(15, 2)", "from_table": "product", "keyword": "product_id", "return_column": "price_site", "is_virtual": true},
       "product_is_active" : {"type": "tinyint", "length": "1", "from_table": "product", "keyword": "product_id", "return_column": "is_active", "is_virtual": true},
-      "product_qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type_sys", "is_virtual": true},
-      "product_qnt_type" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type", "is_virtual": true},
+      "product_qnt_type_id" : {"type": "bigint", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type_id", "is_virtual": true},
+      "product_qnt_type_sys" : {"type": "varchar", "length": "255", "join_table": "product", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "is_virtual": true},
+      "product_qnt_type" : {"type": "varchar", "length": "255", "join_table": "product", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "is_virtual": true},
       "product_in_basket_count" : {"type": "DECIMAL(17, 3)", "from_table": "product", "keyword": "product_id", "return_column": "in_basket_count", "is_virtual": true}
     }
   }
