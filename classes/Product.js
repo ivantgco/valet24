@@ -1080,7 +1080,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                             },
                             skipStatus: function (cb) {
                                 if (!sync_file_item_ids.length) return cb(null);
-                                async.each(sync_file_item_ids, function (id, cb) {
+                                async.eachSeries(sync_file_item_ids, function (id, cb) {
                                     var o = {
                                         command:'modify',
                                         object:'sync_file_item',

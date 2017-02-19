@@ -202,7 +202,7 @@ api_functions.get_product = function (obj, cb) {
                             val1:true
                         },
                         {
-                            key:'quantity',
+                                key:'quantity',
                             type:'>',
                             val1:0
                         },
@@ -284,7 +284,7 @@ api_functions.get_product = function (obj, cb) {
                     var img_name = (products[i].image.match(/\.[a-zA-Z]{2,4}$/))? products[i].image : products[i].image + '.jpg';
                     products[i].image = '/images_new/' + img_name;
                     products[i].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
-                    products[i].is_favorite = false; //
+                    products[i].in_favorite = false; //
                 }
                 cb(null, err);
             });
@@ -905,6 +905,7 @@ api_functions.get_favorite = function (obj, cb) {
 
     var crm_user;
     var favorits;
+    var ids = [];
     async.series({
         getActiveUser: function (cb) {
             var o = {
@@ -930,7 +931,7 @@ api_functions.get_favorite = function (obj, cb) {
                         crm_user_id:crm_user.id,
                         is_active:true
                     },
-                    columns:['id','crm_user_id','product_id','product_name','product_image','product_price_site','product_is_active','is_active','product_qnt_type_sys','product_qnt_type','product_in_basket_count'],
+                    columns:['id','crm_user_id','product_id','product_name','product_image','product_price_site','product_is_active','is_active','product_qnt_type_sys','product_qnt_type'],
                     collapseData:false
                 }
             };
@@ -942,11 +943,66 @@ api_functions.get_favorite = function (obj, cb) {
                     if (!favorits[i].product_image) favorits[i].product_image = 'nopicture.jpg';
                     var img_name = (favorits[i].product_image.match(/\.[a-zA-Z]{2,4}$/))? favorits[i].product_image : favorits[i].product_image + '.jpg';
                     favorits[i].product_image = '/images_new/' + img_name;
+                    favorits[i].is_active = false;
+                    favorits[i].in_basket_count = 0;
+                    ids.push(favorits[i].product_id);
                 }
                 cb(err, res);
             });
         },
+        getProducts: function (cb) {
+            var params = {
+                sid:sid,
+                id:ids.join(','),
+                doNotCollapseData:true
+            }
+            api_functions.get_product(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить продукты',{params:params,err:err}));
+                for (var i in res) {
+                    var product = res[i];
+                    for (var j in favorits) {
+                        var favorite = favorits[j];
+                        if (favorite.product_id == product.id){
+                            //for (var k in product) {
+                            //    if (typeof favorite[k] == 'undefined') favorite[k] = product[k];
+                            //}
+                            favorite.is_active = product.is_active;
+                            break;
+                        }
+                    }
+                }
+                cb(null);
+
+            })
+        },
+        getCart: function (cb) {
+            var params = {
+                sid:sid,
+                id:ids.join(','),
+                doNotCollapseData:true
+            }
+            api_functions.get_cart(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить продукты',{params:params,err:err}));
+                for (var i in res.products) {
+                    var product = res.products[i];
+                    for (var j in favorits) {
+                        var favorite = favorits[j];
+                        if (favorite.product_id == product.product_id){
+                            favorite.in_basket_count = product.product_count;
+                            //for (var k in product) {
+                            //    if (typeof favorite[k] == 'undefined') favorite[k] = product[k];
+                            //}
+                            break;
+                        }
+                    }
+                }
+                cb(null);
+
+            })
+        },
+
         collapseData: function (cb) {
+            //console.log('favorits ====================>\n',favorits);
             favorits = funcs.collapseData(favorits);
             cb(null);
         }
@@ -1001,15 +1057,17 @@ api_functions.get_orders = function (obj, cb) {
             api(o, function (err, res) {
                 if (err) return cb(err);
                 for (var i in res) {
+                    var created_orig = res[i].created;
                     var created = res[i].created;
                     if (!funcs.validation.isDate(created, 'DD.MM.YYYY HH:mm:ss')) continue;
-                    res[i].created = moment(created,'DD.MM.YYYY HH:mm:ss').format('DD MMMM, HH:mm');
+                    res[i].order_date = moment(created,'DD.MM.YYYY HH:mm:ss').format('DD MMMM, HH:mm');
                 }
                 orders = res;
                 cb(err, res);
             });
         },
         collapseData: function (cb) {
+            console.log('\n\n\-------------------------------\nORDERS\n',orders);
             orders = funcs.collapseData(orders);
             cb(null);
         }
@@ -1092,7 +1150,7 @@ api_functions.get_order_products = function (obj, cb) {
                         var order_product = order_products[j];
                         if (order_product.product_id = product.id){
                             for (var k in product) {
-                                if (typeof order_product[k] == 'undefined') order_product[k] = product[k];
+                                if (typeof order_product[k] == 'undefined' && typeof product[k]!='undefined') order_product[k] = product[k];
                             }
                             order_product.is_active = product.is_active;
                             break;
@@ -1108,7 +1166,60 @@ api_functions.get_order_products = function (obj, cb) {
             cb(null);
         }
     }, function (err, res) {
-        console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
+        //console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
+        return cb(err, order_products);
+    });
+
+}
+
+api_functions.repeat_order = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    var order_id = obj.order_id;
+    if (isNaN(+order_id)) return cb(new MyError('Не передан order_id'));
+
+    var crm_user;
+    var order_products;
+    var ids = [];
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        repeat: function (cb) {
+            var o = {
+                command: 'repeatOrder',
+                object: 'order_',
+                params: {
+                    sid: sid,
+                    id:order_id
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                cb(null);
+            });
+        }
+    }, function (err, res) {
+        //console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
         return cb(err, order_products);
     });
 
