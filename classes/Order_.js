@@ -9,8 +9,11 @@ var util = require('util');
 var async = require('async');
 var rollback = require('../modules/rollback');
 var XlsxTemplate = require('xlsx-template');
-var fs = require('fs');
 var funcs = require('../libs/functions');
+var fs = require('fs');
+var sendMail = require('../libs/sendMail');
+var config = require('../config');
+var mustache = require('mustache');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -82,6 +85,7 @@ Model.prototype.add_ = function (obj, cb) {
 
     var cart, products_in_cart, crm_user, order_id;
     var shop;
+    var tpl;
     async.series({
         getShop: function (cb) {
             var o = {
@@ -259,6 +263,33 @@ Model.prototype.add_ = function (obj, cb) {
                     cb(err, res);
                 });
             }, cb);
+        },
+        sendOrderEmail: function (cb) {
+            var tpl_name = 'order.html';
+
+            async.series({
+                prepareTemplate: function (cb) {
+                    fs.readFile('./templates/' + tpl_name, function (err, data) {
+                        if (err) return cb(new MyError('Не удалось считать файл шаблона.', err));
+                        tpl = data.toString();
+                        cb(null);
+                    });
+                },
+                sendNotify: function (cb) {
+                    var m_obj = {
+                        name: (crm_user.name)? 'Здравствуйте ' + crm_user.name + '!' : 'Здравствуйте!',
+                        order_id:order_id
+                    };
+                    tpl = mustache.to_html(tpl, m_obj);
+                    sendMail({email: email, subject: 'Заказ с сайта ' + config.get('site_host'), html: tpl}, function (err, info) {
+                        if (err) {
+                            console.log('Не удалось отправить письмо Заказ с сайта.', err, info);
+                        }
+                        cb(null);
+                    });
+
+                }
+            },cb);
         }
     }, function (err, res) {
         if (err) {
@@ -291,6 +322,7 @@ Model.prototype.confirmOrder = function (obj, cb) {
     // Изменим статус
 
     var order, filename, path;
+    var tpl;
     async.series({
         get: function (cb) {
             _t.getById({id:id}, function (err, res) {
@@ -319,6 +351,7 @@ Model.prototype.confirmOrder = function (obj, cb) {
                 cb(null);
             });
         }
+
     }, function (err) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);
@@ -663,5 +696,119 @@ Model.prototype.setStatistic = function (obj, cb) {
     });
 };
 
+Model.prototype.repeatOrder = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    var product_in_order;
+    async.series({
+        getOrderProduct: function (cb) {
+            var o = {
+                command: 'get',
+                object: 'product_in_order',
+                params: {
+                    param_where: {
+                        order_id:id
+                    },
+                    collapseData: false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товары из заказа', {o: o, err: err}));
+                product_in_order = res;
+                cb(null);
+            });
+        },
+        addToCart: function (cb) {
+            async.eachSeries(product_in_order, function (one_product, cb) {
+                var product;
+                async.series({
+                    getProduct: function (cb) {
+                        var o = {
+                            command: 'getById',
+                            object: 'product',
+                            params: {
+                                id: one_product.product_id
+                            }
+                        };
+                        _t.api(o, function (err, res) {
+                            if (err) return cb(new MyError('Не удалось получить товар', {o: o, err: err}));
+                            product = res[0];
+                            cb(null);
+                        });
+                    },
+                    add: function (cb) {
+                        if (!product.is_active) return cb(null);
+                        if (product.quantity <= 0) return cb(null);
+                        if (product.price_site <= 0) return cb(null);
+                        var product_count = (+product.quantity >= +one_product.product_count)? +one_product.product_count : product.quantity;
+                        var o = {
+                            command:'add',
+                            object:'product_in_cart',
+                            params:{
+                                product_id:one_product.product_id,
+                                sid:obj.sid,
+                                product_count:product_count,
+                                is_replace:true
+                            }
+                        };
+                        _t.api(o, function (err, res) {
+                            if (err){
+                                console.log('Не удалось добавить товар в корзину',err);
+
+                            }
+                            cb(null);
+                        });
+                    }
+                },cb);
+            }, cb);
+        }
+    },function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key: rollback_key, user: _t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        } else {
+            //if (!obj.doNotSaveRollback){
+            //    rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'METHOD_NAME', params:obj});
+            //}
+            cb(null, new UserOk('Ок'));
+        }
+    });
+}
+
+Model.prototype.example = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    async.series({
+
+    },function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key: rollback_key, user: _t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        } else {
+            //if (!obj.doNotSaveRollback){
+            //    rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'METHOD_NAME', params:obj});
+            //}
+            cb(null, new UserOk('Ок'));
+        }
+    });
+}
 
 module.exports = Model;
