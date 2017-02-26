@@ -79,7 +79,7 @@ Model.prototype.add_ = function (obj, cb) {
     var phone = obj.phone;
     if (!phone) return cb(new UserError('Необходимо указать номер телефона для создания заказа',{obj:obj}));
     if (!cart_id && !sid) return cb(new MyError('В метод должен быть передан sid или cart_id'));
-    var email = obj.email;
+    var email = obj.email + ',info@valet24.ru';
     if (!funcs.validation.email(email)) return cb(new UserError('Не корректно указан Email: ' + email));
 
 
