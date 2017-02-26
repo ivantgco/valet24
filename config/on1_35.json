@@ -25,21 +25,21 @@
     "dateStrings":"TIMESTAMP"
   },
   "mail":{
-    "mailTransport":{
-      "host": "smtp.mail.ru",
-      "port": 465,
-      "debug":true,
-      "secure":true,
-      "auth": {
-        "user": "iig@list.ru",
-        "pass": "johnjohn"
-      }
-    },
-    "from":"iig@list.ru",
-    "notificationEmail": "ivantgco@gmail.com,alextgco@gmail.com"
+      "mailTransport":{
+          "host": "smtp.timeweb.ru",
+          "port": 465,
+          "debug":true,
+          "secure":true,
+          "auth": {
+              "user": "info@valet24.ru",
+              "pass": "aambfi5y"
+          }
+      },
+      "from":"info@valet24.ru",
+      "notificationEmail": "ivantgco@gmail.com,alextgco@gmail.com"
 
   },
-  "feedbackEmail":"pswwgr@mail.ru",
+  "feedbackEmail":"alextgco@gmail.com,info@valet24.ru",
   "ftpSync": {
     "host": "bitrix280.timeweb.ru",
     "port": 21,
