@@ -216,6 +216,7 @@ api_functions.get_product = function (obj, cb) {
                             val1:shop.id
                         }
                     ],
+                    sort:'image, name',
                     collapseData:false
                 }
             };
@@ -1215,12 +1216,23 @@ api_functions.repeat_order = function (obj, cb) {
             };
             api(o, function (err, res) {
                 if (err) return cb(err);
-                cb(null);
+                cb(err, res);
             });
+        },
+        getCart: function (cb) {
+            var o = {
+                sid:sid
+            }
+            api_functions.get_cart(o, function (err, res) {
+                if (err) return cb(err);
+                cb(null, res)
+            })
         }
     }, function (err, res) {
         //console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
-        return cb(err, order_products);
+        res.repeat.cart = res.getCart;
+        console.log(res.getCart);
+        return cb(err, res.repeat);
     });
 
 }

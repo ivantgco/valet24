@@ -779,7 +779,7 @@ Model.prototype.repeatOrder = function (obj, cb) {
             //if (!obj.doNotSaveRollback){
             //    rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'METHOD_NAME', params:obj});
             //}
-            cb(null, new UserOk('Ок'));
+            cb(null, new UserOk('В корзину были добавлены товары, которые были в наличии'));
         }
     });
 }
