@@ -190,6 +190,7 @@ api_functions.get_product = function (obj, cb) {
             })
         },
         getProducts: function (cb) {
+            console.log('\n',obj);
             var t1 = moment();
             var w, ids;
             var o = {
@@ -216,7 +217,11 @@ api_functions.get_product = function (obj, cb) {
                             val1:shop.id
                         }
                     ],
-                    sort:'image, name',
+                    specColumns:{with_image:'IF(product.image = \'\', 0, 1)'},
+                    sort:{
+                        columns:['with_image','name'],
+                        directions:['desc','asc']
+                    },
                     collapseData:false
                 }
             };
@@ -273,6 +278,15 @@ api_functions.get_product = function (obj, cb) {
                         val1:obj.name
                     };
                     o.params.where.push(w);
+                    o.params.specColumns = {
+                        with_image: 'IF(product.image = \'\', 0, 1)',
+                        pos: 'POSITION(\'' + obj.name + '\' IN product.NAME)',
+                        pos_search: 'IF(POSITION(\'' + obj.name + '\' IN product.search_string) = 0 or POSITION(\'' + obj.name + '\' IN product.search_string) is null,1000000,POSITION(\'' + obj.name + '\' IN product.search_string))'
+                    };
+                    o.params.sort = {
+                        columns:['with_image','pos_search','pos','name'],
+                        directions:['desc','asc','asc','asc']
+                    };
                 }
             }
             o.params.limit = obj.limit;
