@@ -140,6 +140,7 @@ var MySQLModel = function (obj) {
                     continue;
                 }
                 var profile = _t.class_fields_profile[j];
+                if (!profile) continue;
                 var field_type = profile.type;
                 rows[i][j] = formatData(field, field_type, profile);
             }
@@ -723,7 +724,7 @@ MySQLModel.prototype.init = function (obj, cb) {
                 if (!columns) columns = (_t.columns.indexOf('sort_no' !== -1)) ? ['sort_no'] : [];
                 _t.sort = {
                     columns: columns,
-                    direction: o[1] || 'ASC'
+                    directions: [o[1]]
                 }
             }
             for (var i in _t.class_fields_profile) {
@@ -1054,8 +1055,10 @@ MySQLModel.prototype.get = function (params, cb) {
             var page_no = (isNaN(+params.page_no)) ? 1 : +params.page_no;
             var offset = (isNaN(+params.offset)) ? (limit * (page_no - 1)) : +params.offset || 0;
             var distinct = params.distinct || _t.distinct;
-            if (typeof params.sort == 'string') params.sort = {columns: [params.sort], direction: 'ASC'};
-            var sort = params.sort || ((_t.sort) ? funcs.cloneObj(_t.sort) : {columns: ['id'], direction: 'ASC'});
+            if (typeof params.sort == 'string') params.sort = params.sort.trim();
+            if (typeof params.sort == 'string') params.sort = {columns: params.sort.split(',')};
+            var sort = params.sort || ((_t.sort) ? funcs.cloneObj(_t.sort) : {columns: ['id']});
+            if (typeof sort.direction == 'string') sort.directions = sort.direction.split(',');
             var deleted = !!params.deleted;
 
             var published = (typeof params.published !== 'undefined') ? params.published : _t.check_published;
@@ -1069,6 +1072,7 @@ MySQLModel.prototype.get = function (params, cb) {
                 }
             }
             if (!columns.length) return cb(new MyError('Нет доступных колонок.',{params:params}));
+
             var sqlStart = '';
             //var sqlStart = "SELECT " + columns.join(', ') + " FROM " + _t.name;
             var sql = "";
@@ -1081,6 +1085,7 @@ MySQLModel.prototype.get = function (params, cb) {
             var whereStr = '';
 
             var ready_columns = [];
+            var specColumns = params.specColumns; // Объект, где ключ альяс результирующего столбца. specColumns:{pos:'POSITION(\'молоко\' IN product.NAME)'} --> POSITION('молоко' IN product.NAME) AS pos
             var join_tables = [];
             var join_tables_list = [];
             var from_table_counter = {};
@@ -1093,7 +1098,9 @@ MySQLModel.prototype.get = function (params, cb) {
                 var col = columns[i];
                 if (distinct && col !== distinct) continue;
                 var colProfile = _t.class_fields_profile[col];
-                if (sort.columns.indexOf(col) !== -1) sortColumnsReady.push(col);
+                //if (sort.columns.indexOf(col) !== -1) sortColumnsReady.push(col);
+                var sortIndex = sort.columns.indexOf(col);
+                if (sortIndex !== -1) sortColumnsReady[sortIndex] = col + ' ' + (Array.isArray(sort.directions)? sort.directions[sortIndex] || 'ASC' : 'ASC');
                 //if (colProfile.is_virtual && colProfile.concat_fields) continue; // Пропускаем concat_fields
                 if (!colProfile.is_virtual) {
                     ready_columns.push(tableName + '.' + col);
@@ -1157,7 +1164,16 @@ MySQLModel.prototype.get = function (params, cb) {
                 var defaultCol = (columns.indexOf('sort_no') !== -1) ? 'sort_no' : false;
                 if (defaultCol) sortColumnsReady.push(defaultCol);
             }
+            if (specColumns){
+                for (var column in  specColumns) {
+                    ready_columns.push(specColumns[column] + ' as ' + column);
+                    //if (sort.columns.indexOf(column) !== -1) sortColumnsReady.push(column);
+                    var sortIndex = sort.columns.indexOf(column);
+                    if (sortIndex !== -1) sortColumnsReady[sortIndex] = column + ' ' + (Array.isArray(sort.directions)? sort.directions[sortIndex] || 'ASC' : 'ASC');
+                }
+            }
             sort.columns = sortColumnsReady;
+
             var distinctSQL = (distinct) ? 'DISTINCT ' : '';
             sqlStart = "SELECT " + distinctSQL + ready_columns.join(', ') + " FROM " + tableName;
             sql += join_tables.join('');
@@ -1317,8 +1333,9 @@ MySQLModel.prototype.get = function (params, cb) {
                 sql += " (" + tableName + ".published IS NOT NULL AND " + tableName + ".published <='" + published + "')"
             }
             var sqlCount = 'SELECT count(*) FROM ' + tableName + sql;
+
             if (sort.columns.length) {
-                sql += ' ORDER BY ' + sort.columns.join(',') + ' ' + sort.direction;
+                sql += ' ORDER BY ' + sort.columns.join(',');// + ' ' + sort.direction;
             }
             if (limit) {
                 if (offset) {
@@ -1327,6 +1344,7 @@ MySQLModel.prototype.get = function (params, cb) {
                     sql += ' LIMIT ' + limit;
                 }
             }
+
 
             var realSQL = sqlStart + sql;
             console.log(realSQL);

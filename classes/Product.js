@@ -1261,6 +1261,18 @@ Model.prototype.updateSitePrice = function (obj, cb) {
     _t.execProcedure(params, cb);
 };
 
+Model.prototype.setNotActive = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var params = {
+        procedureName:'set_product_not_active'
+    }
+    _t.execProcedure(params, cb);
+};
+
 //4606272022113
 
 
