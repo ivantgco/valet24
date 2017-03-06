@@ -459,7 +459,7 @@ Model.prototype.apply_category = function (obj, cb) {
                 return cb(err, err2);
             });
         }else{
-            cb(null, new UserOk('Категории успешно применены.'));
+            cb(null, new UserOk('Синхронизация прошла успешно.'));
         }
     })
 }
@@ -1061,6 +1061,7 @@ Model.prototype.apply_product = function (obj, cb) {
                                         sync_product.to_modify.push('quantity');
                                         break;
                                     case 'RPL':
+                                    case 'CLR':
                                         var newQuantity = +sync_product.quantity - (product.in_basket_count || 0);
                                         if (+product.quantity != newQuantity) {
                                             product.quantity = newQuantity;
@@ -1094,6 +1095,7 @@ Model.prototype.apply_product = function (obj, cb) {
 
                 if (!sync_prod.exist) {
                     // Обновим статус и выйдем
+                    console.log('DOES_NOT_EXIST');
                     var params = {
                         id: sync_prod.id,
                         status_sysname: 'DOES_NOT_EXIST',
@@ -1125,6 +1127,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 //    return;
                 //}
                 if (!sync_prod.to_modify) {
+                    console.log('!SYNC_PROD.TO_MODIFY');
                     // Обновим статус и выйдем
                     var params = {
                         id: sync_prod.id,
@@ -1152,6 +1155,7 @@ Model.prototype.apply_product = function (obj, cb) {
                         _t.api(o, cb);
                     },
                     modify: function (cb) {
+                        console.log('MODIFY-->');
                         var o = {
                             command: 'modify',
                             object: 'product',
@@ -1248,6 +1252,7 @@ Model.prototype.apply_product = function (obj, cb) {
     }, function (err) {
         _t.user.socket.emit('OnePortionApplied', {time: moment(t1 - moment()).format('hh:mm:ss')});
         if (err) {
+            console.log('===========ERROR++>',err);
             if (err.message == 'needConfirm') return cb(err);
             if (err instanceof UserOk || err instanceof UserError) {
                 //err.data.count = 0;
@@ -1272,13 +1277,70 @@ Model.prototype.apply_product_all = function (obj, cb) {
     //var rollback_key = obj.rollback_key || rollback.create();
 
     var fire = function () {
-        _t.apply_product({
-        }, function (err, res) {
-            if (err) return cb(err);
-            if (typeof res!='object') return cb(new MyError('В ответ на apply_product вернулся не корректный результат',{err:err,res:res}));
-            if (!res.all_applied) return fire();
-            cb(err, res);
-        });
+        async.series({
+            apply: function (cb) {
+                _t.apply_product({}, function (err, res) {
+                    if (err) return cb(err);
+                    if (typeof res != 'object') return cb(new MyError('В ответ на apply_product вернулся не корректный результат', {
+                        err: err,
+                        res: res
+                    }));
+                    if (!res.all_applied) return fire();
+                    cb(err, res);
+                });
+            },
+            setNotActive: function (cb) {
+                var o = {
+                    command: 'setNotActive',
+                    object: 'product',
+                    params: {
+                    }
+                };
+                _t.api(o, function (err) {
+                    if (err) return cb(new MyError('Не удалось выставить неактивными продукты, которые не вошли в обновление.',{err:err}));
+                    cb(null);
+                });
+            },
+            deleteOldSyncItem: function (cb) {
+                var o = {
+                    command: 'deleteOldSyncItem',
+                    object: 'sync_file',
+                    params: {
+                    }
+                };
+                _t.api(o, function (err) {
+                    if (err) return cb(new MyError('Не удалось удалить устаревшие записи о файлах синхронизации и их элементах.',{err:err}));
+                    cb(null);
+                });
+            },
+            clearCache: function (cb) {
+                async.series({
+                    sync_file_item: function (cb) {
+                        _t.clearCache(cb);
+                    },
+                    sync_file: function (cb) {
+                        var o = {
+                            command: 'clearCache',
+                            object: 'sync_file'
+                        }
+                        _t.api(o, cb);
+                    }
+                }, cb);
+            },
+            deleteOldSyncFiles: function (cb) {
+                var o = {
+                    command: 'deleteOldSyncFiles',
+                    object: 'sync_file',
+                    params: {
+                    }
+                };
+                _t.api(o, function (err) {
+                    if (err) return cb(new MyError('Не удалось удалить устаревшие файлы.',{err:err}));
+                    cb(null);
+                });
+            }
+        }, cb);
+
     };
     fire();
 

@@ -127,7 +127,7 @@ app.use(function(err, req, res, next) {
 
 console.log('-------------------------------------------------');
 console.log('SERVER STARTED');
-global.fullSyncBJ = false;
+global.fullSyncBJ = true;
 
 setTimeout(function () {
     var api = require('./libs/api');

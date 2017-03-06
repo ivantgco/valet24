@@ -743,6 +743,164 @@ Model.prototype.fullSync = function (obj, cb) {
     });
 }
 
+Model.prototype.deleteOldSyncItem = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var params = {
+        procedureName:'delete_old_sync_item'
+    }
+    _t.execProcedure(params, function (err) {
+        cb(err, new UserOk('Устаревшие записи синхронизаций удалены.'));
+    });
+};
+//var o = {
+//    command: 'deleteOldSyncFiles',
+//    object: 'sync_file',
+//    params: {
+//
+//    }
+//};
+//socketQuery(o, function (res) {
+//    console.log(res);
+//});
+
+Model.prototype.deleteOldSyncFiles = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var shop;
+    var sync_dir = _t.sync_dir;
+    var sync_files = [];
+    var local_files = [];
+    var server_files = [];
+    var to_delete_local_files = [];
+    var to_delete_server_files = [];
+    var ftpClient1;
+    async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите текущий магазин.'));
+                shop = res[0];
+                sync_dir = sync_dir + '/' + shop.sysname;
+                cb(null);
+            })
+        },
+        getSyncFiles: function (cb) {
+            var params = {
+                collapseData:false
+            }
+            _t.get(params, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить sync_file',{params:params,err:err}));
+                for (var i in res) {
+                    sync_files.push(res[i].filename);
+                }
+                return cb(null);
+            });
+        },
+        getLocalFiles: function (cb) {
+            // Считать список файлов из директории
+
+            fs.readdir(sync_dir, function (err, files) {
+                if (err) return cb(new MyError('Не удалось считать файлы из директории синхронизации.',{err:err}));
+                for (var i in files) {
+                    if (path.extname(files[i]) == '.spr') local_files.push(files[i]);
+                }
+                //filelist = files;
+                cb(null);
+            });
+        },
+        get_files_from_remote: function (cb) {
+            // Считать список файлов из директории на сервере и скачать
+            ftpClient1 = new FtpClient();
+            ftpClient1.on('ready', function() {
+                ftpClient1.list(shop.sysname,function(err, list) {
+                    if (err) return cb(new MyError('Не удалось считать список файлов на удаленном сервере.',{err:err}));
+                    for (var i in list) {
+                        var file = list[i];
+                        if (file.type != '-') continue;
+                        //file.name_only = path.parse(file.name).name;
+                        server_files.push(file.name);
+                    }
+                    return cb(null);
+                });
+            });
+            ftpClient1.on('error', function (err) {
+                console.log(err);
+                ftpClient1.end();
+                return cb(new MyError('FTP client выдал ошибку.',{err:err}));
+            });
+            ftpClient1.connect(config.get('ftpSync'));
+        },
+        merge: function (cb) {
+            for (var i in local_files) {
+                if (sync_files.indexOf(local_files[i]) == -1){
+                    to_delete_local_files.push(local_files[i]);
+                }
+            };
+            for (var i in server_files) {
+                if (sync_files.indexOf(server_files[i]) == -1){
+                    to_delete_server_files.push(server_files[i]);
+                }
+            }
+            console.log('to_delete_local_files',to_delete_local_files.length);
+            console.log('to_delete_server_files',to_delete_server_files.length);
+            cb(null);
+        },
+        deleteLocal: function (cb) {
+            async.eachSeries(to_delete_local_files, function (item, cb) {
+                fs.unlink(sync_dir + '/' + item, function (err) {
+                    if (err){
+                        console.log('При удалении файла возникла ошибка.', item, err);
+                    }
+                    cb(null);
+                });
+            },cb);
+        },
+        deleteServer: function (cb) {
+
+            ftpClient1 = new FtpClient();
+            ftpClient1.on('ready', function() {
+                async.eachSeries(to_delete_server_files, function (item, cb) {
+                    ftpClient1.delete(shop.sysname + '/' + item, function(err) {
+                        if (err){
+                            console.log('При удалении файла возникла ошибка.', item, err);
+                        }
+                        cb(null);
+                    });
+                }, function (err) {
+                    ftpClient1.end();
+                    return cb(err);
+                });
+            });
+            ftpClient1.on('error', function (err) {
+                console.log(err);
+                ftpClient1.end();
+                return cb(new MyError('FTP client выдал ошибку.',{err:err}));
+            });
+            ftpClient1.connect(config.get('ftpSync'));
+
+
+        }
+    },function (err) {
+        cb(err, new UserOk('Файлы удалены.'));
+    });
+};
 
 /*Model.prototype.upload_files = function (obj, cb) {
     if (arguments.length == 1) {

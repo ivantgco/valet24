@@ -1058,6 +1058,7 @@ MySQLModel.prototype.get = function (params, cb) {
             if (typeof params.sort == 'string') params.sort = params.sort.trim();
             if (typeof params.sort == 'string') params.sort = {columns: params.sort.split(',')};
             var sort = params.sort || ((_t.sort) ? funcs.cloneObj(_t.sort) : {columns: ['id']});
+            if (typeof sort.direction == 'string') sort.directions = sort.direction.split(',');
             var deleted = !!params.deleted;
 
             var published = (typeof params.published !== 'undefined') ? params.published : _t.check_published;
