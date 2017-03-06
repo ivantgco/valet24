@@ -1182,6 +1182,7 @@ Model.prototype.pushIntoWordpress = function (obj, cb) {
     // Получить данные
     // Для каждого выполнить запрос push
     // Alias записать в данные
+    [{"key":"shop_sysname","val1":"PROFSOJUZNAJA"}]
 
     var products = [];
 
