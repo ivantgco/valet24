@@ -127,12 +127,15 @@ app.use(function(err, req, res, next) {
 
 console.log('-------------------------------------------------');
 console.log('SERVER STARTED');
-global.fullSyncBJ = true;
+global.fullSyncBJ = false;
+
 
 setTimeout(function () {
     var api = require('./libs/api');
     var User = require('./classes/User');
     var async = require('async');
+    var moment =require('moment');
+    console.log('Запускаем фоновые задачи...');
     var sys_user = new User({
         name:'user'
     });
@@ -141,8 +144,11 @@ setTimeout(function () {
             sys_user.loadSysUser(cb);
         },
         startBJ: function (cb) {
+            console.log('В startBJ');
             setInterval(function () {
+                console.log('global.fullSyncBJ',global.fullSyncBJ);
                 if (!global.fullSyncBJ) return;
+                console.log(moment().format('DD.MM.YYYY HH:mm:ss'),'FULLSYNC BACKGROUNDJOB STARTED ====>');
                 var o = {
                     command: 'fullSync',
                     object: 'Sync_file',
@@ -162,7 +168,7 @@ setTimeout(function () {
     });
 
 
-},60000);
+},6000);
 module.exports = app;
 
 
@@ -223,6 +229,7 @@ module.exports = app;
 
 
 //forever start bin\www on_1_38.json
+//forever start bin\www on_1_45.json
 //forever start bin\www on1_35.json
 //forever stop bin\www
 

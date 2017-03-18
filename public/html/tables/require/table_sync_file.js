@@ -77,8 +77,26 @@
     '<i class="fa fa-upload"></i>' +
     '<div class="btnDoubleInner">Sync</div>' +
     '</div>';
+    btn1Html += '<div class="nb btn btnDouble blue toRight " id="toggleFullSyncBJ" style="opacity: 1;">' +
+    '<i class="fa fa-upload"></i>' +
+    '<div class="btnDoubleInner">Фоновая задача</div>' +
+    '</div>';
 
     $('.ct-environment-buttons ul').append(btn1Html);
+
+    $('#toggleFullSyncBJ').off('click').on('click', function(){
+
+
+        var o = {
+            command: 'toggleFullSyncBJ',
+            object: 'Sync_file',
+            params: {}
+        };
+        socketQuery(o, function(res){
+            console.log(res);
+        });
+
+    });
 
     $('#sync_full').off('click').on('click', function(){
 

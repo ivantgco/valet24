@@ -902,6 +902,18 @@ Model.prototype.deleteOldSyncFiles = function (obj, cb) {
     });
 };
 
+Model.prototype.toggleFullSyncBJ = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+
+    global.fullSyncBJ = !global.fullSyncBJ;
+    if (global.fullSyncBJ) cb(null, new UserOk('Фоновая задача синхронизации включена'));
+    else  cb(null, new UserOk('Фоновая задача синхронизации выключена'));
+};
+
 /*Model.prototype.upload_files = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
