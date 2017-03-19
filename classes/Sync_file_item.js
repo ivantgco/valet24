@@ -1289,18 +1289,18 @@ Model.prototype.apply_product_all = function (obj, cb) {
                     cb(err, res);
                 });
             },
-            setNotActive: function (cb) {
-                var o = {
-                    command: 'setNotActive',
-                    object: 'product',
-                    params: {
-                    }
-                };
-                _t.api(o, function (err) {
-                    if (err) return cb(new MyError('Не удалось выставить неактивными продукты, которые не вошли в обновление.',{err:err}));
-                    cb(null);
-                });
-            },
+            //setNotActive: function (cb) {
+            //    var o = {
+            //        command: 'setNotActive',
+            //        object: 'product',
+            //        params: {
+            //        }
+            //    };
+            //    _t.api(o, function (err) {
+            //        if (err) return cb(new MyError('Не удалось выставить неактивными продукты, которые не вошли в обновление.',{err:err}));
+            //        cb(null);
+            //    });
+            //},
             deleteOldSyncItem: function (cb) {
                 var o = {
                     command: 'deleteOldSyncItem',
