@@ -1301,18 +1301,18 @@ Model.prototype.apply_product_all = function (obj, cb) {
             //        cb(null);
             //    });
             //},
-            deleteOldSyncItem: function (cb) {
-                var o = {
-                    command: 'deleteOldSyncItem',
-                    object: 'sync_file',
-                    params: {
-                    }
-                };
-                _t.api(o, function (err) {
-                    if (err) return cb(new MyError('Не удалось удалить устаревшие записи о файлах синхронизации и их элементах.',{err:err}));
-                    cb(null);
-                });
-            },
+            //deleteOldSyncItem: function (cb) {
+            //    var o = {
+            //        command: 'deleteOldSyncItem',
+            //        object: 'sync_file',
+            //        params: {
+            //        }
+            //    };
+            //    _t.api(o, function (err) {
+            //        if (err) return cb(new MyError('Не удалось удалить устаревшие записи о файлах синхронизации и их элементах.',{err:err}));
+            //        cb(null);
+            //    });
+            //},
             clearCache: function (cb) {
                 async.series({
                     sync_file_item: function (cb) {

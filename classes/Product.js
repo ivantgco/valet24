@@ -811,26 +811,31 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     category_name:row['category_name'],
                     category_alias:row['category_alias'],
                     no_barcode:row.no_barcode
-                }
+                };
 
                 if (row.no_barcode){
-                    products_by_image[row['image_alias']] = {
-                        barcode:row['barcode'],
-                        name:row['name'],
-                        image:row['image_alias'],
-                        excel_alias:row['excel_alias'],
-                        category_name:row['category_name'],
-                        category_alias:row['category_alias'],
-                        no_barcode:row['no_barcode']
+                    if (row['image_alias']){
+                        products_by_image[row['image_alias']] = {
+                            barcode:row['barcode'],
+                            name:row['name'],
+                            image:row['image_alias'],
+                            excel_alias:row['excel_alias'],
+                            category_name:row['category_name'],
+                            category_alias:row['category_alias'],
+                            no_barcode:row['no_barcode']
+                        }
                     }
-                    products_by_name[row['name']] = {
-                        barcode:row['barcode'],
-                        name:row['name'],
-                        image:row['image_alias'],
-                        excel_alias:row['excel_alias'],
-                        category_name:row['category_name'],
-                        category_alias:row['category_alias'],
-                        no_barcode:row['no_barcode']
+
+                    if (row['name']) {
+                        products_by_name[row['name']] = {
+                            barcode: row['barcode'],
+                            name: row['name'],
+                            image: row['image_alias'],
+                            excel_alias: row['excel_alias'],
+                            category_name: row['category_name'],
+                            category_alias: row['category_alias'],
+                            no_barcode: row['no_barcode']
+                        }
                     }
                 }
 
@@ -970,7 +975,10 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                     if (!product && products_by_name[res[i].name]){
                         product = products[products_by_name[res[i].name].barcode];
                     }
+
+
                     if (product){
+
                         product.id = res[i].id;
                         product.to_modify = [];
                         var product_category = categories[product.category_name];
@@ -986,6 +994,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
                         if (!res[i].image && product.image){
                             product.to_modify.push('image');
                         }
+
                     }
                 }
                 product_count = Object.keys(products).length + Object.keys(products_by_image).length;
@@ -996,7 +1005,7 @@ Model.prototype.importCurrentExcelByBarcode = function (obj, cb) {
             async.eachSeries(Object.keys(products), function (prodKey, cb) {
                 var product = products[prodKey];
                 if (product.id) return cb(null); // Уже есть в базе
-
+                if (!product.name && product.no_barcode && !product.image) return cb(null);
 
                 //products[row['barcode']] = {
                 //    barcode:row['barcode'],
