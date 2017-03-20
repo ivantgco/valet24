@@ -216,5 +216,110 @@ Model.prototype.moveToCategory = function (obj, cb) {
     });
 };
 
+Model.prototype.setIgnoreQuantity = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var _t = this;
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    var products = [];
+    var child_categories = [];
+    async.series({
+        getProducts: function (cb) {
+            var o = {
+                command:'get',
+                object:'product',
+                params:{
+                    param_where:{
+                        category_id:id,
+                        ignore_quantity:false
+                    },
+                    collapseData:false,
+                    limit:100000
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить продукты возникла ош.',{err:err, o:o}));
+                for (var i in res) {
+                    products.push(res[i]);
+                }
+                cb(null);
+            });
+        },
+        updateProducts: function (cb) {
+            async.eachSeries(products, function (item, cb) {
+                var o = {
+                    command:'modify',
+                    object:'product',
+                    params:{
+                        id:item.id,
+                        ignore_quantity:true,
+                        is_active:true,
+                        quantity:10000,
+                        rollback_key:rollback_key
+                    }
+                };
+                _t.api(o, function (err, res) {
+                    if (err) return cb(new MyError('Не удалось изменить продукт',{o : o, err : err}));
+                    cb(null);
+                });
+            },cb);
+
+
+        },
+        getChildCategory: function (cb) {
+            var o = {
+                command:'get',
+                object:'category',
+                params:{
+                    param_where:{
+                        parent_category_id:id
+                    },
+                    limit:100000,
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить дочерние категории',{o : o, err : err}));
+                for (var i in res) {
+                    child_categories.push(res[i]);
+                }
+                cb(null);
+            });
+        },
+        applyToChild: function (cb) {
+            async.eachSeries(child_categories, function (cat, cb) {
+                var params = {
+                    id:cat.id,
+                    rollback_key:rollback_key,
+                    doNotSaveRollback:true
+                };
+                _t.setIgnoreQuantity(params, function (err, res) {
+                    if (err) return cb(new MyError('Не удалось применить метод для дочерней категории',{o:o, err:err}));
+                    cb(null);
+                })
+            }, cb);
+        }
+    }, function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            if (!obj.doNotSaveRollback){
+                rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'setIgnoreQuantity', params:obj});
+            }
+            cb(null, new UserOk('Продукты из этой и дочерних категорий не будут учитывать кол-во.', obj));
+        }
+    });
+};
+
 
 module.exports = Model;
