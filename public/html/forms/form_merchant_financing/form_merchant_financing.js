@@ -449,6 +449,32 @@
 
                             }
                         },
+                        skip: {
+                            label: 'Продолжить без скачивания',
+                            callback: function(){
+
+                                var o = {
+                                    command: 'prepareAgreement',
+                                    object: formInstance.class,
+                                    client_object: formInstance.client_object,
+                                    params: {
+                                        skip: true,
+                                        id: data.id
+                                    }
+                                };
+
+                                o.params.agreement_date = $('#agreement-date').val();
+
+                                socketQuery(o, function(res){
+
+                                    if(res.code == 0){
+                                        formInstance.reload();
+                                    }
+
+                                });
+
+                            }
+                        },
                         error: {
                             label: 'Отмена',
                             callback: function(){
@@ -581,6 +607,30 @@
 
 
                                 });
+                            }
+                        },
+                        skip: {
+                            label: 'Пропустить шаг',
+                            callback: function(){
+
+                                var o = {
+                                    command: 'uploadMainAgreement',
+                                    object: formInstance.class,
+                                    client_object: formInstance.client_object,
+                                    params: {
+                                        id: data.id,
+                                        skip: true,
+                                        agreement_date: $('#payment-start-date').val()
+                                    }
+                                };
+
+                                socketQuery(o, function(res){
+
+                                    formInstance.reload();
+
+
+                                });
+
                             }
                         },
                         error: {

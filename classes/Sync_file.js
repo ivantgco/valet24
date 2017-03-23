@@ -843,7 +843,8 @@ Model.prototype.deleteOldSyncFiles = function (obj, cb) {
             ftpClient1.on('error', function (err) {
                 console.log(err);
                 ftpClient1.end();
-                return cb(new MyError('FTP client выдал ошибку.',{err:err}));
+                //return cb(new MyError('FTP client выдал ошибку.',{err:err}));
+                return;
             });
             ftpClient1.connect(config.get('ftpSync'));
         },
