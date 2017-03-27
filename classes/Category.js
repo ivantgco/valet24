@@ -236,10 +236,24 @@ Model.prototype.setIgnoreQuantity = function (obj, cb) {
                 command:'get',
                 object:'product',
                 params:{
-                    param_where:{
-                        category_id:id,
-                        ignore_quantity:false
-                    },
+                    where:[
+                        {
+                            key:'category_id',
+                            val1:id
+                        },
+                        {
+                            key:'ignore_quantity',
+                            val1:false,
+                            type:'or',
+                            group:'or1'
+                        },
+                        {
+                            key:'is_active',
+                            val1:false,
+                            type:'or',
+                            group:'or1'
+                        }
+                    ],
                     collapseData:false,
                     limit:100000
                 }
