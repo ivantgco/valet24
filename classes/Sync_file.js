@@ -179,17 +179,24 @@ Model.prototype.getFromFTP = function (obj, cb) {
                         cb(null);
 
                     });
+                    stream.on('error', function(error) {
+                        console.log('Ошибка при получении файла с сервера', error);
+                        return cb(new MyError('Не удалось загрузить файл с удаленного сервера.',{err:err,filename:filename}));
+
+                    });
                     stream.pipe(fs.createWriteStream(sync_dir + '/' + filename));
                 });
             }, function (err) {
-                if (err) return cb(err);
+                console.log('Получение файлов завершено. err:', err);
                 ftpClient1.end();
+                if (err) return cb(err);
+
                 cb(null);
             });
         }
     }, function (err) {
+        if (ftpClient1) ftpClient1.destroy();
         if (err) {
-            if (ftpClient1) ftpClient1.destroy();
             if (err.message == 'needConfirm') return cb(err);
             rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
                 return cb(err, err2);
