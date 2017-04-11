@@ -2469,7 +2469,7 @@ MySQLModel.prototype.execProcedure = function (obj, cb) {
                 conn.release();
                 if (err) {
                     err.msg = err.message;
-                    return cb(new MyError('Не удалось выполнить хранимую процедуру', err));
+                    return cb(new MyError('Не удалось выполнить хранимую процедуру ' + procedureName, err));
                 }
                 cb(null);
             });
