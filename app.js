@@ -231,6 +231,8 @@ module.exports = app;
 //forever start bin\www on_1_38.json
 //forever start bin\www on1_45.json
 //forever start bin\www on1_52.json
+//forever start bin\www on1_37.json
+//forever start bin\www on1_39.json
 //forever start bin\www on1_35.json
 //forever stop bin\www
 

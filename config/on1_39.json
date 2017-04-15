@@ -1,0 +1,51 @@
+{
+  "isDeveloper":true,
+  "port":81,
+  "host":"192.168.1.39",
+  "site_host_protocol":"http",
+  "site_host":"valet24.ru",
+  "session":{
+    "secret":"secret123",
+    "key":"mysid",
+    "cookie":{
+      "path":"/",
+      "httpOnly":true,
+      "maxAge":null
+    }
+  },
+  "mysqlConnection":{
+    "connectionLimit":100,
+    "connectTimeout":60000,
+    "acquireTimeout":60000,
+    "port": "3306",
+    "host": "localhost",
+    "user": "root",
+    "password": "dgs1224g",
+    "database": "valet24",
+    "dateStrings":"TIMESTAMP"
+  },
+  "mail":{
+      "mailTransport":{
+          "host": "smtp.timeweb.ru",
+          "port": 465,
+          "debug":true,
+          "secure":true,
+          "auth": {
+              "user": "info@valet24.ru",
+              "pass": "aambfi5y"
+          }
+      },
+      "from":"info@valet24.ru",
+      "notificationEmail": "ivantgco@gmail.com,alextgco@gmail.com"
+
+  },
+  "feedbackEmail":"alextgco@gmail.com,info@valet24.ru",
+  "ftpSync": {
+    "host": "bitrix280.timeweb.ru",
+    "port": 21,
+    "secure": false,
+    "user": "cw53236_citi",
+    "password": "JukIIop7820sM"
+  },
+  "syncInterval":120000
+}
