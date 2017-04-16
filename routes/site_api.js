@@ -641,7 +641,7 @@ api_functions.get_user = function (obj, cb) {
         if (err) return cb(err);
         return cb(null, user);
     });
-}
+};
 
 api_functions.registration = function (obj, cb) {
     if (arguments.length == 1) {
@@ -669,7 +669,7 @@ api_functions.registration = function (obj, cb) {
         }
         cb(null, new UserOk('Вам на почту отправлено письмо. Для завершения регистрации перейдите по ссылке из письма.'));
     });
-}
+};
 
 api_functions.confirm_registration = function (obj, cb) {
     if (arguments.length == 1) {
@@ -690,7 +690,7 @@ api_functions.confirm_registration = function (obj, cb) {
     api(o, function (err, res) {
         cb(err, res); // Если ставить "cb" то получается лажа
     });
-}
+};
 
 api_functions.login = function (obj, cb) {
     if (arguments.length == 1) {
@@ -710,7 +710,7 @@ api_functions.login = function (obj, cb) {
     api(o, function (err, res) {
         cb(err, res); // Если ставить "cb" то получается лажа
     });
-}
+};
 
 api_functions.logout = function (obj, cb) {
     if (arguments.length == 1) {
@@ -732,7 +732,7 @@ api_functions.logout = function (obj, cb) {
     api(o, function (err, res) {
         cb(err, res); // Если ставить "cb" то получается лажа
     });
-}
+};
 
 
 api_functions.modify_account = function (obj, cb) {
@@ -755,7 +755,7 @@ api_functions.modify_account = function (obj, cb) {
     api(o, function (err, res) {
         cb(err, res); // Если ставить "cb" то получается лажа
     });
-}
+};
 
 
 api_functions.restore_account = function (obj, cb) {
@@ -778,7 +778,7 @@ api_functions.restore_account = function (obj, cb) {
     api(o, function (err, res) {
         cb(err, res); // Если ставить "cb" то получается лажа
     });
-}
+};
 
 api_functions.confirm_restore_account = function (obj, cb) {
     if (arguments.length == 1) {
@@ -798,7 +798,7 @@ api_functions.confirm_restore_account = function (obj, cb) {
     api(o, function (err, res) {
         cb(err, res); // Если ставить "cb" то получается лажа
     });
-}
+};
 
 //var o = {
 //    command: 'add_product_to_favorite',
@@ -857,7 +857,7 @@ api_functions.add_product_to_favorite = function (obj, cb) {
         return cb(err, res.addToFavorite);
     });
 
-}
+};
 
 api_functions.remove_product_from_favorite = function (obj, cb) {
     if (arguments.length == 1) {
@@ -906,7 +906,7 @@ api_functions.remove_product_from_favorite = function (obj, cb) {
         return cb(err, res.removeToFavorite);
     });
 
-}
+};
 
 api_functions.get_favorite = function (obj, cb) {
     if (arguments.length == 1) {
@@ -1025,7 +1025,7 @@ api_functions.get_favorite = function (obj, cb) {
         return cb(err, favorits);
     });
 
-}
+};
 
 api_functions.get_orders = function (obj, cb) {
     if (arguments.length == 1) {
@@ -1090,7 +1090,7 @@ api_functions.get_orders = function (obj, cb) {
         return cb(err, orders);
     });
 
-}
+};
 
 api_functions.get_order_products = function (obj, cb) {
     if (arguments.length == 1) {
@@ -1185,7 +1185,7 @@ api_functions.get_order_products = function (obj, cb) {
         return cb(err, order_products);
     });
 
-}
+};
 
 api_functions.repeat_order = function (obj, cb) {
     if (arguments.length == 1) {
@@ -1249,7 +1249,7 @@ api_functions.repeat_order = function (obj, cb) {
         return cb(err, res.repeat);
     });
 
-}
+};
 
 
 

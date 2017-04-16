@@ -223,6 +223,8 @@ Model.prototype.add_ = function (obj, cb) {
             obj.gatecode = obj.gatecode || crm_user_tmp.gatecode || '';
             obj.level = obj.level || crm_user_tmp.level || '';
             obj.flat = obj.flat || crm_user_tmp.flat || '';
+            obj.comment = obj.comment || '';
+            obj.order_payment_type_sysname = obj.order_payment_type_sysname || 'CASH';
 
             obj.cart_id = obj.cart_id || cart_id;
             obj.amount = cart.amount;

@@ -196,6 +196,18 @@ var methodos = {
                     default:'',
                     validation:'notNull',
                     description: 'Необходимо передать номер телефона.'
+                },
+                email:{
+                    required:true,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Необходимо передать email.'
+                },
+                order_payment_type_sysname:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: ''
                 }
             }
         }

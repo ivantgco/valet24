@@ -678,6 +678,9 @@
       "order_status_id" : {"type": "bigint", "length": "20", "visible": false},
       "order_status" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "order_status_id", "return_column": "name", "is_virtual": true, "name": "Статус"},
       "order_status_sysname" : {"type": "varchar", "length": "255", "from_table": "order_status", "keyword": "order_status_id", "return_column": "sysname", "is_virtual": true, "name": "Статус sys", "visible": false, "default_value":"CREATED"},
+      "order_payment_type_id" : {"type": "bigint", "length": "20", "visible": false},
+      "order_payment_type" : {"type": "varchar", "length": "255", "from_table": "order_payment_type", "keyword": "order_payment_type_id", "return_column": "name", "is_virtual": true, "name": "Тип оплаты"},
+      "order_payment_type_sysname" : {"type": "varchar", "length": "255", "from_table": "order_payment_type", "keyword": "order_payment_type_id", "return_column": "sysname", "is_virtual": true, "name": "Тип оплаты sys", "visible": false, "default_value":"CREATED"},
       "additional_order_status_id" : {"type": "bigint", "length": "20", "visible": false},
       "additional_order_status" : {"type": "varchar", "length": "255", "from_table": "additional_order_status", "keyword": "additional_order_status_id", "return_column": "name", "is_virtual": true, "name": "Состаяние"},
       "additional_order_status_sysname" : {"type": "varchar", "length": "255", "from_table": "additional_order_status", "keyword": "additional_order_status_id", "return_column": "sysname", "is_virtual": true, "name": "Статус sys", "visible": false},
@@ -947,6 +950,18 @@
       "product_qnt_type_id" : {"type": "bigint", "from_table": "product", "keyword": "product_id", "return_column": "qnt_type_id", "is_virtual": true},
       "product_qnt_type_sys" : {"type": "varchar", "length": "255", "join_table": "product", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "is_virtual": true},
       "product_qnt_type" : {"type": "varchar", "length": "255", "join_table": "product", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "is_virtual": true}
+    }
+  },
+  "order_payment_type": {
+    "profile": {
+      "name": "order_payment_type",
+      "name_ru": "Тип оплаты заказа",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
     }
   }
 }
