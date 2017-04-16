@@ -592,8 +592,8 @@ Model.prototype.valet_delivery_note = function (obj, cb) {
                     amount:products[i].price * products[i].product_count
                 });
 
-                readyData.total_count += products[i].product_count;
-                readyData.total_amount += (products[i].price * products[i].product_count);
+                readyData.total_count += +products[i].product_count;
+                readyData.total_amount += (products[i].price * +products[i].product_count);
             }
             readyData.total_amount += ' руб.';
             cb(null);
