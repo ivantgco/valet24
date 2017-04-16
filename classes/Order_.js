@@ -14,6 +14,7 @@ var fs = require('fs');
 var sendMail = require('../libs/sendMail');
 var config = require('../config');
 var mustache = require('mustache');
+var moment = require('moment');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -216,6 +217,11 @@ Model.prototype.add_ = function (obj, cb) {
             //    obj.flat = crm_user.flat;
             //}
             //if(crm_user) obj.name = obj.name || crm_user.name || '';
+
+            function getDeliveryPrice(){
+                return (+moment(new Date()).format('HH') > 0 && +moment(new Date()).format('HH') < 10) ? 250 : 150;
+            }
+
             obj.crm_user_id = crm_user_tmp.id;
             obj.name = obj.name || crm_user_tmp.name || '';
             obj.address = obj.address || crm_user_tmp.address || '';
@@ -225,6 +231,10 @@ Model.prototype.add_ = function (obj, cb) {
             obj.flat = obj.flat || crm_user_tmp.flat || '';
             obj.comment = obj.comment || '';
             obj.order_payment_type_sysname = obj.order_payment_type_sysname || 'CASH';
+
+
+            obj.delivery_price = getDeliveryPrice();
+            obj.total_to_pay = (parseFloat(cart.amount) + parseFloat(obj.delivery_price)).toFixed(2);
 
             obj.cart_id = obj.cart_id || cart_id;
             obj.amount = cart.amount;
@@ -368,6 +378,34 @@ Model.prototype.confirmOrder = function (obj, cb) {
     });
 
 };
+
+Model.prototype.getDeliveryNote = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (!id) return cb(new MyError('В метод не передан id'));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    // Загрузим заказ
+    // Проверим заказ
+    // Изменим статус
+
+    var order, filename, path;
+    var tpl;
+
+    _t.valet_delivery_note({id:id}, function (err, res) {
+        if (err) return cb(err);
+        filename = res.filename;
+        path = res.path;
+        cb(null, new UserOk('Ок',{filename:filename,path:path}));
+    });
+
+};
+
+//getDeliveryNote
 
 Model.prototype.onDelivery = function (obj, cb) {
     if (arguments.length == 1) {
@@ -571,9 +609,14 @@ Model.prototype.valet_delivery_note = function (obj, cb) {
                 email: order.email || '',
                 address: order.address || '',
                 gate: order.gate || '',
+                gatecode: order.gatecode || '',
+                comment: order.comment || '',
+                payment_type: order.order_payment_type || '',
                 level: order.level || '',
                 flat: order.flat || '',
                 order_datetime: order.created || '',
+                delivery_amount: order.delivery_price + ' руб.',
+                total_to_pay: parseFloat(order.total_to_pay).toFixed(2) + ' руб.',
                 order: []
             };
             cb(null);
@@ -581,7 +624,7 @@ Model.prototype.valet_delivery_note = function (obj, cb) {
         prepareData: function (cb) {
             var counter = 1;
             readyData.total_count = 0;
-            readyData.total_amount = 0;
+            readyData.total_amount = parseFloat(order.amount).toFixed(2) + ' руб.';
 
             for (var i in products) {
 
@@ -591,13 +634,12 @@ Model.prototype.valet_delivery_note = function (obj, cb) {
                     product_name:products[i].name,
                     quantity:products[i].product_count,
                     price:products[i].price,
-                    amount:products[i].price * products[i].product_count
+                    amount: parseFloat(products[i].price * products[i].product_count).toFixed(2)
                 });
 
                 readyData.total_count += +products[i].product_count;
-                readyData.total_amount += (products[i].price * +products[i].product_count);
             }
-            readyData.total_amount += ' руб.';
+
             cb(null);
         },
         getTemplate: function (cb) {
@@ -784,7 +826,7 @@ Model.prototype.repeatOrder = function (obj, cb) {
             cb(null, new UserOk('В корзину были добавлены товары, которые были в наличии'));
         }
     });
-}
+};
 
 Model.prototype.example = function (obj, cb) {
     if (arguments.length == 1) {
@@ -811,6 +853,6 @@ Model.prototype.example = function (obj, cb) {
             cb(null, new UserOk('Ок'));
         }
     });
-}
+};
 
 module.exports = Model;

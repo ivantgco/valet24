@@ -696,7 +696,9 @@
       "gatecode": { "type": "varchar", "length": "255", "name": "Код домофона"},
       "level": { "type": "varchar", "length": "255", "name": "Этаж"},
       "flat": { "type": "varchar", "length": "255", "name": "Кв."},
-      "comment": {"type": "text", "name": "Комментарий"}
+      "comment": {"type": "text", "name": "Комментарий"},
+      "delivery_price": {"type": "bigint", "length": "20", "name": "Стоимость доставки"},
+      "total_to_pay": {"type": "DECIMAL(15, 2)", "name": "Итого к оплате"}
     }
   },
   "product_in_order": {

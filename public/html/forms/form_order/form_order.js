@@ -155,7 +155,7 @@
             }],
             handler: function () {
 
-                formInstance.loader(true, 'Подожлите, отменяем заказ');
+                formInstance.loader(true, 'Подождите, отменяем заказ');
 
                 var data = formInstance.data.data[0];
 
@@ -174,7 +174,52 @@
                         formInstance.reload();
                     }
 
-                    formInstance.loader(false, 'Подожлите, отменяем заказ');
+                    formInstance.loader(false, 'Подождите, отменяем заказ');
+
+                });
+            }
+        },
+        {
+            title: 'Скачать накладную',
+            color: "blue",
+            icon: "fa-file-o",
+            type: "SINGLE",
+            hidden: false,
+            condition: [{
+                colNames: [],
+                matching: [],
+                colValues: []
+            }],
+            handler: function () {
+
+                formInstance.loader(true, 'Подождите, формируем накладную');
+
+                var data = formInstance.data.data[0];
+
+                var o = {
+                    command: 'getDeliveryNote',
+                    object: formInstance.class,
+                    client_object: formInstance.client_object,
+                    params: {
+                        id: data.id
+                    }
+                };
+
+                socketQuery(o, function(res) {
+
+                    var fileName = res.path + res.filename;
+                    var linkName = 'my_download_link' + MB.Core.guid();
+
+                    $("body").prepend('<a id="'+linkName+'" href="' + fileName + '" download="'+ res.filename +'" style="display:none;"></a>');
+                    var jqElem = $('#'+linkName);
+                    jqElem[0].click();
+                    jqElem.remove();
+
+                    if (!res.code) {
+                        formInstance.reload();
+                    }
+
+                    formInstance.loader(false, 'Подождите, отменяем заказ');
 
                 });
             }
