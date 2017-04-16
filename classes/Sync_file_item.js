@@ -1308,8 +1308,9 @@ Model.prototype.apply_product_all = function (obj, cb) {
                     params: {
                     }
                 };
-                _t.api(o, function (err) {
+                _t.api(o, function (err, res) {
                     if (err) return cb(new MyError('Не удалось удалить устаревшие записи о файлах синхронизации и их элементах.',{err:err}));
+                    console.log('\ndeleteOldSyncItem =====>  SUCCESS\n ',res);
                     cb(null);
                 });
             },

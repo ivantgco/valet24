@@ -289,7 +289,7 @@ api_functions.get_product = function (obj, cb) {
                     };
                 }
             }
-            o.params.limit = obj.limit;
+            o.params.limit = obj.limit || 100;
             o.params.page_no = obj.page_no;
             api(o, function (err, res) {
                 if (err) return cb(err);
