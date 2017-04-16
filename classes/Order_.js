@@ -318,6 +318,46 @@ Model.prototype.add_ = function (obj, cb) {
     });
 };
 
+//Model.prototype.modify_ = function (obj, cb) {
+//
+//    if (arguments.length == 1) {
+//        cb = arguments[0];
+//        obj = {};
+//    }
+//    var _t = this;
+//    var id = obj.id;
+//    if (!id) return cb(new MyError('В метод не передан id'));
+//    var rollback_key = obj.rollback_key || rollback.create();
+//
+//    var order_;
+//    async.series({
+//        get: function (cb) {
+//            _t.getById({id:id}, function (err, res) {
+//                if (err) return cb(err);
+//                order_ = res[0];
+//                cb(null);
+//            });
+//        },
+//        recalculate: function(cb){
+//            order_.amount = obj.amount
+//            obj.total_to_pay = +order_.amount
+//
+//            _t.modifyPrototype(obj, function (err, res) {
+//                if (err) return cb(err);
+//                cb(null);
+//            });
+//        }
+//    }, function (err, res) {
+//        if (err) {
+//            if (err.message == 'needConfirm') return cb(err);
+//            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+//                return cb(err, err2);
+//            });
+//        }else{
+//            cb(null, new UserOk('Заказ успешно изменен.'));
+//        }
+//    });
+//};
 
 Model.prototype.confirmOrder = function (obj, cb) {
     if (arguments.length == 1) {
@@ -683,8 +723,15 @@ Model.prototype.setStatistic = function (obj, cb) {
 
 
 
-    var products_in_order;
+    var products_in_order, order_;
     async.series({
+        get: function (cb) {
+            _t.getById({id:id}, function (err, res) {
+                if (err) return cb(err);
+                order_ = res[0];
+                cb(null);
+            });
+        },
         getOrderProduct: function (cb) {
             var o = {
                 command:'get',
@@ -711,12 +758,14 @@ Model.prototype.setStatistic = function (obj, cb) {
                 total_count += +product.product_count;
                 total_amount += +product.price * +product.product_count;
             }
+            total_amount = Math.round(total_amount * 100)/100;
             var params = {
                 id:id,
                 product_count:total_count,
                 amount:total_amount,
+                total_to_pay:+total_amount + +order_.delivery_price,
                 rollback_key:rollback_key
-            }
+            };
             console.log('MODIFY',params);
             _t.modify(params, function (err) {
                 if (err) {
