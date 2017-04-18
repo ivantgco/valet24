@@ -59,6 +59,27 @@ Model.prototype.add = function (obj, cb) {
     }
 };
 
+Model.prototype.modify = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var client_object = _t.client_object || '';
+
+    var coFunction = 'modify_' + client_object;
+
+    if (typeof _t[coFunction] === 'function') {
+        _t[coFunction](obj, cb);
+    } else {
+        if (typeof _t['modify_'] === 'function') {
+            _t['modify_'](obj, cb);
+        } else {
+            _t.modifyPrototype(obj, cb);
+        }
+    }
+};
+
 /**
  * Если есть category_id создаем как обычно
  * Если есть categoryS - массив ['Категория','СубКатегория','СубСубКатегория',..]
@@ -198,7 +219,52 @@ Model.prototype.add_OLD = function (obj, cb) {
 };
 
 
-
+Model.prototype.modify_ = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+    if (!obj.fromClient || typeof obj.name == 'undefined'){
+        return _t.modifyPrototype(obj, cb);
+    }
+    var product, nameNotModified;
+    async.series({
+        get:function (cb) {
+            _t.getById({id:id}, function (err, res) {
+                if (err) return cb(err);
+                product = res[0];
+                cb(null);
+            });
+        },
+        checkAndmodify:function (cb) {
+            if (product.barcode){
+                return _t.modifyPrototype(obj, cb);
+            }
+            nameNotModified = true;
+            delete obj.name;
+            _t.modifyPrototype(obj, cb);
+        }
+    },function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key: rollback_key, user: _t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        } else {
+            //if (!obj.doNotSaveRollback){
+            //    rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'METHOD_NAME', params:obj});
+            //}
+            if (nameNotModified){
+                res.checkAndmodify.message += '<br><span style="color:#f90d00;">Название изменено не было.</span>';
+            }
+            cb(null, res.checkAndmodify);
+        }
+    });
+}
 
 // --> Загруска category_excel:
 // Получить список файлов из директории
@@ -1284,6 +1350,31 @@ Model.prototype.setNotActive = function (obj, cb) {
 };
 
 //4606272022113
+Model.prototype.example = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var id = obj.id;
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
 
+    async.series({
+
+    },function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key: rollback_key, user: _t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        } else {
+            //if (!obj.doNotSaveRollback){
+            //    rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'METHOD_NAME', params:obj});
+            //}
+            cb(null, new UserOk('Ок'));
+        }
+    });
+}
 
 module.exports = Model;
