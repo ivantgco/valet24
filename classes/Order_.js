@@ -644,6 +644,7 @@ Model.prototype.valet_delivery_note = function (obj, cb) {
         prepareData0: function (cb) {
 
             readyData = {
+                order_id: order.id || 'б/н',
                 name: order.name || '',
                 phone: order.phone || '',
                 email: order.email || '',
@@ -677,7 +678,7 @@ Model.prototype.valet_delivery_note = function (obj, cb) {
                     amount: parseFloat(products[i].price * products[i].product_count).toFixed(2)
                 });
 
-                readyData.total_count += +products[i].product_count;
+                readyData.total_count ++;
             }
 
             cb(null);
