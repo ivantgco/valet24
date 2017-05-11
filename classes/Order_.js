@@ -352,17 +352,17 @@ Model.prototype.add_ = function (obj, cb) {
 
 
 
-                    var tbl = '<table style="text-align: left; border: 1px solid #000;">';
+                    var tbl = '<table style="text-align: left;">';
                     var total_amount = 0;
                     for (var i in products) {
                         var amount = Math.round((+products[i].product_count * +products[i].price)*100)/100;
                         total_amount += amount;
                         tbl += '<tr>';
-                        tbl += '<td style="border: 1px solid #000;">' + products[i].product_id + '</td>';
-                        tbl += '<td style="border: 1px solid #000;">' + products[i].name + '</td>';
-                        tbl += '<td style="border: 1px solid #000;">' + products[i].price + '</td>';
-                        tbl += '<td style="border: 1px solid #000;">' + products[i].product_count + '</td>';
-                        tbl += '<td style="border: 1px solid #000;">' + amount + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].product_id + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].name + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].price + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].product_count + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #000;">' + amount + '</td>';
                         tbl += '</tr>';
                     }
                     tbl += '</table>';
