@@ -352,7 +352,16 @@ Model.prototype.add_ = function (obj, cb) {
 
 
 
-                    var tbl = '<div style="">Товары в заказе:</div><table style="text-align: left;border-top:2px solid #ccc;">';
+                    var tbl = '<div style="">Товары в заказе:</div><table style="text-align: left;border-top:2px solid #ccc;">' +
+                        '<thead></thead>' +
+                        '<tr>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Артикул</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Наименование</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Цена</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Кол-во</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Сумма</th>' +
+                        '</tr>' +
+                        '<tbody>';
                     var total_amount = 0;
                     for (var i in products) {
                         var amount = Math.round((+products[i].product_count * +products[i].price)*100)/100;
@@ -365,7 +374,7 @@ Model.prototype.add_ = function (obj, cb) {
                         tbl += '<td style="border-bottom: 1px solid #b1b1b1;padding-left: 10px;padding-right: 10px;padding-bottom: 3px;padding-top: 3px;border-right: 1px solid #e8e8e8;border-left: 1px solid #e8e8e8;">' + amount + '</td>';
                         tbl += '</tr>';
                     }
-                    tbl += '</table>';
+                    tbl += '</tbody></table>';
                     var m_obj = {
                         name: (crm_user.name)? 'Здравствуйте ' + crm_user.name + '!' : 'Здравствуйте!',
                         order_id:order_id,
