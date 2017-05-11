@@ -358,11 +358,11 @@ Model.prototype.add_ = function (obj, cb) {
                         var amount = Math.round((+products[i].product_count * +products[i].price)*100)/100;
                         total_amount += amount;
                         tbl += '<tr>';
-                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].product_id + '</td>';
-                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].name + '</td>';
-                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].price + '</td>';
-                        tbl += '<td style="border-bottom: 1px solid #000;">' + products[i].product_count + '</td>';
-                        tbl += '<td style="border-bottom: 1px solid #000;">' + amount + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #b1b1b1;padding-left: 10px;padding-right: 10px;padding-bottom: 3px;padding-top: 3px;border-right: 1px solid #e8e8e8;">' + products[i].product_id + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #b1b1b1;padding-left: 10px;padding-right: 10px;padding-bottom: 3px;padding-top: 3px;border-right: 1px solid #e8e8e8;">' + products[i].name + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #b1b1b1;padding-left: 10px;padding-right: 10px;padding-bottom: 3px;padding-top: 3px;border-right: 1px solid #e8e8e8;">' + products[i].price + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #b1b1b1;padding-left: 10px;padding-right: 10px;padding-bottom: 3px;padding-top: 3px;border-right: 1px solid #e8e8e8;">' + products[i].product_count + '</td>';
+                        tbl += '<td style="border-bottom: 1px solid #b1b1b1;padding-left: 10px;padding-right: 10px;padding-bottom: 3px;padding-top: 3px;border-right: 1px solid #e8e8e8;">' + amount + '</td>';
                         tbl += '</tr>';
                     }
                     tbl += '</table>';
