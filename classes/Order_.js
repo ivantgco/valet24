@@ -352,7 +352,7 @@ Model.prototype.add_ = function (obj, cb) {
 
 
 
-                    var tbl = '<div style="">Ваш заказ:</div><table style="text-align: left;">';
+                    var tbl = '<div style="">Товары в заказе:</div><table style="text-align: left;border-top:2px solid #ccc;">';
                     var total_amount = 0;
                     for (var i in products) {
                         var amount = Math.round((+products[i].product_count * +products[i].price)*100)/100;
