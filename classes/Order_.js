@@ -352,14 +352,14 @@ Model.prototype.add_ = function (obj, cb) {
 
 
 
-                    var tbl = '<div style="">Товары в заказе:</div><table style="text-align: left;border-top:2px solid #ccc;">' +
+                    var tbl = '<div style="font-size: 18px;margin-bottom: 15px;text-align: left;margin-top: 30px;">Товары в заказе:</div><table style="text-align: left;border-top:2px solid #ccc;border-spacing: 0;">' +
                         '<thead></thead>' +
                         '<tr>' +
-                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Артикул</th>' +
-                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Наименование</th>' +
-                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Цена</th>' +
-                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Кол-во</th>' +
-                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;">Сумма</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;border-bottom: 2px solid #ccc;">Артикул</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;border-bottom: 2px solid #ccc;">Наименование</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;border-bottom: 2px solid #ccc;">Цена</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;border-bottom: 2px solid #ccc;">Кол-во</th>' +
+                        '<th style="font-size: 12px; text-align: center; border-left: 1px solid #b1b1b1; border-right: 1px solid #b1b1b1;border-bottom: 2px solid #ccc;">Сумма</th>' +
                         '</tr>' +
                         '<tbody>';
                     var total_amount = 0;
