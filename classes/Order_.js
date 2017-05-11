@@ -87,6 +87,8 @@ Model.prototype.add_ = function (obj, cb) {
     var cart, products_in_cart, crm_user, order_id;
     var shop;
     var tpl;
+    var products;
+    var order;
     async.series({
         getShop: function (cb) {
             var o = {
@@ -276,6 +278,31 @@ Model.prototype.add_ = function (obj, cb) {
                 });
             }, cb);
         },
+        getOrder: function (cb) {
+
+            _t.getById({id:order_id}, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить продукты из заказа'));
+                order = res[0];
+                cb(null);
+            });
+        },
+        getProductsInOrder: function (cb) {
+            var o = {
+                command:'get',
+                object:'product_in_order',
+                params:{
+                    param_where:{
+                        order_id:order_id
+                    },
+                    collapseData:false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить продукты из заказа'));
+                products = res;
+                cb(null);
+            });
+        },
         sendOrderEmail: function (cb) {
             var tpl_name = 'order.html';
 
@@ -288,10 +315,64 @@ Model.prototype.add_ = function (obj, cb) {
                     });
                 },
                 sendNotify: function (cb) {
+                    // [{
+                    //     "id": 397,
+                    //     "order_id": 144,
+                    //     "name": "Альметте сыр творожный с огурцами и зеленью 150гр",
+                    //     "product_id": 45750,
+                    //     "qnt_type_id": 1,
+                    //     "qnt_type_sys": "UNIT",
+                    //     "qnt_type": "шт.",
+                    //     "image": "IMG_1550_siri",
+                    //     "images_list": "",
+                    //     "description": "",
+                    //     "price": "118.65",
+                    //     "product_count": "1.00",
+                    //     "category_id": 3644,
+                    //     "category": "Плавленые и творожные",
+                    //     "parent_category_id": 3550,
+                    //     "parent_category": "Сыры",
+                    //     "shop_id": 1,
+                    //     "shop": "Профсоюзная",
+                    //     "crm_user_id": 107,
+                    //     "created": "29.11.2016 00:00:00",
+                    //     "updated": "",
+                    //     "deleted": "",
+                    //     "published": "29.11.2016 00:00:00",
+                    //     "created_by_user_id": 18,
+                    //     "created_by_user": "valet24.ru",
+                    //     "deleted_by_user_id": "",
+                    //     "deleted_by_user": "",
+                    //     "remove_comment": "",
+                    //     "self_company_id": 1,
+                    //     "self_company": "VALET24",
+                    //     "ext_company_id": 1,
+                    //     "ext_company": "VALET24"
+                    // }]
+
+
+
+                    var tbl = '<table style="text-align: left; border: 1px solid #000;">';
+                    var total_amount = 0;
+                    for (var i in products) {
+                        var amount = Math.round((+products[i].product_count * +products[i].price)*100)/100;
+                        total_amount += amount;
+                        tbl += '<tr>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].product_id + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].name + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].price + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].product_count + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + amount + '</td>';
+                        tbl += '</tr>';
+                    }
+                    tbl += '</table>';
                     var m_obj = {
                         name: (crm_user.name)? 'Здравствуйте ' + crm_user.name + '!' : 'Здравствуйте!',
-                        order_id:order_id
+                        order_id:order_id,
+                        product_table:tbl,
+                        total_amount:total_amount
                     };
+
                     tpl = mustache.to_html(tpl, m_obj);
                     sendMail({email: email, subject: 'Заказ с сайта ' + config.get('site_host'), html: tpl}, function (err, info) {
                         if (err) {
@@ -302,6 +383,67 @@ Model.prototype.add_ = function (obj, cb) {
 
                 }
             },cb);
+        },
+        sendOrderEmailAdmin: function (cb) {
+            cb(null);
+
+            var tpl_name = 'order_manager.html';
+
+            async.series({
+                prepareTemplate: function (cb) {
+                    fs.readFile('./templates/' + tpl_name, function (err, data) {
+                        if (err) return cb(new MyError('Не удалось считать файл шаблона.', err));
+                        tpl = data.toString();
+                        cb(null);
+                    });
+                },
+                sendNotify: function (cb) {
+
+                    var tbl = '<table style="text-align: left; border: 1px solid #000;">';
+                    var total_amount = 0;
+                    for (var i in products) {
+                        var amount = Math.round((+products[i].product_count * +products[i].price)*100)/100;
+                        total_amount += amount;
+                        tbl += '<tr>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].product_id + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].name + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].price + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + products[i].product_count + '</td>';
+                        tbl += '<td style="border: 1px solid #000;">' + amount + '</td>';
+                        tbl += '</tr>';
+                    }
+                    tbl += '</table>';
+
+
+
+                    var client_data = '';
+                    var avalColumns = ["id","order_status","additional_order_status","amount","product_count","reserv_to_date","phone","name","email","address","gate","level","flat","comment","shop","gatecode","order_payment_type","delivery_price","total_to_pay","created"];
+                    for (var i in order) {
+                        if (avalColumns.indexOf(i) == -1) continue;
+                        client_data += _t.class_fields_profile[i].name +': ' + order[i] + '<br>';
+                        // client_data += i +': ' + order[i] + '<br>';
+                    }
+
+                    var m_obj = {
+                        name: (crm_user.name)? 'Здравствуйте ' + crm_user.name + '!' : 'Здравствуйте!',
+                        order_id:order.id,
+                        product_table:tbl,
+                        total_amount:total_amount,
+                        client_data:client_data
+                    };
+
+                    tpl = mustache.to_html(tpl, m_obj);
+                    sendMail({email: 'alextgco@gmail.com,ivantgco@gmail.com,insarov.ka@gmail.com', subject: 'Заказ с сайта ' + config.get('site_host'), html: tpl}, function (err, info) {
+                        if (err) {
+                            console.log('Не удалось отправить письмо Заказ с сайта.', err, info);
+                        }
+                        cb(null);
+                    });
+
+                }
+            },function(err){
+                console.log(err);
+            });
         }
     }, function (err, res) {
         if (err) {

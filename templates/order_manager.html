@@ -23,13 +23,17 @@
                 <div style="text-align: left; padding-left: 40px;; padding-right: 40px; font-size: 14px; line-height: 21px;">
 
                     <h3 style="font-weight: bold; text-align: center;height: 60px;padding-top: 30px;">{{name}}</h3>
-                    <div style="text-align: center;">
-                        Ваш заказ № <b>{{order_id}}</b> создан и ожидает обработки, наш менеджер свяжется с Вами в ближайшее время!<br/><br/>
+                    <div style="text-align: left;">
+                        Поступил заказ № <b>{{order_id}}</b>!<br/><br/>
 
                         {{{product_table}}}
                         <br/>
 
                         <div style="text-align: left;"><b>Итого: {{total_amount}} руб.</b></div>
+
+                        <br/>
+                        Данные по заказу:<br/><br/>
+                        {{{client_data}}}
 
                         <br/><br/>
 

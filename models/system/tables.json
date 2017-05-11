@@ -682,7 +682,7 @@
       "order_payment_type" : {"type": "varchar", "length": "255", "from_table": "order_payment_type", "keyword": "order_payment_type_id", "return_column": "name", "is_virtual": true, "name": "Тип оплаты"},
       "order_payment_type_sysname" : {"type": "varchar", "length": "255", "from_table": "order_payment_type", "keyword": "order_payment_type_id", "return_column": "sysname", "is_virtual": true, "name": "Тип оплаты sys", "visible": false, "default_value":"CREATED"},
       "additional_order_status_id" : {"type": "bigint", "length": "20", "visible": false},
-      "additional_order_status" : {"type": "varchar", "length": "255", "from_table": "additional_order_status", "keyword": "additional_order_status_id", "return_column": "name", "is_virtual": true, "name": "Состаяние"},
+      "additional_order_status" : {"type": "varchar", "length": "255", "from_table": "additional_order_status", "keyword": "additional_order_status_id", "return_column": "name", "is_virtual": true, "name": "Состояние"},
       "additional_order_status_sysname" : {"type": "varchar", "length": "255", "from_table": "additional_order_status", "keyword": "additional_order_status_id", "return_column": "sysname", "is_virtual": true, "name": "Статус sys", "visible": false},
       "amount" : {"type": "DECIMAL(15, 2)", "name": "Сумма"},
       "product_count" : {"type": "int", "name": "Кол-во товаров"},

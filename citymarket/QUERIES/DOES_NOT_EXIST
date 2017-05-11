@@ -1,0 +1,2 @@
+select distinct name, barcode from sync_file_item where status_id = 4 order by name
+
