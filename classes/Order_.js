@@ -379,7 +379,9 @@ Model.prototype.add_ = function (obj, cb) {
                         name: (crm_user.name)? 'Здравствуйте ' + crm_user.name + '!' : 'Здравствуйте!',
                         order_id:order_id,
                         product_table:tbl,
-                        total_amount:total_amount
+                        order_amount: order.amount,
+                        delivery_amount: order.delivery_price,
+                        total_to_pay: order.total_to_pay
                     };
 
                     tpl = mustache.to_html(tpl, m_obj);
