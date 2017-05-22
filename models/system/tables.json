@@ -698,7 +698,8 @@
       "flat": { "type": "varchar", "length": "255", "name": "Кв."},
       "comment": {"type": "text", "name": "Комментарий"},
       "delivery_price": {"type": "bigint", "length": "20", "name": "Стоимость доставки"},
-      "total_to_pay": {"type": "DECIMAL(15, 2)", "name": "Итого к оплате"}
+      "total_to_pay": {"type": "DECIMAL(15, 2)", "name": "Итого к оплате"},
+      "promocode": { "type": "varchar", "length": "255", "name": "Промокод"}
     }
   },
   "product_in_order": {
