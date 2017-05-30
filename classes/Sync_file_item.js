@@ -934,6 +934,7 @@ Model.prototype.apply_product = function (obj, cb) {
 
     var syncProducts, products;
     var syncProduct_barcodes = [];
+    var syncProduct_barcodes_names = [];
     var syncProduct_names = [];
     var using_categories = [];
     var categories = {};
@@ -977,8 +978,11 @@ Model.prototype.apply_product = function (obj, cb) {
                 for (var i in syncProducts) {
                     if (syncProducts[i].barcode) {
                         syncProduct_barcodes.push(syncProducts[i].barcode);
+                        // syncProduct_barcodes_names.push(syncProducts[i].name.replace(/,/ig,'&comma'));
+                        syncProduct_barcodes_names.push(syncProducts[i].name);
                     } else {
-                        syncProduct_names.push(syncProducts[i].name.replace(/,/ig,'&comma'));
+                        // syncProduct_names.push(syncProducts[i].name.replace(/,/ig,'&comma'));
+                        syncProduct_names.push(syncProducts[i].name);
                     }
 
                 }
@@ -1017,7 +1021,8 @@ Model.prototype.apply_product = function (obj, cb) {
                 o.params.where.push({
                     key: 'name',
                     type: 'in',
-                    val1: syncProduct_names.join(',').replace(/\&comma/ig,','),
+                    // val1: syncProduct_names.join(',').replace(/\&comma/ig,','),
+                    val1: syncProduct_names,
                     comparisonType: 'or',
                     group: 'barcodeOrName'
                 });
@@ -1038,6 +1043,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 var product = products[i];
                 for (var j in syncProducts) {
                     var sync_product = syncProducts[j];
+
 
                     if ((product.barcode == sync_product.barcode && !isNaN(+product.barcode) && +product.barcode) || (product.name == sync_product.name && product.name)) {
                         sync_product.is_active = true;
@@ -1088,7 +1094,113 @@ Model.prototype.apply_product = function (obj, cb) {
             }
             cb(null);
         },
+        getDoesNotExistByName:function(cb){
+            // поищем по имени среди тех у кого нет баркода
+            async.series({
+                getProducts: function (cb) {
+                    // Получим продукты для обновления по штрихкоду
+                    var o = {
+                        command: 'get',
+                        object: 'product',
+                        params: {
+                            where: [
+                                {
+                                    key:'shop_id',
+                                    val1:shop.id
+                                }
+                            ],
+                            collapseData: false
+                        }
+                    }
+                    if (syncProduct_barcodes_names.length) {
+                        o.params.where.push({
+                            key: 'name',
+                            type: 'in',
+                            // val1: syncProduct_barcodes_names.join(',').replace(/\&comma/ig,',')
+                            val1: syncProduct_barcodes_names
+                        });
+                        o.params.where.push({
+                            key: 'barcode',
+                            type: 'isNull'
+                        });
+                    }
+                    _t.api(o, function (err, res) {
+                        if (err) return cb(new MyError('При получении продуктов по заданным параметрам возникла ош2.', {
+                            o: o,
+                            err: err
+                        }));
+                        for (var i in res) {
+                            products.push(res[i]);
+                        }
 
+                        cb(null);
+                    })
+                },
+                //5411616146849
+                mergeProduct: function (cb) {
+                    var excludeToModify = ['image', 'to_modify', 'category', 'category_id', 'created', 'updated', 'published', 'deleted', 'deleted_by_user_id', 'remove_comment', 'created_by_user_id', 'self_company_id', 'ext_company_id'];
+                    var excludeToModifyIfExist = ['name', 'barcode'];
+                    for (var i in products) {
+                        var product = products[i];
+                        for (var j in syncProducts) {
+                            var sync_product = syncProducts[j];
+                            if (sync_product.exist) continue;
+
+                            if ((product.name == sync_product.name && product.name)) {
+                                sync_product.is_active = true;
+                                sync_product.exist = true;
+                                for (var k in product) {
+                                    if (excludeToModify.indexOf(k) != -1) {
+                                        //console.log('exclude', k);
+                                        continue;
+                                    }
+                                    if (excludeToModifyIfExist.indexOf(k) != -1 && product[k]!=='') {
+                                        //console.log('exclude', k);
+                                        continue;
+                                    }
+                                    if (k == 'id') {
+                                        sync_product.prod_id = product.id;
+                                        continue;
+                                    }
+                                    if (k == 'quantity') {
+                                        if (product.ignore_quantity) continue;
+                                        switch (sync_product.sync_file_type_sysname) {
+                                            case 'ADD':
+                                                sync_product.quantity = +product.quantity + sync_product.quantity;
+                                                product.quantity = sync_product.quantity;
+                                                if (!sync_product.to_modify) sync_product.to_modify = [];
+                                                sync_product.to_modify.push('quantity');
+                                                break;
+                                            case 'RPL':
+                                            case 'CLR':
+                                                var newQuantity = +sync_product.quantity - (product.in_basket_count || 0);
+                                                if (+product.quantity != newQuantity) {
+                                                    product.quantity = newQuantity;
+                                                    sync_product.quantity = newQuantity;
+                                                    if (!sync_product.to_modify) sync_product.to_modify = [];
+                                                    sync_product.to_modify.push('quantity');
+                                                }
+                                                break;
+                                            default:
+                                                delete syncProducts[j];
+                                                break;
+                                        }
+                                        continue;
+                                    }
+                                    if (product[k] !== sync_product[k] && typeof sync_product[k] != 'undefined' || sync_product.quantity !== '') {
+                                        if (!sync_product.to_modify) sync_product.to_modify = [];
+                                        //sync_product[k] = product[k];
+                                        //sync_product[k] = product[k];
+                                        sync_product.to_modify.push(k);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    cb(null);
+                }
+            },cb)
+        },
         modifyExist: function (cb) {
             async.eachSeries(Object.keys(syncProducts), function (cat_key, cb) {
                 var sync_prod = syncProducts[cat_key];
