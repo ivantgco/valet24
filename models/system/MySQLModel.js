@@ -268,7 +268,7 @@ MySQLModel.prototype.init = function (obj, cb) {
                         function (conn, cb) {
                             conn.queryValue("SELECT id FROM class_profile WHERE name = 'class_profile'", function (err, value) {
                                 conn.release();
-                                if (err) return cb(new MyError('Не удалось получить id для class_profile'));
+                                if (err) return cb(new MyError('Не удалось получить id для class_profile',{err:err}));
                                 if (!value) return cb(new MyError("Нет id для class_profile в таблице class_profile"));
                                 _t.class_profile_id = global.MySQLModel_profile.class_profile_id = value;
                                 return cb(null);
@@ -1141,6 +1141,22 @@ MySQLModel.prototype.get = function (params, cb) {
                         column_table:(colProfile.from_table_alias || colProfile.from_table),
                         from_table_alias:colProfile.from_table_alias
                     };
+                // } else if (colProfile.concat_fields) {
+                //     var concat_array = colProfile.concat_array;
+                //     var s = '';
+                //     for (var i in concat_array) {
+                //         var fieldKey = concat_array[i];
+                //         var fieldProfile = _t.class_fields_profile[fieldKey];
+                //         if (!s) s = 'CONCAT(';
+                //         if (fieldProfile) {
+                //             s += fieldProfile.from_table || tableName + '.' + (fieldProfile.return_column || fieldKey) + ',';
+                //         } else {
+                //             s += "'" + fieldKey + "',";
+                //         }
+                //     }
+                //     s = s.replace(/,$/, ') as ') + col;
+                //     ready_columns.push(s);
+                // }
                 } else if (colProfile.concat_fields) {
                     var concat_array = colProfile.concat_array;
                     var s = '';
@@ -1149,7 +1165,7 @@ MySQLModel.prototype.get = function (params, cb) {
                         var fieldProfile = _t.class_fields_profile[fieldKey];
                         if (!s) s = 'CONCAT(';
                         if (fieldProfile) {
-                            s += fieldProfile.from_table || tableName + '.' + (fieldProfile.return_column || fieldKey) + ',';
+                            s += (fieldProfile.from_table_alias || fieldProfile.from_table || tableName) + '.' + (fieldProfile.return_column || fieldKey) + ',';
                         } else {
                             s += "'" + fieldKey + "',";
                         }
@@ -1367,7 +1383,8 @@ MySQLModel.prototype.get = function (params, cb) {
                         conn.release();
                         if (err) {
                             err.msg = err.message;
-                            return cb(new MyError('Не удалось посчитать количество записей по запросу', err));
+
+                            return cb(new MyError('Не удалось посчитать количество записей по запросу', {err:err,params:params}));
                         }
                         count_all = res;
                         cb(null);
@@ -1684,8 +1701,9 @@ MySQLModel.prototype.modify = function (obj_in, cb) {
 
     var id = obj.id;
     if (!id) return cb(new MyError('Не передано ключевое поле. id',{object:_t.name,command:'modify',obj:obj}));
-    if (global.class_locks[_t.name][id] && obj.lock_key!==global.class_locks[_t.name][id].key) {
-
+    var key = obj.key || obj.lock_key;
+    if (global.class_locks[_t.name][id]) {
+        if (global.class_locks[_t.name][id].key != key){
         var diff = moment().diff(global.class_locks[_t.name][id].timestart);
         var locktime = obj.locktime || 10000;
         if (diff > locktime){
@@ -1695,6 +1713,8 @@ MySQLModel.prototype.modify = function (obj_in, cb) {
             _t.modify(obj_in, cb);
         },500);
         return;
+        }
+
 
         //return cb(new MyError('Запись заблокирована.',{name:_t.name,id:id}));
     }
@@ -1823,7 +1843,7 @@ MySQLModel.prototype.modify = function (obj_in, cb) {
             return cb(new MyError('Не удалось изменить ' + _t.table_ru, {id: obj.id, err: err}));
         }
         if (results == 0) {
-            return cb(new UserError('notModified', {id: obj.id, name:_t.name}));
+            return cb(new UserError('notModified', {id: obj.id, name:_t.name, obj:obj}));
         }
         if (!doNotClearCache){
             _t.clearCache();
@@ -1854,9 +1874,9 @@ MySQLModel.prototype.remove = function (obj, cb) {
     var id = obj.id;
     if (!obj.id) return cb(new MyError('Не передано ключевое поле. id'));
     //if (global.class_locks[_t.name][id] && obj.lock_key!==global.class_locks[_t.name][id]) return cb(new UserError('Запись заблокирована.',{name:_t.name,id:id}));
-
-    if (global.class_locks[_t.name][id] && obj.lock_key!==global.class_locks[_t.name][id].key) {
-
+    var key = obj.key || obj.lock_key;
+    if (global.class_locks[_t.name][id]) {
+        if (global.class_locks[_t.name][id].key != key){
         var diff = moment().diff(global.class_locks[_t.name][id].timestart);
         var locktime = obj.locktime || 10000;
         if (diff > locktime){
@@ -1866,6 +1886,8 @@ MySQLModel.prototype.remove = function (obj, cb) {
             _t.remove(obj, cb);
         },500);
         return;
+        }
+
 
         //return cb(new MyError('Запись заблокирована.',{name:_t.name,id:id}));
     }
@@ -2132,6 +2154,7 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                             };
                             _t.api(o, function (err, res) {
                                 if (err) {
+                                    // return cb(err);
                                     return cb(err);
                                 }
                                 if (!res.length) return cb(null);
@@ -2199,6 +2222,31 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                                     return cb(null);
                                 }
                             }
+                            var fieldsProfile = {};
+                            async.series({
+                                getProfile:function(cb){
+                                    var o = {
+                                        command:'get',
+                                        object:'class_fields_profile',
+                                        params:{
+                                            param_where:{
+                                                class:item.name
+                                            },
+                                            collapseData:false
+                                        }
+                                    };
+                                    _t.api(o, function(err, res){
+                                        if (err) return cb(new MyError('Не удалось получить class_fields_profile для класса',{err:err, o:o}));
+                                        for (var i in res) {
+                                            fieldsProfile[res[i].column_name] = res[i];
+                                        }
+                                        cb(null);
+                                    })
+
+                                },
+                                modify:function(cb){
+                                    if (!fieldsProfile[item.keyword]) return cb(null);
+                                    if (fieldsProfile[item.keyword].is_virtual) return cb(null);
                             var o = {
                                 command:'modify',
                                 object:item.name,
@@ -2208,7 +2256,15 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                                 }
                             };
                             o.params[item.keyword] = null;
-                            _t.api(o, cb);
+                                    _t.api(o, function(err, res){
+                                        if (err){
+                                            console.log(err);
+                                        }
+                                        cb(err, res);
+                                    });
+                                }
+                            },cb);
+
                         }, cb);
 
                     }, cb);

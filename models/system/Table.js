@@ -548,7 +548,8 @@ Table.prototype.createClass = function (params, cb) {
                             sql += ")";
                             conn.query(sql, [_t.class_id, Object.keys(_t.structure).join(',')], function (err, res) {
                                 conn.release();
-                                console.log('--------deleted---->', res.affectedRows);
+                                if (err) console.log('ERROR',err);
+                                else console.log('--------deleted---->', res.affectedRows);
                                 cb(err);
                             });
                         }
