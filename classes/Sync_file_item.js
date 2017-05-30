@@ -1012,7 +1012,8 @@ Model.prototype.apply_product = function (obj, cb) {
                 o.params.where.push({
                     key: 'barcode',
                     type: 'in',
-                    val1: syncProduct_barcodes.join(','),
+                    // val1: syncProduct_barcodes.join(','),
+                    val1: syncProduct_barcodes,
                     comparisonType: 'or',
                     group: 'barcodeOrName'
                 });
@@ -1121,7 +1122,15 @@ Model.prototype.apply_product = function (obj, cb) {
                         });
                         o.params.where.push({
                             key: 'barcode',
-                            type: 'isNull'
+                            type: 'isNull',
+                            comparisonType: 'or',
+                            group: 'barcodeNull'
+                        });
+                        o.params.where.push({
+                            key: 'barcode',
+                            val1:'',
+                            comparisonType: 'or',
+                            group: 'barcodeNull'
                         });
                     }
                     _t.api(o, function (err, res) {
