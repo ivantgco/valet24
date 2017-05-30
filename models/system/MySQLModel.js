@@ -1265,10 +1265,15 @@ MySQLModel.prototype.get = function (params, cb) {
                         break;
                     case 'in':
                         var values = '';
-                        if (typeof val1 !== 'object' && val1) val1 = String(val1).split(',');
-                        for (var i in val1) {
-                            values += pool.escape(val1[i]) + ',';
+                        // if (typeof val1 !== 'object' && val1) val1 = String(val1).split(',');
+                        if (typeof val1 == 'object'){
+                            for (var i in val1) {
+                                values += pool.escape(val1[i]) + ',';
+                            }
+                        } else if (typeof val1 == 'string'){
+                            values = pool.escape(val1);
                         }
+
                         values = values.replace(/,$/, '');
                         s = keyString + ' IN (' + values + ')';
                         break;

@@ -978,7 +978,7 @@ Model.prototype.apply_product = function (obj, cb) {
                     if (syncProducts[i].barcode) {
                         syncProduct_barcodes.push(syncProducts[i].barcode);
                     } else {
-                        syncProduct_names.push(syncProducts[i].name);
+                        syncProduct_names.push(syncProducts[i].name.replace(/,/ig,'&comma'));
                     }
 
                 }
@@ -1017,7 +1017,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 o.params.where.push({
                     key: 'name',
                     type: 'in',
-                    val1: syncProduct_names.join(','),
+                    val1: syncProduct_names.join(',').replace(/\&comma/ig,','),
                     comparisonType: 'or',
                     group: 'barcodeOrName'
                 });
