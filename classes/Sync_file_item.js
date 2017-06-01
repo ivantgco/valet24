@@ -128,7 +128,7 @@ Model.prototype.apply_category = function (obj, cb) {
                         {
                             key:'ext_id',
                             type:'in',
-                            val1:syncCategory_ids.join(',')
+                            val1:syncCategory_ids
                         },
                         {
                             key:'shop_id',
@@ -534,7 +534,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                         {
                             key:'ext_id',
                             type:'in',
-                            val1:syncProduct_ids.join(',')
+                            val1:syncProduct_ids
                         }
                     ],
                     collapseData:false
@@ -601,7 +601,7 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                         {
                             key:'ext_id',
                             type:'in',
-                            val1:using_categories.join(',')
+                            val1:using_categories
                         }
                     ],
                     collapseData:false

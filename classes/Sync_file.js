@@ -264,7 +264,7 @@ Model.prototype.sync_with_system = function (obj, cb) {
                     {
                         key:'filename',
                         type:'in',
-                        val1:filelist.join(',')
+                        val1:filelist
                     },
                     {
                         key:'shop_id',
@@ -450,13 +450,13 @@ Model.prototype.upload_file = function (obj, cb) {
                     {
                         key:'id',
                         type:'in',
-                        val1:ids.join(',')
+                        val1:ids
                     },
                     {
                         key:'status_sysname',
                         type:'in',
                         //val1:'NEW,ERR'
-                        val1:'NEW'
+                        val1:['NEW']
                     },
                     {
                         key:'shop_id',
@@ -622,7 +622,7 @@ Model.prototype.upload_all_files = function (obj, cb) {
                         key:'status_sysname',
                         type:'in',
                         //val1:'NEW,ERR'
-                        val1:'NEW'
+                        val1:['NEW']
                     },
                     {
                         key:'shop_id',

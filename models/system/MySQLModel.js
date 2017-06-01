@@ -1282,6 +1282,24 @@ MySQLModel.prototype.get = function (params, cb) {
                     case 'in':
                         var values = '';
                         // if (typeof val1 !== 'object' && val1) val1 = String(val1).split(',');
+                        if (typeof val1 !== 'object' && val1) val1 = [val1];
+                        if (typeof val1 == 'object') {
+                            for (var i in val1) {
+                                values += pool.escape(val1[i]) + ',';
+                            }
+                        } else if (typeof val1 == 'string') {
+                            values = pool.escape(val1);
+                        }
+
+                        values = values.replace(/,$/, '');
+                        s = keyString + ' IN (' + values + ')';
+                        break;
+                    case 'notIn':
+                    case '!in':
+                    case '!In':
+                        var values = '';
+                        // if (typeof val1 !== 'object' && val1) val1 = String(val1).split(',');
+                        if (typeof val1 !== 'object' && val1) val1 = [val1];
                         if (typeof val1 == 'object'){
                             for (var i in val1) {
                                 values += pool.escape(val1[i]) + ',';
@@ -1291,7 +1309,7 @@ MySQLModel.prototype.get = function (params, cb) {
                         }
 
                         values = values.replace(/,$/, '');
-                        s = keyString + ' IN (' + values + ')';
+                        s = keyString + ' NOT IN (' + values + ')';
                         break;
                     case 'between':
                     case '..':
@@ -1384,7 +1402,7 @@ MySQLModel.prototype.get = function (params, cb) {
                         if (err) {
                             err.msg = err.message;
 
-                            return cb(new MyError('Не удалось посчитать количество записей по запросу', {err:err,params:params}));
+                            return cb(new MyError('Не удалось посчитать количество записей по запросу', {err:err,params:params,sql:sqlCount}));
                         }
                         count_all = res;
                         cb(null);
@@ -1704,15 +1722,15 @@ MySQLModel.prototype.modify = function (obj_in, cb) {
     var key = obj.key || obj.lock_key;
     if (global.class_locks[_t.name][id]) {
         if (global.class_locks[_t.name][id].key != key){
-        var diff = moment().diff(global.class_locks[_t.name][id].timestart);
-        var locktime = obj.locktime || 10000;
-        if (diff > locktime){
-            return cb(new UserError('Запись уже заблокирована другим процессом. Более 10 сек (modify)',{obj:obj}));
-        }
-        setTimeout(function () {
-            _t.modify(obj_in, cb);
-        },500);
-        return;
+            var diff = moment().diff(global.class_locks[_t.name][id].timestart);
+            var locktime = obj.locktime || 10000;
+            if (diff > locktime){
+                return cb(new UserError('Запись уже заблокирована другим процессом. Более 10 сек (modify)',{obj:obj}));
+            }
+            setTimeout(function () {
+                _t.modify(obj_in, cb);
+            },500);
+            return;
         }
 
 
@@ -1774,7 +1792,7 @@ MySQLModel.prototype.modify = function (obj_in, cb) {
                 var colValue = obj[i];
                 if ((colProfile.is_virtual && !colProfile.from_table && fromClient) || (!colProfile.server_editable && !colProfile.server_updatable && fromClient && colProfile.column_name !== 'id')) {
                     delete obj[i];
-            }
+                }
             }
             delete obj['created'];
             if (Object.keys(obj).length < 2) return cb(new UserError('Поля, которые вы пытаетесь изменить не редактируемы.'));
@@ -1877,15 +1895,15 @@ MySQLModel.prototype.remove = function (obj, cb) {
     var key = obj.key || obj.lock_key;
     if (global.class_locks[_t.name][id]) {
         if (global.class_locks[_t.name][id].key != key){
-        var diff = moment().diff(global.class_locks[_t.name][id].timestart);
-        var locktime = obj.locktime || 10000;
-        if (diff > locktime){
-            return cb(new UserError('Запись уже заблокирована другим процессом. Более 10 сек (remove)',{obj:obj}));
-        }
-        setTimeout(function () {
-            _t.remove(obj, cb);
-        },500);
-        return;
+            var diff = moment().diff(global.class_locks[_t.name][id].timestart);
+            var locktime = obj.locktime || 10000;
+            if (diff > locktime){
+                return cb(new UserError('Запись уже заблокирована другим процессом. Более 10 сек (remove)',{obj:obj}));
+            }
+            setTimeout(function () {
+                _t.remove(obj, cb);
+            },500);
+            return;
         }
 
 
@@ -2126,6 +2144,7 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                 }
                 async.eachSeries(Object.keys(parasite_tables), function (key, cb) {
                     var keyword = parasite_tables[key];
+
                     // Есть ли данные и сколько
                     if (child_tables_arr.indexOf(key)!=-1) {
                         console.log('Данная таблица не использует исходную как справочник. Она зависимая (дочерняя)');
@@ -2204,7 +2223,7 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                         if (err) return cb(err);
                         if (!node.nodes.length) return cb(null);
                         remove(node.nodes, cb);
-    });
+                    });
                 }, cb);
             };
             async.series({
@@ -2247,15 +2266,15 @@ MySQLModel.prototype.removeCascade = function (obj, cb) {
                                 modify:function(cb){
                                     if (!fieldsProfile[item.keyword]) return cb(null);
                                     if (fieldsProfile[item.keyword].is_virtual) return cb(null);
-                            var o = {
-                                command:'modify',
-                                object:item.name,
-                                params:{
-                                    id:record.id,
-                                    rollback_key:rollback_key
-                                }
-                            };
-                            o.params[item.keyword] = null;
+                                    var o = {
+                                        command:'modify',
+                                        object:item.name,
+                                        params:{
+                                            id:record.id,
+                                            rollback_key:rollback_key
+                                        }
+                                    };
+                                    o.params[item.keyword] = null;
                                     _t.api(o, function(err, res){
                                         if (err){
                                             console.log(err);
