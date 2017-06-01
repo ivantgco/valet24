@@ -1479,8 +1479,8 @@ api_functions.get_set_products = function (obj, cb) {
             //    }
             //}
             //
-            o.params.limit = obj.limit || 100;
-            o.params.page_no = obj.page_no;
+            //o.params.limit = obj.limit || 100;
+            //o.params.page_no = obj.page_no;
 
             api(o, function (err, res) {
                 if (err) return cb(err);
