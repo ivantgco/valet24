@@ -9,6 +9,7 @@ var util = require('util');
 var async = require('async');
 var rollback = require('../modules/rollback');
 var funcs = require('../libs/functions');
+var request = require('request');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -74,6 +75,117 @@ Model.prototype.add = function (obj, cb) {
             _t.addPrototype(obj, cb);
         }
     }
+};
+
+Model.prototype.pushIntoWordpress = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var wordpress_url = 'http://valet24.tmweb.ru/create_wp_page.php';
+    var secure = 'SfL22ljis989128juaOaXCbsh91siuHHFs';
+
+    //var o = {
+    //    command:'pushIntoWordpress',
+    //    object:'Category'
+    //};
+    //socketQuery(o, function (err, res) {
+    //    console.log(err, res);
+    //});
+
+    // Получить данные
+    // Для каждого выполнить запрос push
+    // Alias записать в данные
+
+    var sets = [];
+
+
+    async.series({
+        getDate: function (cb) {
+            var params = {
+                where:[
+                    {
+                        key:'site_alias',
+                        type:'isNull',
+                        group:'1',
+                        comparisonType:'OR'
+                    },
+                    {
+                        key:'site_alias',
+                        val1:'',
+                        group:'1',
+                        comparisonType:'OR'
+                    }
+                ],
+                limit:100000,
+                collapseData:false
+            };
+            _t.get(params, function (err, res) {
+                if (err) return cb(err);
+                sets = res;
+                cb(null);
+            });
+        },
+        pushToWordpress: function (cb) {
+
+            var counter = 0;
+            var sets_count = sets.length;
+
+            console.log('Пакетов', sets_count);
+
+            async.eachSeries(sets, function (set_item, cb) {
+
+                var alias = 'set_'+ set_item.id;
+
+                var title = set_item.name.replace(/[^a-zA-Zа-яА-Я0-9]/ig,'_');
+
+                if (title.length>50) title = title.substring(0, 50);
+
+
+                var full_url = wordpress_url + '?type=SET&name=' + alias + '&alias=' + alias + '&code=' + secure;
+
+                console.log(full_url);
+
+                if (set_item.site_alias){
+                    counter++;
+                    return cb(null);
+                }
+
+                request(full_url, function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
+
+                        console.log('Ответ:',body); // Show the HTML for the Google homepage.
+
+                        if (body.indexOf('ERROR')!==-1){
+                            counter++;
+                            return cb(null);
+                        }
+                        var params = {
+                            id:set_item.id,
+                            site_alias:alias
+                        };
+
+                        _t.modify(params, cb);
+
+                    }else{
+
+                        console.log('error',error);
+
+                        return cb(error, response);
+
+                    }
+
+                    counter++;
+                    var percent = Math.ceil(counter * 100 / sets_count);
+                    _t.user.socket.emit('pushIntoWordpressCategory',{percent:percent});
+                })
+            }, cb);
+        }
+    }, function (err) {
+        if (err) return cb(err);
+        cb (null, new UserOk('Проставили альясы для пакетов.'))
+    });
 };
 
 Model.prototype.modify = function (obj, cb) {
@@ -143,6 +255,6 @@ Model.prototype.example = function (obj, cb) {
             cb(null, new UserOk('Ок'));
         }
     });
-}
+};
 
 module.exports = Model;

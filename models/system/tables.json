@@ -980,7 +980,8 @@
       "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"},
       "status_id" : {"type": "bigint", "length": "20", "visible": false},
       "status" : {"type": "varchar", "length": "255", "from_table": "product_set_status", "keyword": "status_id", "return_column": "name", "is_virtual": true},
-      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "product_set_status", "keyword": "status_id", "return_column": "sysname", "is_virtual": true,"default_value": "CREATED"}
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "product_set_status", "keyword": "status_id", "return_column": "sysname", "is_virtual": true,"default_value": "CREATED"},
+      "site_alias": {"type": "varchar", "length": "255", "name": "Альяс"}
     }
   },
   "product_in_set": {
