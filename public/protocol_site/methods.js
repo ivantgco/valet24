@@ -211,5 +211,40 @@ var methodos = {
                 }
             }
         }
+    },
+    get_sets: {
+        name:'get_sets',
+        name_ru:'Получить пакеты',
+        description:'',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'get_sets',
+            params:{
+
+            }
+        }
+    },
+    get_set_products: {
+        name:'get_set_products',
+        name_ru:'Получить продукты пакета',
+        description:'',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'get_set_products',
+            params:{
+                set_id:{
+                    required:true,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Необходимо передать id пакета'
+                }
+            }
+        }
     }
 };
