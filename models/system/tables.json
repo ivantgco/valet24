@@ -977,7 +977,10 @@
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
       "name": { "type": "varchar", "length": "255", "name": "Наименование"},
       "image": {"type": "varchar", "length": "255", "name": "Изображение"},
-      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"},
+      "status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status" : {"type": "varchar", "length": "255", "from_table": "product_set_status", "keyword": "status_id", "return_column": "name", "is_virtual": true},
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "product_set_status", "keyword": "status_id", "return_column": "sysname", "is_virtual": true,"default_value": "CREATED"}
     }
   },
   "product_in_set": {
@@ -994,6 +997,18 @@
       "product_id" : {"type": "bigint", "length": "20", "visible": false},
       "product_name" : {"type": "varchar", "length": "255", "from_table": "product", "keyword": "product_id", "return_column": "name", "is_virtual": true, "name": "Продукт"},
       "product_count" : {"type": "DECIMAL(17, 3)", "name": "Кол-во товаров", "default_value": 1}
+    }
+  },
+  "product_set_status": {
+    "profile": {
+      "name": "product_set_status",
+      "name_ru": "Статус пакета",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
     }
   }
 

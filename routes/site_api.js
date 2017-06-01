@@ -1251,6 +1251,64 @@ api_functions.repeat_order = function (obj, cb) {
 
 };
 
+api_functions.get_sets = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    var order_id = obj.order_id;
+    if (isNaN(+order_id)) return cb(new MyError('Не передан order_id'));
+
+    var crm_user;
+
+    var ids = [];
+    var product_sets;
+
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        get: function (cb) {
+            var o = {
+                command: 'get',
+                object: 'product_set',
+                params: {
+                    param_where:{
+                        status_sysname:'CREATED'
+                    },
+                    collapseData:false
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+
+                product_sets = res;
+
+                cb(err, res);
+            });
+        }
+    }, function (err, res) {
+        //console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
+        return cb(err, product_sets);
+    });
+
+};
 
 
 
