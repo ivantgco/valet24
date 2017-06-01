@@ -1279,6 +1279,13 @@ api_functions.get_sets = function (obj, cb) {
                     collapseData:false
                 }
             };
+
+            if(obj.id){
+
+                o.params.param_where.id = obj.id;
+
+            }
+
             api(o, function (err, res) {
                 if (err) return cb(err);
 
