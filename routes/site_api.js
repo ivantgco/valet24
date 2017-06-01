@@ -1389,7 +1389,7 @@ api_functions.get_set_products = function (obj, cb) {
                         {
                             key:'id',
                             type:'in',
-                            val1: products_in_set_ids.join(',')
+                            val1: products_in_set_ids
                         },
                         {
                             key:'quantity',
@@ -1481,7 +1481,7 @@ api_functions.get_set_products = function (obj, cb) {
             //
             //o.params.limit = obj.limit || 100;
             //o.params.page_no = obj.page_no;
-
+            console.log('OOOO-------->', o);
             api(o, function (err, res) {
                 if (err) return cb(err);
 
