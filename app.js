@@ -130,6 +130,7 @@ console.log('SERVER STARTED');
 global.fullSyncBJ = !!config.get('fullSyncBJFlag');
 
 
+
 setTimeout(function () {
     var api = require('./libs/api');
     var User = require('./classes/User');

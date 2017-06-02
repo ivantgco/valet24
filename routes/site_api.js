@@ -1614,35 +1614,35 @@ api_functions.setToOrder = function (obj, cb) {
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
-    var set_id = obj.id;
+    var set_id = obj.set_id;
     if (isNaN(+set_id)) return cb(new MyError('Не передан set_id'));
 
     var crm_user;
     var order_products;
     var ids = [];
     async.series({
-        getActiveUser: function (cb) {
-            var o = {
-                command: 'getBySidActive',
-                object: 'crm_user',
-                params: {
-                    sid: sid
-                    //columns:['name','phone']
-                }
-            };
-            api(o, function (err, res) {
-                if (err) return cb(err);
-                crm_user = res.user;
-                cb(null);
-            });
-        },
-        repeat: function (cb) {
+        // getActiveUser: function (cb) {
+        //     var o = {
+        //         command: 'getBySidActive',
+        //         object: 'crm_user',
+        //         params: {
+        //             sid: sid
+        //             //columns:['name','phone']
+        //         }
+        //     };
+        //     api(o, function (err, res) {
+        //         if (err) return cb(err);
+        //         crm_user = res.user;
+        //         cb(null);
+        //     });
+        // },
+        setToOrder: function (cb) {
             var o = {
                 command: 'setToOrder',
                 object: 'order_',
                 params: {
                     sid: sid,
-                    id:set_id
+                    set_id:set_id
                     //columns:['name','phone']
                 }
             };
@@ -1661,8 +1661,12 @@ api_functions.setToOrder = function (obj, cb) {
             })
         }
     }, function (err, res) {
+        if (err) {
+            console.log(err);
+            return(err);
+        }
         //console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
-        res.repeat.cart = res.getCart;
+        res.setToOrder.cart = res.getCart;
         console.log(res.getCart);
         return cb(err, res.repeat);
     });

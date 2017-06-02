@@ -1037,9 +1037,9 @@ Model.prototype.setToOrder = function (obj, cb) {
     }
 
     var _t = this;
-    var id = obj.id;
+    var set_id = obj.set_id;
 
-    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    if (isNaN(+set_id)) return cb(new MyError('Не передан set_id',{obj:obj}));
     var rollback_key = obj.rollback_key || rollback.create();
 
     var product_in_set;
@@ -1051,7 +1051,7 @@ Model.prototype.setToOrder = function (obj, cb) {
                 object: 'product_in_set',
                 params: {
                     param_where: {
-                        set_id:id
+                        id:set_id
                     },
                     collapseData: false
                 }
@@ -1063,24 +1063,37 @@ Model.prototype.setToOrder = function (obj, cb) {
             });
         },
         addToCart: function (cb) {
-            async.eachSeries(product_in_set, function (one_product, cb) {
-                var product;
-                async.series({
-                    getProduct: function (cb) {
-                        var o = {
-                            command: 'getById',
-                            object: 'product',
-                            params: {
-                                id: one_product.product_id
-                            }
-                        };
-                        _t.api(o, function (err, res) {
-                            if (err) return cb(new MyError('Не удалось получить товар', {o: o, err: err}));
-                            product = res[0];
-                            cb(null);
-                        });
-                    },
-                    add: function (cb) {
+            var product_ids = [];
+            for (var i in product_in_set) {
+                product_ids.push(product_in_set[i].product_id);
+            }
+            if (!product_ids.length) return cb(new UserError('Пакет пустой'));
+            var products;
+
+            async.series({
+                getProducts:function(cb){
+                    var o = {
+                        command: 'get',
+                        object: 'product',
+                        params: {
+                            where:[
+                                {
+                                    key:'id',
+                                    type:'in',
+                                    val1:product_ids
+                                }
+                            ],
+                            collapseData:false
+                        }
+                    };
+                    _t.api(o, function (err, res) {
+                        if (err) return cb(new MyError('Не удалось получить товары', {o: o, err: err}));
+                        products = res;
+                        cb(null);
+                    });
+                },
+                add:function(cb){
+                    async.eachSeries(products, function(product, cb){
                         if (!product.is_active) return cb(null);
                         if (product.quantity <= 0) return cb(null);
                         if (product.price_site <= 0) return cb(null);
@@ -1091,7 +1104,7 @@ Model.prototype.setToOrder = function (obj, cb) {
                             command:'add',
                             object:'product_in_cart',
                             params:{
-                                product_id:one_product.product_id,
+                                product_id:product.product_id,
                                 sid:obj.sid,
                                 product_count:product_count,
                                 is_replace:true
@@ -1100,13 +1113,59 @@ Model.prototype.setToOrder = function (obj, cb) {
                         _t.api(o, function (err, res) {
                             if (err){
                                 console.log('Не удалось добавить товар в корзину',err);
+
                             }
                             cb(null);
                         });
-                    }
-                },cb);
-            }, cb);
+                    }, cb);
+                }
+            },cb);
         }
+        // addToCart: function (cb) {
+        //     async.eachSeries(product_in_set, function (one_product, cb) {
+        //         var product;
+        //         async.series({
+        //             getProduct: function (cb) {
+        //                 var o = {
+        //                     command: 'getById',
+        //                     object: 'product',
+        //                     params: {
+        //                         id: one_product.product_id
+        //                     }
+        //                 };
+        //                 _t.api(o, function (err, res) {
+        //                     if (err) return cb(new MyError('Не удалось получить товар', {o: o, err: err}));
+        //                     product = res[0];
+        //                     cb(null);
+        //                 });
+        //             },
+        //             add: function (cb) {
+        //                 if (!product.is_active) return cb(null);
+        //                 if (product.quantity <= 0) return cb(null);
+        //                 if (product.price_site <= 0) return cb(null);
+        //
+        //                 var product_count = (+product.quantity >= +one_product.in_set_count)? +one_product.in_set_count : product.quantity;
+        //
+        //                 var o = {
+        //                     command:'add',
+        //                     object:'product_in_cart',
+        //                     params:{
+        //                         product_id:one_product.product_id,
+        //                         sid:obj.sid,
+        //                         product_count:product_count,
+        //                         is_replace:true
+        //                     }
+        //                 };
+        //                 _t.api(o, function (err, res) {
+        //                     if (err){
+        //                         console.log('Не удалось добавить товар в корзину',err);
+        //                     }
+        //                     cb(null);
+        //                 });
+        //             }
+        //         },cb);
+        //     }, cb);
+        // }
     },function (err, res) {
         if (err) {
             if (err.message == 'needConfirm') return cb(err);

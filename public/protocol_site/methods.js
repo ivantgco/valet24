@@ -246,5 +246,25 @@ var methodos = {
                 }
             }
         }
+    },
+    setToOrder: {
+        name:'setToOrder',
+        name_ru:'setToOrder',
+        description:'',
+        responseJSON:
+        '' +
+        '\nНет примера\n' +
+        '',
+        o:{
+            command:'setToOrder',
+            params:{
+                set_id:{
+                    required:true,
+                    default:'5',
+                    validation:'notNull',
+                    description: 'Необходимо передать id пакета'
+                }
+            }
+        }
     }
 };
