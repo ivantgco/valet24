@@ -1051,7 +1051,7 @@ Model.prototype.setToOrder = function (obj, cb) {
                 object: 'product_in_set',
                 params: {
                     param_where: {
-                        id:set_id
+                        product_set_id:set_id
                     },
                     collapseData: false
                 }
@@ -1064,8 +1064,10 @@ Model.prototype.setToOrder = function (obj, cb) {
         },
         addToCart: function (cb) {
             var product_ids = [];
+            var product_in_set_obj = {};
             for (var i in product_in_set) {
                 product_ids.push(product_in_set[i].product_id);
+                product_in_set_obj[product_in_set[i].product_id] = product_in_set[i];
             }
             if (!product_ids.length) return cb(new UserError('Пакет пустой'));
             var products;
@@ -1098,13 +1100,13 @@ Model.prototype.setToOrder = function (obj, cb) {
                         if (product.quantity <= 0) return cb(null);
                         if (product.price_site <= 0) return cb(null);
 
-                        var product_count = (+product.quantity >= +one_product.in_set_count)? +one_product.in_set_count : product.quantity;
+                        var product_count = (+product.quantity >= +product_in_set_obj[product.id].product_count)? +product_in_set_obj[product.id].product_count : product.quantity;
 
                         var o = {
                             command:'add',
                             object:'product_in_cart',
                             params:{
-                                product_id:product.product_id,
+                                product_id:product.id,
                                 sid:obj.sid,
                                 product_count:product_count,
                                 is_replace:true
