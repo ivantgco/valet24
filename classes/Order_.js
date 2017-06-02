@@ -1008,7 +1008,98 @@ Model.prototype.repeatOrder = function (obj, cb) {
                         _t.api(o, function (err, res) {
                             if (err){
                                 console.log('Не удалось добавить товар в корзину',err);
+                            }
+                            cb(null);
+                        });
+                    }
+                },cb);
+            }, cb);
+        }
+    },function (err, res) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            rollback.rollback({rollback_key: rollback_key, user: _t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        } else {
+            //if (!obj.doNotSaveRollback){
+            //    rollback.save({rollback_key:rollback_key, user:_t.user, name:_t.name, name_ru:_t.name_ru || _t.name, method:'METHOD_NAME', params:obj});
+            //}
+            cb(null, new UserOk('В корзину были добавлены товары, которые были в наличии'));
+        }
+    });
+};
 
+Model.prototype.setToOrder = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+
+    var _t = this;
+    var id = obj.id;
+
+    if (isNaN(+id)) return cb(new MyError('Не передан id',{obj:obj}));
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    var product_in_set;
+
+    async.series({
+        getSetProduct: function (cb) {
+            var o = {
+                command: 'get',
+                object: 'product_in_set',
+                params: {
+                    param_where: {
+                        set_id:id
+                    },
+                    collapseData: false
+                }
+            };
+            _t.api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товары из пакета', {o: o, err: err}));
+                product_in_set = res;
+                cb(null);
+            });
+        },
+        addToCart: function (cb) {
+            async.eachSeries(product_in_set, function (one_product, cb) {
+                var product;
+                async.series({
+                    getProduct: function (cb) {
+                        var o = {
+                            command: 'getById',
+                            object: 'product',
+                            params: {
+                                id: one_product.product_id
+                            }
+                        };
+                        _t.api(o, function (err, res) {
+                            if (err) return cb(new MyError('Не удалось получить товар', {o: o, err: err}));
+                            product = res[0];
+                            cb(null);
+                        });
+                    },
+                    add: function (cb) {
+                        if (!product.is_active) return cb(null);
+                        if (product.quantity <= 0) return cb(null);
+                        if (product.price_site <= 0) return cb(null);
+
+                        var product_count = (+product.quantity >= +one_product.in_set_count)? +one_product.in_set_count : product.quantity;
+
+                        var o = {
+                            command:'add',
+                            object:'product_in_cart',
+                            params:{
+                                product_id:one_product.product_id,
+                                sid:obj.sid,
+                                product_count:product_count,
+                                is_replace:true
+                            }
+                        };
+                        _t.api(o, function (err, res) {
+                            if (err){
+                                console.log('Не удалось добавить товар в корзину',err);
                             }
                             cb(null);
                         });

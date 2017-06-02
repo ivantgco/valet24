@@ -1605,5 +1605,71 @@ api_functions.get_set_products = function (obj, cb) {
 
 };
 
+api_functions.setToOrder = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    var set_id = obj.set_id;
+    if (isNaN(+order_id)) return cb(new MyError('Не передан set_id'));
+
+    var crm_user;
+    var order_products;
+    var ids = [];
+    async.series({
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        repeat: function (cb) {
+            var o = {
+                command: 'setToOrder',
+                object: 'order_',
+                params: {
+                    sid: sid,
+                    id:set_id
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                cb(err, res);
+            });
+        },
+        getCart: function (cb) {
+            var o = {
+                sid:sid
+            };
+            api_functions.get_cart(o, function (err, res) {
+                if (err) return cb(err);
+                cb(null, res)
+            })
+        }
+    }, function (err, res) {
+        //console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
+        res.repeat.cart = res.getCart;
+        console.log(res.getCart);
+        return cb(err, res.repeat);
+    });
+
+};
+
+
+
 
 
