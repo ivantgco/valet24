@@ -1668,7 +1668,7 @@ api_functions.setToOrder = function (obj, cb) {
         //console.log('order_products ++++++++++++++++++++++++++++++++++++++++++++',order_products);
         res.setToOrder.cart = res.getCart;
         console.log(res.getCart);
-        return cb(err, res.repeat);
+        return cb(err, res.setToOrder);
     });
 
 };
