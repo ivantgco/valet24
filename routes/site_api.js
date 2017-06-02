@@ -1614,7 +1614,7 @@ api_functions.setToOrder = function (obj, cb) {
     if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
     var sid = obj.sid;
     if (!sid) return cb(new MyError('Не передан sid'));
-    var set_id = obj.set_id;
+    var set_id = obj.id;
     if (isNaN(+set_id)) return cb(new MyError('Не передан set_id'));
 
     var crm_user;
