@@ -1049,7 +1049,9 @@ Model.prototype.apply_product = function (obj, cb) {
 
 
                     if ((product.barcode == sync_product.barcode && !isNaN(+product.barcode) && +product.barcode) || (product.name == sync_product.name && product.name)) {
-                        sync_product.is_active = true;
+                        if (!product.is_deleted){
+                            sync_product.is_active = true;
+                        }
                         sync_product.exist = true;
                         for (var k in product) {
                             if (excludeToModify.indexOf(k) != -1) {
