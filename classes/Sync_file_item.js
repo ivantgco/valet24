@@ -552,7 +552,9 @@ Model.prototype.apply_productOLD = function (obj, cb) {
                 var product = products[i];
                 for (var j in syncProducts) {
                     var sync_product = syncProducts[j];
-                    sync_product.is_active = true;
+                    if (product.is_deleted){
+                        continue;
+                    }
                     if (product.ext_id == sync_product.ext_id){
                         sync_product.is_modify = true;
                         for (var k in product) {

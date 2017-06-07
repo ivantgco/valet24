@@ -1349,6 +1349,116 @@ Model.prototype.setNotActive = function (obj, cb) {
     _t.execProcedure(params, cb);
 };
 
+
+// socketQuery({command:'importRemovedFromExcel',object:'Product',params:{excel_filename:'to_remove_07062017.xls'}}, function (err, res) {
+//    console.log(err, res);
+// });
+Model.prototype.importRemovedFromExcel = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var confirm = obj.confirm;
+    var rollback_key = obj.rollback_key || rollback.create();
+
+    //var filename = obj.filename;
+    //if (!filename) return cb(new UserError('Необходимо указать файл..',{obj:obj}));
+    var sync_dir = './citymarket/sync/excel/to_remove/';
+    var excel_filename = obj.excel_filename;
+    if (!excel_filename) return cb(new MyError('Необходимо указать имя файла. Файл должен быть в ./citymarket/sync/excel/to_remove'));
+
+
+    var products = {};
+    var shop;
+    var product_count = 0;
+    var product_counter = 0;
+    var codes = {};
+    var codes_arr = [];
+    async.series({
+        readFromFile: function (cb) {
+            var workbook = XLSX.readFile(sync_dir + excel_filename);
+            var first_sheet_name = workbook.SheetNames[0];
+            /* Get worksheet */
+            var worksheet = workbook.Sheets[first_sheet_name];
+            var sheet1 = XLSX.utils.sheet_to_json(worksheet);
+            for (var i in sheet1) {
+                var row = sheet1[i];
+                row['Код'] = (typeof row['Код'] == 'string')? row['Код'].replace(/\s|\,/ig,'') : '';
+                // row['Код'] = (typeof row['Код'] == 'string')? row['Код'].trim() : '';
+                codes[row['Код']] = false;
+                codes_arr.push(row['Код']);
+            }
+            console.log('readFromFile READY');
+            cb(null);
+        },
+
+
+
+        loadAllProductsAndMerge: function (cb) {
+            // Загрузить все товары
+            // Смерджить товары
+            var params = {
+                where:[
+                    {
+                        key:'ext_id',
+                        type:'in',
+                        val1:codes_arr
+                    },
+                    {
+                        key:'is_deleted',
+                        val1:false
+                    }
+                ],
+                collapseData:false,
+                limit:10000000
+            };
+            _t.get(params, function (err, res) {
+                if (err) return cb(new MyError('При получении всех товаров возникла ошибка.',{o:o, err:err}));
+                for (var i in res) {
+                    if (codes[res[i].ext_id] === false && !res[i].is_deleted) codes[res[i].ext_id] = res[i].id;
+
+                }
+                console.log('loadAllProductsAndMerge READY');
+                cb(null);
+            });
+        },
+        modifyProducts: function (cb) {
+            for (var i in codes) {
+                if (!codes[i]) delete codes[i];
+            }
+
+            // Обновим существующие если нужно (появилась категория)
+            async.eachSeries(codes, function (product_id, cb) {
+                var params = {
+                    id:product_id,
+                    is_deleted:true,
+                    is_active:false,
+                    rollback_key:rollback_key
+                };
+                _t.modify(params, function (err, res) {
+                    if (err) return cb(new MyError('При изменении товара возникла ош.',{o:o, err:err}));
+                    console.log('Продукт установлен как удаленный: ', product_id);
+                    cb(null);
+                });
+            }, cb);
+        }
+    }, function (err) {
+        if (err) {
+            if (err.message == 'needConfirm') return cb(err);
+            if (err instanceof UserOk || err instanceof UserError){
+                //err.data.count = 0;
+                return cb(null, err)
+            }
+            rollback.rollback({rollback_key:rollback_key,user:_t.user}, function (err2) {
+                return cb(err, err2);
+            });
+        }else{
+            cb(null, new UserOk('Ok.'));
+        }
+    });
+};
+
 //4606272022113
 Model.prototype.example = function (obj, cb) {
     if (arguments.length == 1) {
