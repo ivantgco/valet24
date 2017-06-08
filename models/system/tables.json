@@ -933,7 +933,8 @@
       "not_used_3": {"type": "varchar", "length": "255", "name": "notUsed"},
       "parent_category_cod": {"type": "varchar", "length": "255", "name": "Код родительской группы"},
       "is_product": {"type": "tinyint", "length": "1", "name": "Товар/группа"},
-      "grapp_list": {"type": "varchar", "length": "255", "name": "Список грапп"}
+      "grapp_list": {"type": "varchar", "length": "255", "name": "Список грапп"},
+      "is_deleted" : {"type": "tinyint", "length": "1", "name": "Удален из магазина", "default":0}
     }
   },
   "crm_user_favorite": {
