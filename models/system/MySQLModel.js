@@ -2545,21 +2545,29 @@ MySQLModel.prototype.execProcedure = function (obj, cb) {
     async.waterfall([
         pool.getConn,
         function (conn, cb) {
-            conn.query('CALL '+ procedureName +'()', function (err, res) {
+
+            var q;
+            if (obj.return_alias){
+                q = 'select ' + procedureName + '() as ' + obj.return_alias;
+            }else{
+                q = 'CALL ' + procedureName + '()';
+            }
+            console.log(q);
+            conn.query(q, function (err, res) {
                 conn.release();
                 if (err) {
                     err.msg = err.message;
                     return cb(new MyError('Не удалось выполнить хранимую процедуру ' + procedureName, err));
                 }
-                cb(null);
+                cb(null, res);
             });
-        },
+        }
     ], function (err, results) {
         if (err) {
             return cb(err);
         }
         if (!obj.doNotClearCache) _t.clearCache();
-        cb(null, results);
+        cb(null, results[0]);
     });
 };
 

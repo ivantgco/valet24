@@ -82,7 +82,28 @@
     '<div class="btnDoubleInner">Фоновая задача</div>' +
     '</div>';
 
+    btn1Html += '<div class="nb btn btnDouble blue toRight " id="getFullUpdateLastDatetime" style="opacity: 1;">' +
+        '<i class="fa fa-upload"></i>' +
+        '<div class="btnDoubleInner">Последнее обновление</div>' +
+        '</div>';
+
     $('.ct-environment-buttons ul').append(btn1Html);
+
+    $('#getFullUpdateLastDatetime').off('click').on('click', function(){
+
+
+        var o = {
+            command: 'getFullUpdateLastDatetime',
+            object: 'sync_file',
+            params: {
+
+            }
+        };
+        socketQuery(o, function (res) {
+            console.log(res);
+        });
+
+    });
 
     $('#toggleFullSyncBJ').off('click').on('click', function(){
 

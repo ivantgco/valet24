@@ -13,6 +13,7 @@ var iconvlite = require('iconv-lite');
 var path = require('path');
 var FtpClient = require('ftp');
 var config = require('../config/index');
+var moment = require('moment');
 
 var Model = function(obj){
     this.name = obj.name;
@@ -678,9 +679,10 @@ Model.prototype.fullSync = function (obj, cb) {
         obj = {};
     }
     var _t = this;
+    var errors = [];
     if (_t.in_sync) {
         console.log('Цикл синхронизации еще идет...');
-        return cb(null);
+        return cb(null, new UserOk('Цикл синхронизации еще идет...',{errors:errors}));
     }
     _t.in_sync = true;
     //var id = obj.id;
@@ -692,11 +694,17 @@ Model.prototype.fullSync = function (obj, cb) {
     // Распарсить файлы
     // Применить записи файлов
 
+
+
     async.series({
         getFromFTP: function (cb) {
             _t.getFromFTP(function (err) {
                 if (err) {
                     console.log('getFromFTP' ,err);
+                    errors.push({
+                        f:'getFromFTP',
+                        err:JSON.stringify(err)
+                    });
                 }
                 console.log('==> getFromFTP SUCCESS');
                 cb(null);
@@ -706,6 +714,10 @@ Model.prototype.fullSync = function (obj, cb) {
             _t.sync_with_system(function (err) {
                 if (err) {
                     console.log('sync_with_system', err);
+                    errors.push({
+                        f:'sync_with_system',
+                        err:JSON.stringify(err)
+                    });
                 }
                 console.log('==> sync_with_system SUCCESS');
                 cb(null);
@@ -715,6 +727,10 @@ Model.prototype.fullSync = function (obj, cb) {
             _t.upload_all_files(function (err) {
                 if (err) {
                     console.log('upload_all_files', err);
+                    errors.push({
+                        f:'upload_all_files',
+                        err:JSON.stringify(err)
+                    });
                 }
                 console.log('==> upload_all_files SUCCESS');
                 cb(null);
@@ -726,12 +742,56 @@ Model.prototype.fullSync = function (obj, cb) {
                 object:'Sync_file_item',
                 params:{
                 }
-            }
+            };
             _t.api(o, function (err) {
                 if (err) {
                     console.log('apply_product_all', err);
+                    errors.push({
+                        f:'apply_product_all',
+                        err:JSON.stringify(err)
+                    });
                 }
                 console.log('==> apply_product_all SUCCESS');
+                cb(null);
+            });
+        },
+        clearRemovedProduct: function (cb) {
+            var o = {
+                command:'importRemovedFromExcel',
+                object:'Product',
+                params:{
+                    excel_filename:'to_remove_07062017.xls'
+                }
+            };
+            _t.api(o, function (err) {
+                if (err) {
+                    console.log('clearRemovedProduct', err);
+                    errors.push({
+                        f:'clearRemovedProduct',
+                        err:JSON.stringify(err)
+                    });
+                }
+                console.log('==> clearRemovedProduct SUCCESS');
+                cb(null);
+            });
+        },
+        clearRemovedSyncFileItem: function (cb) {
+            var o = {
+                command:'importRemovedFromExcel',
+                object:'Sync_file_item',
+                params:{
+                    excel_filename:'to_remove_07062017.xls'
+                }
+            };
+            _t.api(o, function (err) {
+                if (err) {
+                    console.log('clearRemovedSyncFileItem', err);
+                    errors.push({
+                        f:'clearRemovedSyncFileItem',
+                        err:JSON.stringify(err)
+                    });
+                }
+                console.log('==> clearRemovedSyncFileItem SUCCESS');
                 cb(null);
             });
         }
@@ -745,7 +805,7 @@ Model.prototype.fullSync = function (obj, cb) {
             });
         }else{
             _t.in_sync = false;
-            cb(null, new UserOk('Ок.'));
+            cb(null, new UserOk('Ок.',{errors:errors}));
         }
     });
 }
@@ -920,6 +980,32 @@ Model.prototype.toggleFullSyncBJ = function (obj, cb) {
     global.fullSyncBJ = !global.fullSyncBJ;
     if (global.fullSyncBJ) cb(null, new UserOk('Фоновая задача синхронизации включена'));
     else  cb(null, new UserOk('Фоновая задача синхронизации выключена'));
+};
+
+// var o = {
+//    command: 'getFullUpdateLastDatetime',
+//    object: 'sync_file',
+//    params: {
+//
+//    }
+// };
+// socketQuery(o, function (res) {
+//    console.log(res);
+// });
+Model.prototype.getFullUpdateLastDatetime = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    var params = {
+        procedureName:'get_full_update_last_datetime',
+        return_alias:'d'
+    };
+    _t.execProcedure(params, function (err, res) {
+        if (err) return cb(new UserError('Ошибка при получении даты и времени последнего ПОЛНОГО обновления. См. консоль',{err:err, res:res}));
+        cb(err, new UserOk('Дата и время последнего ПОЛНОГО обновления:\n' + moment(res.d, 'YYYY-MM-DD HH:mm:ss').format('DD.MM.YYYY HH:mm:ss')));
+    });
 };
 
 /*Model.prototype.upload_files = function (obj, cb) {

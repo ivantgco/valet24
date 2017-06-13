@@ -6,6 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var config = require('./config');
+var sendMail = require('./libs/sendMail');
+
 var app = express();
 
 
@@ -146,7 +148,9 @@ setTimeout(function () {
         },
         startBJ: function (cb) {
             console.log('В startBJ');
+            cb(null, null);
             setInterval(function () {
+                var d1 = moment();
                 console.log('global.fullSyncBJ',global.fullSyncBJ);
                 if (!global.fullSyncBJ) return;
                 console.log(moment().format('DD.MM.YYYY HH:mm:ss'),'FULLSYNC BACKGROUNDJOB STARTED ====>');
@@ -161,6 +165,28 @@ setTimeout(function () {
                     console.log('FULLSYNC BACKGROUNDJOB ====>');
                     console.log('err', err);
                     console.log('res', res);
+                    res.errors = res.errors || [];
+                    var diff = moment().diff(d1);
+                    if (diff > 5000 || res.errors.length || err){
+                        var subject = 'Синхронизация ' + moment().format('DD.MM.YYYY HH:mm') + ' Время: ' + diff;
+                        var html = 'Синхронизация прошла без глобальных ошибок\n RES:\n' + JSON.stringify(res);
+                        if (res.errors.length){
+                            html += '\n\nБыли не глобальные ошибки:\n' + JSON.stringify(res.errors);
+                        }
+                        if (err){
+                            subject = 'Ошибка. Синхронизация ' + moment().format('DD.MM.YYYY HH:mm') + ' Время: ' + diff;
+                            html = JSON.stringify(err);
+                        }
+                        var o = {
+                            email: 'ivantgco@gmail.com',
+                            subject: subject,
+                            html: html
+                        };
+                        sendMail(o, function (err) {
+                            console.log(err);
+                            //  callback(err);
+                        });
+                    }
                 },sys_user);
             }, config.get('syncInterval') || 1200000);
         }
