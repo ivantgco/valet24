@@ -178,7 +178,7 @@ setTimeout(function () {
                             html = JSON.stringify(err);
                         }
                         var o = {
-                            email: 'ivantgco@gmail.com',
+                            email: 'ivantgco@gmail.com,insarov.ka@gmail.com',
                             subject: subject,
                             html: html
                         };
