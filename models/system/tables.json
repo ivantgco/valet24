@@ -600,7 +600,9 @@
       "excel_alias": {"type": "varchar", "length": "255", "name": "Альяс excel"},
       "category_alias": {"type": "varchar", "length": "255", "name": "category_alias"},
       "search_string" : {"type": "text", "name": "Поисковая строка","hint":"Напишите доп. слова для поиска разделяя вертикальной чертой \"|\". В конце \"|\" обязательна! Например: Snikers|батончик|"},
-      "is_deleted" : {"type": "tinyint", "length": "1", "name": "Удален из магазина", "default":0}
+      "is_deleted" : {"type": "tinyint", "length": "1", "name": "Удален из магазина", "default":0},
+      "price_action" : {"type": "DECIMAL(15, 2)", "name": "Цена по акции"},
+      "is_action" : {"type": "tinyint", "length": "1", "name": "Акционный товар"}
     }
   },
   "site_pages": {
@@ -662,7 +664,9 @@
       "category_id" : {"type": "bigint", "length": "20", "visible": false},
       "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "is_virtual": true, "name": "Подкатегория"},
       "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "is_virtual": true},
-      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "is_virtual": true, "name": "Категория"}
+      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "is_virtual": true, "name": "Категория"},
+      "price_action" : {"type": "DECIMAL(15, 2)", "name": "Цена по акции"},
+      "is_action" : {"type": "tinyint", "length": "1", "name": "Акционный товар"}
     }
   },
   "order_": {
@@ -731,7 +735,9 @@
       "category_id" : {"type": "bigint", "length": "20", "visible": false},
       "category" : {"type": "varchar", "length": "255", "from_table": "category", "keyword": "category_id", "return_column": "name", "is_virtual": true, "name": "Подкатегория"},
       "parent_category_id" : {"type": "varchar", "length": "255", "from_table": "category", "join_table": "category", "keyword": "parent_category_id", "return_column": "id", "is_virtual": true},
-      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "is_virtual": true, "name": "Категория"}
+      "parent_category" : {"type": "varchar", "length": "255", "from_table":"category", "join_table": "category", "keyword": "parent_category_id", "return_column": "name", "is_virtual": true, "name": "Категория"},
+      "price_action" : {"type": "DECIMAL(15, 2)", "name": "Цена по акции"},
+      "is_action" : {"type": "tinyint", "length": "1", "name": "Акционный товар"}
     }
   },
   "order_status": {
@@ -782,7 +788,8 @@
       "gate": { "type": "varchar", "length": "255", "name": "Подъезд"},
       "gatecode": { "type": "varchar", "length": "255", "name": "Код домофона"},
       "level": { "type": "varchar", "length": "255", "name": "Этаж"},
-      "flat": { "type": "varchar", "length": "255", "name": "Кв."}
+      "flat": { "type": "varchar", "length": "255", "name": "Кв."},
+      "comment": {"type": "text", "name": "Комментарий"}
     }
   },
   "crm_user_status": {
@@ -902,7 +909,7 @@
     },
     "structure": {
       "id": {"type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "sync_file_id" : {"type": "bigint", "length": "20", "visible": false, "visible": false, "require":true},
+      "sync_file_id" : {"type": "bigint", "length": "20", "visible": false, "require":true},
       "shop_id" : {"type": "bigint", "length": "20", "visible": false},
       "shop" : {"type": "varchar", "length": "255", "from_table": "shop", "keyword": "shop_id", "return_column": "name", "is_virtual": true, "name": "Магазин"},
       "filename" : {"type": "varchar", "length": "255", "from_table": "sync_file", "keyword": "sync_file_id", "return_column": "filename", "is_virtual": true, "name": "Файл"},
@@ -920,6 +927,8 @@
       "name": {"type": "varchar", "length": "255", "name": "Наименование"},
       "name_check": {"type": "varchar", "length": "255", "name": "Наименование(чек)"},
       "price": {"type": "DECIMAL(15, 2)", "name": "Цена"},
+      "price_action" : {"type": "DECIMAL(15, 2)", "name": "Цена по акции"},
+      "is_action" : {"type": "tinyint", "length": "1", "name": "Акционный товар"},
       "quantity": {"type": "DECIMAL(17, 3)", "name": "Остаток товара"},
       "quantity_minus_in_order": {"type": "DECIMAL(17, 3)", "name": "Остаток (Текущий)"},
       "not_used_1": {"type": "varchar", "length": "255", "name": "notUsed"},
@@ -1013,6 +1022,35 @@
       "name": { "type": "varchar", "length": "255", "name": "Наименование"},
       "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
     }
+  },
+  "review": {
+    "profile": {
+      "name": "review",
+      "name_ru": "Отзыв",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "title": { "type": "varchar", "length": "255", "name": "Заголовок"},
+      "text": {"type": "text", "name": "Комментарий"},
+      "review_date": {"type": "date", "name": "Дата"},
+      "user_name": { "type": "varchar", "length": "255", "name": "Пользователь"},
+      "status_id" : {"type": "bigint", "length": "20", "visible": false},
+      "status" : {"type": "varchar", "length": "255", "from_table": "review_status", "keyword": "status_id", "return_column": "name", "is_virtual": true},
+      "status_sysname" : {"type": "varchar", "length": "255", "from_table": "review_status", "keyword": "status_id", "return_column": "sysname", "is_virtual": true,"default_value": "CREATED"},
+      "rating": {"type": "DECIMAL(20, 2)", "name": "Рейтинг"}
+    }
+  },
+  "review_status": {
+    "profile": {
+      "name": "review_status",
+      "name_ru": "Статус отзыва",
+      "ending": ""
+    },
+    "structure": {
+      "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
+      "name": { "type": "varchar", "length": "255", "name": "Наименование"},
+      "sysname": { "type": "varchar", "length": "255", "name": "Системное имя"}
+    }
   }
-
 }

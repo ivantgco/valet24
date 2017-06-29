@@ -653,7 +653,7 @@
             '</div>';
 
 
-        if (childName != '') {
+        if (childName && childName != '') {
 
             if (_t.activeId == 'new') {
                 if (typeof callback == 'function') {

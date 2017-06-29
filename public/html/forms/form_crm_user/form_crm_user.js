@@ -1,45 +1,30 @@
-(function () {
-    var instance = MB.O.forms["form_crm_user"];
-    instance.custom = function (callback) {
-        var id = MB.O.forms.form_crm_user.activeId;
-        uiTabs();
-        var table1 = new MB.Table({
-            world: "crm_user_tickets",
-            name: "tbl_crm_ticket",
-            params: {
-                parent: instance
-                // parentkeyvalue: id,
-                // parentobject: "form_role",
-                // parentobjecttype: "form"
-            }
-        });
-        table1.create(function () {});
+(function(){
 
-        var table2 = new MB.Table({
-            world: "crm_user_orders",
-            name: "tbl_crm_order",
-            params: {
-                parent: instance
-                // parentkeyvalue: id,
-                // parentobject: "form_role",
-                // parentobjecttype: "form"
-            }
-        });
-        table2.create(function () {});
+    var formID = MB.Forms.justLoadedId;
+    var formInstance = MB.Forms.getForm('form_crm_user', formID);
+    var formWrapper = $('#mw-' + formInstance.id);
 
-        $(document).ready(function(){
-            $('.forInForm').eq(0).on('click', function(){
-                table1.reload('data');
-            });
+    var modalInstance = MB.Core.modalWindows.windows.getWindow(formID);
+    modalInstance.stick = 'top';
+    modalInstance.stickModal();
 
-            $('.forInForm').eq(1).on('click', function(){
-                table2.reload('data');
-            });
-        });
+    var tbl = formInstance.tblInstances[0];
 
-       callback();
-    };
+    var total_orders = 0;
+    var total_amount = 0;
+
+    for(var i in tbl.data.data){
+        var o = tbl.data.data[i];
+
+        total_orders++;
+        total_amount += +o.total_to_pay;
+
+    }
+
+    formWrapper.find('.user-orders-count').html(total_orders);
+    formWrapper.find('.user-orders-amount').html(total_amount + ' руб.');
 
 
-})();
+}());
+
 

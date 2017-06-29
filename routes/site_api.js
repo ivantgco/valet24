@@ -457,6 +457,47 @@ api_functions.get_cart = function (obj, cb) {
 
 };
 
+api_functions.get_reviews = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+
+    var sid = obj.sid;
+
+    if (!sid) return cb(new MyError('Не передан sid'));
+
+    var reviews;
+
+    async.series({
+        getReviews: function (cb) {
+            var o = {
+                command:'get',
+                object:'review',
+                params:{
+                    param_where:{
+                        sid:sid
+                    },
+                    collapseData:false
+                }
+            };
+            if (obj.columns) o.params.columns = obj.columns.split(',');
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить корзину.', {err:err}));
+                reviews = res[0];
+                cb(null);
+            });
+        }
+    }, function (err) {
+        if (err) return cb(err);
+        return cb(null, reviews);
+    })
+
+};
+
 api_functions.add_product_in_cart = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];
