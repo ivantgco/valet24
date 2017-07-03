@@ -481,8 +481,8 @@ api_functions.get_reviews = function (obj, cb) {
                     where: [{
                         key: 'status_sysname',
                         val1: 'PUBLISHED'
-                    }],
-                    collapseData:false
+                    }]
+//                    collapseData:false
                 }
             };
 
