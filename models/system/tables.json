@@ -1031,7 +1031,7 @@
     },
     "structure": {
       "id": { "type": "bigint", "length": "20", "notNull": true, "autoInc": true, "primary_key": true},
-      "title": { "type": "varchar", "length": "255", "name": "Заголовок"},
+      "review_title": { "type": "varchar", "length": "255", "name": "Заголовок"},
       "text": {"type": "text", "name": "Комментарий"},
       "review_date": {"type": "date", "name": "Дата"},
       "user_name": { "type": "varchar", "length": "255", "name": "Пользователь"},
