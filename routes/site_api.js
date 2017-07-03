@@ -490,7 +490,7 @@ api_functions.get_reviews = function (obj, cb) {
             api(o, function (err, res) {
                 if (err) return cb(new MyError('Не удалось получить отзывы.', {err:err}));
 
-                reviews = res[0];
+                reviews = res;
 
                 cb(null);
             });
