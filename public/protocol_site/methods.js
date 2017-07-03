@@ -95,6 +95,19 @@ var methodos = {
             }
         }
     },
+    get_reviews: {
+        name:'get_reviews',
+        name_ru:'Запросить отзывы',
+        description:'Вернет список отзывов.',
+        responseJSON:
+            '' +
+                '\nНет примера\n' +
+                '',
+        o:{
+            command:'get_reviews',
+            params:{}
+        }
+    },
     get_cart: {
         name:'get_cart',
         name_ru:'Получить корзину',

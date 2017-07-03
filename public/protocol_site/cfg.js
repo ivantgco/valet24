@@ -1,5 +1,6 @@
 //var host = 'http://192.168.1.190';
-var host = 'http://192.168.1.35:81';
+//var host = 'http://192.168.1.35:81';
+var host = 'http://localhost:81';
 //var host = 'https://shop.kassa.uz';
 
 var url = '/site_api';

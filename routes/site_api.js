@@ -478,16 +478,20 @@ api_functions.get_reviews = function (obj, cb) {
                 command:'get',
                 object:'review',
                 params:{
-                    param_where:{
-                        sid:sid
-                    },
+                    where: [{
+                        key: 'status_sysname',
+                        val1: 'PUBLISHED'
+                    }],
                     collapseData:false
                 }
             };
-            if (obj.columns) o.params.columns = obj.columns.split(',');
+
+
             api(o, function (err, res) {
-                if (err) return cb(new MyError('Не удалось получить корзину.', {err:err}));
+                if (err) return cb(new MyError('Не удалось получить отзывы.', {err:err}));
+
                 reviews = res[0];
+
                 cb(null);
             });
         }
