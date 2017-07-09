@@ -388,6 +388,256 @@ api_functions.get_product = function (obj, cb) {
     });
 };
 
+api_functions.get_action_product = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    if (typeof cb !== 'function') throw new MyError('В метод не передан cb');
+    if (typeof obj !== 'object') return cb(new MyError('В метод не переданы obj'));
+    var sid = obj.sid;
+    if (!sid) return cb(new MyError('Не передан sid'));
+    var shop_sysname = obj.shop_sysname;
+
+    var products = [];
+    var shop;
+    var crm_user;
+    async.series({
+        getShop: function (cb) {
+            var o = {
+                command:'get',
+                object:'shop',
+                params:{
+                    param_where:{
+                        is_current:true
+                    },
+                    collapseData:false
+                }
+            };
+            if (shop_sysname){
+                o.params.param_where = {
+                    sysname:shop_sysname
+                };
+            }else{
+                o.params.param_where = {
+                    is_current:true
+                };
+            }
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('При попытке получить текущий магазин произошла ош.',{o:o, err:err}));
+                if (!res.length) return cb(new UserError('Не удалось получить текущий магазин. Выставите ткущий магазин.'));
+                shop = res[0];
+                cb(null);
+            })
+        },
+        getProducts: function (cb) {
+            console.log('\n',obj);
+            var t1 = moment();
+            var w, ids;
+            var o = {
+                command:'get',
+                object:'product',
+                params:{
+                    where:[
+                        {
+                            key:'is_action',
+                            val1:true
+                        },
+                        {
+                            key:'price_action',
+                            type:'>',
+                            val1:0
+                        },
+                        {
+                            key:'is_active',
+                            val1:true
+                        },
+                        {
+                            key:'quantity',
+                            type:'>',
+                            val1:0
+                        },
+                        {
+                            key:'price_site',
+                            type:'>',
+                            val1:0
+                        },
+                        {
+                            key:'shop_id',
+                            val1:shop.id
+                        }
+                    ],
+                    specColumns:{with_image:'IF(product.image = \'\', 0, 1)'},
+                    sort:{
+                        columns:['with_image','name'],
+                        directions:['desc','asc']
+                    },
+                    collapseData:false
+                }
+            };
+            if (obj.columns) o.params.columns = obj.columns.split(',');
+            if (obj.id){
+                ids = String(obj.id).split(',');
+                w = {
+                    key:'id',
+                    type:'in',
+                    val1:ids
+                };
+                o.params.where.push(w);
+            }else{
+                if (obj.category_id){
+                    ids = String(obj.category_id).split(',');
+                    w = {
+                        key:'category_id',
+                        type:'in',
+                        val1:ids
+                    };
+                    o.params.where.push(w);
+                }
+                if (obj.parent_category_id){
+                    ids = String(obj.parent_category_id).split(',');
+                    w = {
+                        key:'parent_category_id',
+                        type:'in',
+                        val1:ids
+                    };
+                    o.params.where.push(w);
+                }
+                if (obj.name){
+                    w = {
+                        group:'siteFastSearch',
+                        comparisonType:'OR',
+                        key:'name',
+                        type:'like',
+                        val1:obj.name
+                    };
+                    o.params.where.push(w);
+                    w = {
+                        group:'siteFastSearch',
+                        comparisonType:'OR',
+                        key:'search_string',
+                        type:'like',
+                        val1:obj.name
+                    };
+                    o.params.where.push(w);
+                    w = {
+                        group:'siteFastSearch',
+                        comparisonType:'OR',
+                        key:'barcode',
+                        type:'=',
+                        val1:obj.name
+                    };
+                    o.params.where.push(w);
+                    o.params.specColumns = {
+                        with_image: 'IF(product.image = \'\', 0, 1)',
+                        pos: 'POSITION(\'' + obj.name + '\' IN product.NAME)',
+                        pos_search: 'IF(POSITION(\'' + obj.name + '\' IN product.search_string) = 0 or POSITION(\'' + obj.name + '\' IN product.search_string) is null,1000000,POSITION(\'' + obj.name + '\' IN product.search_string))'
+                    };
+                    o.params.sort = {
+                        columns:['with_image','pos_search','pos','name'],
+                        directions:['desc','asc','asc','asc']
+                    };
+                }
+            }
+            o.params.limit = obj.limit || 100;
+            o.params.page_no = obj.page_no;
+            api(o, function (err, res) {
+                if (err) return cb(err);
+                products = funcs.cloneObj(res);
+                for (var i in products) {
+                    if (!products[i].image) products[i].image = 'nopicture.jpg';
+                    var img_name = (products[i].image.match(/\.[a-zA-Z]{2,4}$/))? products[i].image : products[i].image + '.jpg';
+                    products[i].image = '/images_new/' + img_name;
+                    products[i].in_basket_count = 0; // ДЛя конкретного пользователя in_basket_count только если есть в его корзине
+                    products[i].in_favorite = false; //
+                }
+                cb(null, err);
+            });
+        },
+        getProductFromCart: function (cb) {
+
+            var o = {
+                command:'get',
+                object:'product_in_cart',
+                params:{
+                    param_where:{
+                        sid:sid
+                    },
+                    collapseData:false
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товары в корзине', {err:err}));
+                for (var i in res) {
+                    var product_id = res[i].product_id;
+                    for (var j in products) {
+
+                        if (products[j].id == product_id){
+                            products[j].in_basket_count = +res[i].product_count;
+                            break;
+                        }
+                    }
+                }
+                //products = funcs.collapseData(products);
+
+                cb(null);
+            });
+        },
+        getActiveUser: function (cb) {
+            var o = {
+                command: 'getBySidActive',
+                object: 'crm_user',
+                params: {
+                    sid: sid
+                    //columns:['name','phone']
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(null);
+                crm_user = res.user;
+                cb(null);
+            });
+        },
+        getFavorite: function (cb) {
+            if (!crm_user) return cb(null);
+            var o = {
+                command:'get',
+                object:'crm_user_favorite',
+                params:{
+                    param_where:{
+                        crm_user_id:crm_user.id,
+                        is_active:true
+                    },
+                    collapseData:false
+                }
+            };
+            api(o, function (err, res) {
+                if (err) return cb(new MyError('Не удалось получить товары в избранном', {err:err}));
+                for (var i in res) {
+                    var product_id = res[i].product_id;
+                    for (var j in products) {
+
+                        if (products[j].id == product_id){
+                            products[j].in_favorite = true;
+                            break;
+                        }
+                    }
+                }
+                //products = funcs.collapseData(products);
+                cb(null);
+            });
+        },
+        collapseData: function (cb) {
+            if(obj.doNotCollapseData) return cb(null);
+            products = funcs.collapseData(products);
+            cb(null);
+        }
+    }, function (err) {
+        if (err) return cb(err);
+        cb(null, products);
+    });
+};
+
 api_functions.get_cart = function (obj, cb) {
     if (arguments.length == 1) {
         cb = arguments[0];

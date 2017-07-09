@@ -95,6 +95,50 @@ var methodos = {
             }
         }
     },
+    get_action_product: {
+        name:'get_action_product',
+        name_ru:'Запросить Продукты по акции',
+        description:'Вернет список продуктов по акции. Можно передать id через запятую.<br>' +
+            'Можно искать по имени или фильтровать по категории/подкатегории',
+        responseJSON:
+            '' +
+                '\nНет примера\n' +
+                '',
+        o:{
+            command:'get_action_product',
+            params:{
+                id:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Можно передать id товара или несколько через запяту. Можно не передавать, будет полный набор'
+                },
+                category_id:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Можно передать id категории или несколько через запяту. Можно не передавать, будет полный набор'
+                },
+                parent_category_id:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Можно передать id подкатегории или несколько через запяту. Можно не передавать, будет полный набор'
+                },
+                name:{
+                    required:false,
+                    default:'',
+                    description: 'Можно вводить неполное название.'
+                },
+                columns:{
+                    required:false,
+                    default:'',
+                    validation:'notNull',
+                    description: 'Можно передать столбцы через запятую'
+                }
+            }
+        }
+    },
     get_reviews: {
         name:'get_reviews',
         name_ru:'Запросить отзывы',
