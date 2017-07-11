@@ -19,6 +19,22 @@ function logout (e, el) {
             title: 'Изменение пароля',
             message: html,
             buttons: {
+                toggleLog: {
+                    label: 'Вкл/Выкл лог',
+                    closeButton:true,
+                    callback: function(){
+
+                        var o = {
+                            command:'toggleConsoleLog',
+                            object:'User',
+                            params:{
+                            }
+                        };
+                        socketQuery(o, function(r){
+                            // console.log(r);
+                        });
+                    }
+                },
                 success: {
                     label: 'Установить новый пароль.',
                     closeButton:false,

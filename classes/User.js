@@ -488,4 +488,36 @@ Model.prototype.logout = function (obj, cb) {
         client.disconnect();
     });*/
 };
+
+// var o = {
+//     command:'toggleConsoleLog',
+//     object:'User',
+//     params:{
+//     }
+// };
+// socketQuery(o, function(r){
+//     console.log(r);
+// });
+Model.prototype.toggleConsoleLog = function (obj, cb) {
+    if (arguments.length == 1) {
+        cb = arguments[0];
+        obj = {};
+    }
+    var _t = this;
+    if (['ivantgco@gmail.com','alextgco@gmail.com'].indexOf(_t.user.user_data.email) === -1) return cb(new UserError('Запрещено'));
+
+    global.consoleLog = (global.consoleLog)? false : _t.user.user_data.id;
+    // Переопределим консоль лог
+    if (global.consoleLog){
+        console.log = function(){
+
+            console.logPrototype(arguments);
+            _t.user.socket.emit('log',arguments);
+        };
+    }else{
+        console.log = console.logPrototype;
+    }
+    if (global.consoleLog) cb(null, new UserOk('Консоль будет выводится для пользователя ' + global.consoleLog));
+    else  cb(null, new UserOk('Вывод консоли для пользователя отключен.'));
+};
 module.exports = Model;

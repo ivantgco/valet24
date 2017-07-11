@@ -7,7 +7,7 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var config = require('./config');
 var sendMail = require('./libs/sendMail');
-
+console.logPrototype = console.log;
 var app = express();
 
 
@@ -44,6 +44,9 @@ app.use(cookieParser());
 require('dns').lookup(require('os').hostname(), function (err, add, fam) {
     console.log('addr: '+add);
 });
+
+
+
 
 
 var sessionStore = require('./libs/sessionStore');

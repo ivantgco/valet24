@@ -93,7 +93,7 @@ socket.on('message', function (obj) {
 });
 
 socket.on('log', function (data) {
-    console.log(data);
+    console.log('---SERVER--LOG--->',data);
 });
 
 socket.on('logBody', function (data) {
