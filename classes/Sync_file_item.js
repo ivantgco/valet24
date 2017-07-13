@@ -980,6 +980,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 if (err) return cb(new MyError('Не удалось получить список продуктов для загрузки.', {err: err}));
                 syncProducts = res;
                 for (var i in syncProducts) {
+                    syncProducts[i].name_sync = syncProducts[i].name;
                     if (syncProducts[i].barcode) {
                         syncProduct_barcodes.push(syncProducts[i].barcode);
                         // syncProduct_barcodes_names.push(syncProducts[i].name.replace(/,/ig,'&comma'));

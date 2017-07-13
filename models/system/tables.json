@@ -574,6 +574,7 @@
       "from_file_id" : {"type": "bigint", "length": "20", "name": "Excel №"},
       "is_active" : {"type": "tinyint", "length": "1", "name": "Активен", "default":0},
       "name" : {"type": "varchar", "length": "255", "name": "Название"},
+      "name_sync" : {"type": "varchar", "length": "255", "name": "Название sync", "quick_search_field":true},
       "qnt_type_id" : {"type": "bigint", "length": "20", "visible": false},
       "qnt_type_sys" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "sysname", "is_virtual": true, "name": "Тип количества sys", "default":"UNIT", "visible": false},
       "qnt_type" : {"type": "varchar", "length": "255", "from_table": "qnt_type", "keyword": "qnt_type_id", "return_column": "name", "is_virtual": true, "name": "Тип количества"},
