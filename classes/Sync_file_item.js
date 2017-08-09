@@ -1044,7 +1044,7 @@ Model.prototype.apply_product = function (obj, cb) {
         },
         //5411616146849
         mergeProduct: function (cb) {
-            var excludeToModify = ['is_deleted', 'name', 'image', 'barcode', 'to_modify', 'category', 'category_id', 'created', 'updated', 'published', 'deleted', 'deleted_by_user_id', 'remove_comment', 'created_by_user_id', 'self_company_id', 'ext_company_id']
+            var excludeToModify = ['price_action','is_action','is_deleted', 'name', 'image', 'barcode', 'to_modify', 'category', 'category_id', 'created', 'updated', 'published', 'deleted', 'deleted_by_user_id', 'remove_comment', 'created_by_user_id', 'self_company_id', 'ext_company_id']
             for (var i in products) {
                 var product = products[i];
                 for (var j in syncProducts) {
@@ -1154,7 +1154,7 @@ Model.prototype.apply_product = function (obj, cb) {
                 },
                 //5411616146849
                 mergeProduct: function (cb) {
-                    var excludeToModify = ['is_deleted','image', 'to_modify', 'category', 'category_id', 'created', 'updated', 'published', 'deleted', 'deleted_by_user_id', 'remove_comment', 'created_by_user_id', 'self_company_id', 'ext_company_id'];
+                    var excludeToModify = ['price_action','is_action','is_deleted','image', 'to_modify', 'category', 'category_id', 'created', 'updated', 'published', 'deleted', 'deleted_by_user_id', 'remove_comment', 'created_by_user_id', 'self_company_id', 'ext_company_id'];
                     var excludeToModifyIfExist = ['is_deleted','name', 'barcode'];
                     for (var i in products) {
                         var product = products[i];

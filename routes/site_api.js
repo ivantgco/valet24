@@ -6,7 +6,7 @@ var UserOk = require('../error').UserOk;
 var getCode = require('../libs/getCode');
 var funcs = require('../libs/functions');
 var async = require('async');
-var envyCrm = require("../modules/envycrm");
+var envyCrm = require("../modules/envyCrm");
 var moment = require('moment');
 moment.locale('ru');
 
