@@ -6,6 +6,7 @@ var UserOk = require('../error').UserOk;
 var getCode = require('../libs/getCode');
 var funcs = require('../libs/functions');
 var async = require('async');
+var envyCrm = require("../modules/envycrm");
 var moment = require('moment');
 moment.locale('ru');
 
@@ -898,6 +899,42 @@ api_functions.create_order = function (obj, cb) {
     };
     api(o, function (err, res) {
         console.log('CREATE_ORDER cb', err, res);
+
+        try {
+            var name = obj.name || "";
+            var phone = obj.phone || "";
+            var email = obj.email || "";
+            var comment = obj.comment || "";
+            var sum = obj.total_to_pay || "";
+            var address = obj.address || "";
+            var gate = obj.gate || "";
+            var gatecode = obj.gatecode || "";
+            var level = obj.level || "";
+
+            var domain = "envycrm.com";
+            var apiKey = "724a99898cf253dc73b5e99ea13db1f3cd00b7aa";
+            var data = {
+                method: 'create',
+                values: {
+                    name: name,
+                    phone: phone,
+                    email: email,
+                    comment: comment,
+                    custom: [
+                        {input_id : 7308, value : sum},
+                        {input_id : 7544, value : address},
+                        {input_id : 7545, value : gate},
+                        {input_id : 7546, value : gatecode},
+                        {input_id : 7547, value : level}
+                    ]
+                }
+            };
+            var crm = new envyCrm(domain, apiKey, data);
+            crm.send();
+        } catch (ex) {
+            console.error(ex);
+        }
+
         cb(err, res); // Если ставить "cb" то получается лажа
     });
 };
