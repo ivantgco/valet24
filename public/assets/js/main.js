@@ -236,6 +236,34 @@ $(document).on("click", function (e) {
 	}
 });
 
+var getStats = function () {
+    var o = {
+        command: 'get',
+        object: 'order_',
+        params: {
+            param_where: {
+                order_status_sysname: 'CLOSED'
+            }
+        }
+    };
+
+    socketQuery(o, function(res){
+        console.log("//////////////////// order_", res);
+        console.log("//////////////////// order_", res.data[0]);
+
+        if (res && res.data) {
+        	$.each(res.data, function (i, order) {
+
+            });
+		}
+    });
+};
+
+$(document).ready(function () {
+	getStats();
+});
+
+
 String.prototype.bool = function () {
 	return /^(true|TRUE|True)$/i.test(this);
 };
@@ -1563,4 +1591,5 @@ window.mergeArrays = function(a1, a2){
 		return cnt;
 	};
 }());
+
 
