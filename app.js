@@ -73,6 +73,13 @@ app.use(express.static(path.join(__dirname, 'public'), {
         })
     }
 }));
+app.use(express.static(path.join(__dirname, 'public/mobile'), {
+    setHeaders: function(res, path) {
+        res.set({
+            'Access-Control-Allow-Origin': '*'
+        })
+    }
+}));
 /*
 app.use(express.static(path.join(__dirname, 'public'), {
     'Access-Control-Allow-Origin': '*'
