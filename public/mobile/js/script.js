@@ -87,7 +87,10 @@ $(document).ready(() => {
 								<span class="small_label address">` + order.address + `</span>
 								<span class="small_label change">
 									<label>Изменить статус</label>
-									<select class="statuses" data-ind="` + i + `" data-id="` + order.id + `">` + this.statusesHTML + `</select>
+									<select class="statuses" data-ind="` + i + `" data-id="` + order.id + `">
+										<option style="display:none">
+										` + this.statusesHTML + `
+									</select>
 								</span>
 							</div>
 						</li>`;
@@ -103,6 +106,7 @@ $(document).ready(() => {
 			if (!isNaN(ind) && ind >= 0 && ind < this.list.length) {
 				try {
 					this.active_order = this.list[ind];
+					this.active_order.ind = ind;
 
 					$('.order_n_name').html("#" + this.active_order.id + "&nbsp;&nbsp;" + this.active_order.name);
 
@@ -228,6 +232,9 @@ $(document).ready(() => {
 			$('.address_info .level').html(this.active_order.level);
 			$('.address_info .flat').html(this.active_order.flat);
 			$('.address_info .comment').html(this.active_order.comment);
+
+			$('.state_info select.statuses').attr('data-ind', this.active_order.ind);
+			$('.state_info select.statuses').attr('data-id', this.active_order.id);
 		},
 
 		statusesHTML: '',
@@ -243,10 +250,10 @@ $(document).ready(() => {
 			socketQuery(o, (res) => {
 				if (res) {
 					res.forEach((status) => {
-						this.statusesHTML += `<option value="` + status.id + `">` + status.name + `</option>`
+						this.statusesHTML += `<option value="` + status.id + `" data-sysname="` + status.sysname + `">` + status.name + `</option>`
 					});
 
-					$('.state_info select.statuses').html(this.statusesHTML);
+					$('.state_info select.statuses').html('<option style="display:none">' + this.statusesHTML);
 					if (callback) callback.call(this)
 				} else {
 					if (toastr) {
@@ -331,8 +338,27 @@ $(document).ready(() => {
 		$(e.currentTarget).toggleClass('enlarged');
 	});
 
+	//Изменение статуса
+	$(document).off('change', 'select.statuses').on('change', 'select.statuses', function(e) {
+		let ind = $(e.currentTarget).attr('data-ind');
+		let id = $(e.currentTarget).attr('data-id');
+		let option = $(e.currentTarget).find('option:selected');
+
+		console.log(ind, id, option.html(), option.attr('data-sysname').toLowerCase());
+		if (+ind >= 0 && +id > 0 && option.length > 0 && orders.list.length > ind) {
+			$('.orders_list ul li[data-ind="' + +ind + '"]').attr('data-status', option.attr('data-sysname').toLowerCase());
+			$('.orders_list ul li[data-ind="' + +ind + '"]').find('.status').html(option.html());
+
+			$('.state_info .order_property').attr('data-status', option.attr('data-sysname').toLowerCase());
+			$('.state_info .status').html(option.html());
+
+			orders.list[ind].order_status = option.html();
+			orders.list[ind].order_status_sysname = option.attr('data-sysname').toLowerCase();
+		}
+	});
+
 	// Открыть заказ
-	$(document).off('click', '.orders_list li').on('click', '.orders_list li', (e) => {
+	$(document).off('tapone', '.orders_list li').on('tapone', '.orders_list li', (e) => {
 		if ($(e.target).closest('.change').length > 0) return;
 
 		let ind = +$(e.currentTarget).attr('data-ind');
