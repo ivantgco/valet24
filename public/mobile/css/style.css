@@ -9,22 +9,28 @@ body, html {
 	height: 100%;
 }
 
+body.enlarged header {
+	display: none;
+}
+
 ol, ul {
 	list-style: none;
 }
 
 select.statuses {
 	position: absolute;
-	top: -15px;
+	top: -10px;
 	left: -10px;
-	padding: 20px 20px;
+	width: 150px;
+	height: 50px;
 	opacity: 0;
 }
 
 .orders_list select.statuses {
-	top: 0;
+	top: -5px;
 	left: 0;
-	padding: 0;
+	width: 105px;
+	height: 30px;
 }
 
 .toast-message {
@@ -196,7 +202,7 @@ header .bottom .fa {
 	font-size: 16px;
 	color: #8a8a8a;
 	padding: 15px;
-	margin: -15px 5px -15px -15px;
+	margin: -12px 5px -15px -15px;
 }
 
 [data-state="info"] header .bottom .menu_item.info {
@@ -259,6 +265,11 @@ ul.state_products li,
 	border-bottom: 1px solid;
 }
 
+ul.state_products li,
+.orders_list ul li {
+	cursor: pointer
+}
+
 .orders_list ul li {
 	display: -webkit-box;
 	display: -ms-flexbox;
@@ -274,7 +285,6 @@ ul.state_products li,
 	-ms-flex-pack: center;
 	justify-content: center;
 	padding: 20px;
-	cursor: pointer
 }
 
 .status {
@@ -467,7 +477,7 @@ ul.state_products li.checked .product_check .fa {
 .state_info .user_info .phone {
 	font-family: "PT Serif", serif;
 	font-size: 18px;
-	line-height: 3em;
+	padding: 15px 0 13px;
 }
 
 .state_info .user_info .time {
@@ -510,9 +520,9 @@ ul.state_products li.checked .product_check .fa {
 	-webkit-box-direction: normal;
 	-ms-flex-direction: row;
 	flex-direction: row;
-	-webkit-box-align: end;
-	-ms-flex-align: end;
-	align-items: flex-end;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center;
 	-webkit-box-pack: start;
 	-ms-flex-pack: start;
 	justify-content: flex-start;
@@ -529,7 +539,7 @@ ul.state_products li.checked .product_check .fa {
 }
 
 .state_info .order_properties .order_property.margin_bottom {
-	height: 60px;
+	padding-bottom: 10px;
 	-webkit-box-align: start;
 	-ms-flex-align: start;
 	align-items: flex-start;
@@ -540,7 +550,7 @@ ul.state_products li.checked .product_check .fa {
 }
 
 .state_info .order_properties .order_property.margin_top {
-	height: 40px;
+	padding-top: 10px;
 }
 
 .state_info .order_properties .prop_title {
@@ -551,7 +561,7 @@ ul.state_products li.checked .product_check .fa {
 
 .state_info .change {
 	position: relative;
-	margin: 15px;
+	margin: 5px 0 0 15px;
 	font-family: "PT Sans", sans-serif;
 	font-weight: 700;
 	font-size: 18px;

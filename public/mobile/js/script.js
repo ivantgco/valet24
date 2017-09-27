@@ -19,18 +19,44 @@ $(document).ready(() => {
 			if (!this.loading) {
 				this.loading = true;
 
-				if (next_page) this.page_no++;
+				if (next_page) {
+					this.page_no++;
+				} else {
+					this.page_no = 1;
+				}
 
 				try {
+					let search_query = $('input.search').val();
+
 					let o = {
 						command: 'get',
 						object: 'order_',
 						params: {
+							where: [],
 							page_no: this.page_no,
 							limit: this.limitPerPage,
 							collapseData: false
 						}
 					};
+
+					if (search_query && search_query.trim().length > 0) {
+						o.params.where = [
+							{
+								group: 'valetMobileSearch',
+								comparisonType: 'OR',
+								key: 'phone',
+								type: 'like',
+								val1: search_query.trim()
+							},
+							{
+								group: 'valetMobileSearch',
+								comparisonType: 'OR',
+								key: 'id',
+								type: 'like',
+								val1: search_query.trim()
+							}
+						];
+					}
 
 					socketQuery(o, (res) => {
 						if (res) {
@@ -53,6 +79,7 @@ $(document).ready(() => {
 					});
 				} catch (e) {
 					this.loading = false;
+					console.log(e);
 				}
 			}
 		},
@@ -151,8 +178,6 @@ $(document).ready(() => {
 			}
 		},
 		renderProducts: function () {
-			console.log(this.active_order);
-
 			setState(states[1]);
 			$('ul.state_products').html('');
 			$('ul.state_products').scrollTop(0);
@@ -268,97 +293,74 @@ $(document).ready(() => {
 
 
 	//Вернуться на "Заказы"
-	$('header .fa-chevron-left').off('click').on('click', () => {
+	$('header .fa-chevron-left').off('click tapone').on('click tapone', () => {
 		setState(states[0]);
 	});
 
 	//Переключиться на "Товары"
-	$('.state_order.products').off('click').on('click', () => {
+	$('.state_order.products').off('click tapone').on('click tapone', () => {
 		setState(states[1]);
 	});
 
 	//Переключиться на "Информацию"
-	$('.state_order.info').off('click').on('click', () => {
+	$('.state_order.info').off('click tapone').on('click tapone', () => {
 		setState(states[2]);
 	});
 
 	//Очистить строку поиска
-	$('.clear_search').off('click').on('click', () => {
+	$('.clear_search').off('click tapone').on('click tapone', () => {
 		$('input.search').val('');
 		orders.loadOrders();
 	});
 
 	//Выполнить поиск
-	$('input.search').on('keyup', (e) => {
-		let search_query = $(e.currentTarget).val();
-
-		console.log(search_query);
-
-		let o = {
-			command: 'get',
-			object: 'order_',
-			params: {
-				where: [
-					{
-						group: 'valetMobileSearch',
-						comparisonType: 'OR',
-						key: 'phone',
-						type: 'like',
-						val1: search_query
-					},
-					{
-						group: 'valetMobileSearch',
-						comparisonType: 'OR',
-						key: 'id',
-						type: 'like',
-						val1: search_query
-					}
-				],
-				collapseData: false
-			}
-		};
-
-		socketQuery(o, (res) => {
-			console.log('search_query', res);
-
-			if (res) {
-				orders.page_no = 1;
-				orders.list = res;
-				orders.renderOrders();
-			} else {
-				if (toastr) {
-					toastr['error']('Ошибка при поиске');
-				}
-			}
-		});
+	$('input.search').on('keyup', () => {
+		orders.loadOrders();
 	});
 
 	//Просмотр фото
-	$(document).off('click', '.product_img').on('click', '.product_img', (e) => {
+	$(document).off('click tapone', '.product_img').on('click tapone', '.product_img', (e) => {
 		$(e.currentTarget).toggleClass('enlarged');
+		$('body').toggleClass('enlarged');
 	});
 
 	//Изменение статуса
-	$(document).off('change', 'select.statuses').on('change', 'select.statuses', function(e) {
+	$(document).off('change', 'select.statuses').on('change', 'select.statuses', (e) => {
 		let ind = $(e.currentTarget).attr('data-ind');
 		let id = $(e.currentTarget).attr('data-id');
 		let option = $(e.currentTarget).find('option:selected');
 
-		console.log(ind, id, option.html(), option.attr('data-sysname').toLowerCase());
+		let order_status_id = $(e.currentTarget).val();
+		let sysname = option.attr('data-sysname').toLowerCase();
+		let name = option.html();
+		console.log(order_status_id, name, sysname);
+
 		if (+ind >= 0 && +id > 0 && option.length > 0 && orders.list.length > ind) {
-			$('.orders_list ul li[data-ind="' + +ind + '"]').attr('data-status', option.attr('data-sysname').toLowerCase());
-			$('.orders_list ul li[data-ind="' + +ind + '"]').find('.status').html(option.html());
+			let o = {
+				command: 'modify',
+				object: 'order_',
+				params: {
+					id: id,
+					order_status_id: order_status_id
+				}
+			};
 
-			$('.state_info .order_property').attr('data-status', option.attr('data-sysname').toLowerCase());
-			$('.state_info .status').html(option.html());
+			socketQuery(o, (res) => {
+				if (res && res.code === 0) {
+					$('.orders_list ul li[data-ind="' + +ind + '"]').attr('data-status', sysname).find('.status').html(name);
 
-			orders.list[ind].order_status = option.html();
-			orders.list[ind].order_status_sysname = option.attr('data-sysname').toLowerCase();
+					$('.state_info .order_property').attr('data-status', sysname);
+					$('.state_info .status').html(name);
+
+					orders.list[ind].order_status = name;
+					orders.list[ind].order_status_sysname = sysname;
+				}
+			});
 		}
 	});
 
 	// Открыть заказ
-	$(document).off('tapone', '.orders_list li').on('tapone', '.orders_list li', (e) => {
+	$(document).off('click tapone', '.orders_list li').on('click tapone', '.orders_list li', (e) => {
 		if ($(e.target).closest('.change').length > 0) return;
 
 		let ind = +$(e.currentTarget).attr('data-ind');
@@ -367,7 +369,7 @@ $(document).ready(() => {
 	});
 
 	//Выводить кол-во прокликанных товаров
-	$(document).off('click', '.state_products li').on('click', '.state_products li', (e) => {
+	$(document).off('click tapone', '.state_products li').on('click tapone', '.state_products li', (e) => {
 		$(e.currentTarget).toggleClass('checked');
 
 		let n = $('.state_products li').length;
@@ -376,6 +378,7 @@ $(document).ready(() => {
 		$('.menu_item.products span').html('(' + +n_checked + '/' + +n + ')');
 	});
 
+	//Подгрузка заказов при скролле
 	$('.orders_list').scroll(function (e) {
 		let scroll = $(this).scrollTop();
 		let window_h = $(e.currentTarget).height();
